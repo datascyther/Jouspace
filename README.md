@@ -1,368 +1,511 @@
+<!-- ══════════════════════════════════════════════════════════════════════════
+     JOUSPACE — README
+     Your thoughts, connected over time.
+     ══════════════════════════════════════════════════════════════════════════ -->
+
 <div align="center">
 
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<!--                         HERO SECTION                          -->
-<!-- ═══════════════════════════════════════════════════════════════ -->
-
-<img src="https://capsule-render.vercel.app/api?type=venom&height=300&color=0:0d1117,50:161b22,100:21262d&text=Jouspace&fontColor=58a6ff&fontSize=90&animation=fadeIn&stroke=30363d&strokeWidth=2" alt="Jouspace" />
-
-<br />
-
-### ✦ Your thoughts, connected over time ✦
-
-**An open-source AI-native journal for writing, remembering, connecting, and reflecting across your personal history.**
-
-<br />
-
-<!-- Animated typing subtitle -->
-<img src="https://readme-typing-svg.demolab.com?font=Inter&weight=600&size=18&duration=3000&pause=1000&color=8B949E&center=true&vCenter=true&width=600&lines=Journal+first.+AI+when+useful.;Your+history+stays+meaningful.;Write+%E2%86%92+Remember+%E2%86%92+Connect+%E2%86%92+Reflect" alt="Typing SVG" />
-
-<br />
-
-<!-- ═══════════════════════ BADGE ROW ═══════════════════════ -->
-
-[![GitHub stars](https://img.shields.io/github/stars/datascyther/Jouspace?style=for-the-badge&logo=github&logoColor=white&label=Stars&color=58a6ff)](https://github.com/datascyther/Jouspace/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/datascyther/Jouspace?style=for-the-badge&logo=github&logoColor=white&label=Forks&color=238636)](https://github.com/datascyther/Jouspace/network/members)
-[![GitHub issues](https://img.shields.io/github/issues/datascyther/Jouspace?style=for-the-badge&logo=github&logoColor=white&label=Issues&color=f0883e)](https://github.com/datascyther/Jouspace/issues)
-[![GitHub license](https://img.shields.io/github/license/datascyther/Jouspace?style=for-the-badge&logo=opensourceinitiative&logoColor=white&label=License&color=8957e5)](LICENSE)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?style=for-the-badge&logo=typescript&logoColor=white&labelColor=1d1d1d)](https://www.typescriptlang.org/)
-[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black&labelColor=1d1d1d)](https://react.dev/)
-
-<br />
-
-<!-- Quick action buttons -->
-<a href="https://github.com/datascyther/Jouspace/stargazers">
-  <img src="https://img.shields.io/badge/%E2%AD%90%20Star%20this%20repo-21262d?style=for-the-badge&logoColor=white" alt="Star" />
+<a href="https://github.com/datascyther/Jouspace">
+  <img
+    src="https://capsule-render.vercel.app/api?type=waving&color=0:0B1020,35:4F46E5,70:7C3AED,100:22D3EE&height=230&section=header&text=Jouspace&fontSize=84&fontColor=FFFFFF&fontAlignY=36&desc=Your%20thoughts,%20connected%20over%20time.&descSize=19&descAlignY=57&animation=fadeIn"
+    alt="Jouspace — Your thoughts, connected over time."
+  />
 </a>
-<a href="https://github.com/datascyther/Jouspace/fork">
-  <img src="https://img.shields.io/badge/%F0%9F%8D%B4%20Fork%20it-21262d?style=for-the-badge&logoColor=white" alt="Fork" />
-</a>
-<a href="https://github.com/datascyther/Jouspace/issues/new">
-  <img src="https://img.shields.io/badge/%F0%9F%90%9B%20Report%20Issue-21262d?style=for-the-badge&logoColor=white" alt="Issue" />
-</a>
+
+<br />
+
+<img
+  src="https://readme-typing-svg.demolab.com?font=IBM+Plex+Mono&weight=600&size=21&pause=1100&color=8B5CF6&center=true&vCenter=true&width=760&lines=Write.+Remember.+Connect.+Reflect.;An+open-source%2C+AI-native+journal.;Journal+first.+AI+when+useful.;Your+history+stays+meaningful."
+  alt="Write. Remember. Connect. Reflect."
+/>
 
 <br /><br />
 
-<!-- ═══════════════════════ VISUAL DIVIDER ═══════════════════════ -->
+**An open-source, AI-native journal for writing, remembering, connecting, and reflecting across your personal history.**
 
-<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png" alt="divider" width="100%" />
+Jouspace brings journaling, contextual memory, mood, and AI-assisted reflection into one continuous space —
+so what you write today can still be useful months from now.
 
-</div>
+<br />
 
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<!--                    TABLE OF CONTENTS                          -->
-<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- ─────────────── PRIMARY BADGES ─────────────── -->
 
-<details open>
-<summary><h2>📖 Table of Contents</h2></summary>
+[![Stars](https://img.shields.io/github/stars/datascyther/Jouspace?style=for-the-badge&logo=github&logoColor=white&label=STARS&labelColor=0B1020&color=8B5CF6)](https://github.com/datascyther/Jouspace/stargazers)
+[![Forks](https://img.shields.io/github/forks/datascyther/Jouspace?style=for-the-badge&logo=github&logoColor=white&label=FORKS&labelColor=0B1020&color=4F46E5)](https://github.com/datascyther/Jouspace/network/members)
+[![Issues](https://img.shields.io/github/issues/datascyther/Jouspace?style=for-the-badge&logo=github&logoColor=white&label=ISSUES&labelColor=0B1020&color=22D3EE)](https://github.com/datascyther/Jouspace/issues)
+[![License](https://img.shields.io/github/license/datascyther/Jouspace?style=for-the-badge&logo=opensourceinitiative&logoColor=white&label=LICENSE&labelColor=0B1020&color=10B981)](LICENSE)
 
-- [🌌 The Idea](#-the-idea)
-- [🎯 Product Thesis](#-product-thesis)
-- [🔄 The Core Loop](#-the-core-loop)
-- [✨ What Makes Jouspace Different](#-what-makes-jouspace-different)
-- [🧠 Intelligence Model](#-intelligence-model)
-- [🎨 Core Experiences](#-core-experiences)
-- [🏗️ System Architecture](#%EF%B8%8F-system-architecture)
-- [🧩 Memory Architecture](#-memory-architecture)
-- [⚡ Technology Stack](#-technology-stack)
-- [🚀 Getting Started](#-getting-started)
-- [📋 Available Scripts](#-available-scripts)
-- [🗺️ Roadmap](#%EF%B8%8F-roadmap)
-- [🤝 Contributing](#-contributing)
-- [🔒 Security](#-security)
-- [🧭 Responsible AI](#-responsible-ai)
-- [📜 License](#-license)
-- [🌟 Star History](#-star-history)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?style=for-the-badge&logo=typescript&logoColor=white&labelColor=0B1020)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=61DAFB&labelColor=0B1020)](https://react.dev/)
+[![Expo](https://img.shields.io/badge/Expo-SDK-000020?style=for-the-badge&logo=expo&logoColor=white&labelColor=0B1020)](https://expo.dev/)
+[![Supabase](https://img.shields.io/badge/Supabase-Data-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white&labelColor=0B1020)](https://supabase.com/)
+[![Pinecone](https://img.shields.io/badge/Pinecone-Vectors-000000?style=for-the-badge&logo=pinecone&logoColor=white&labelColor=0B1020)](https://www.pinecone.io/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-F59E0B?style=for-the-badge&logo=git&logoColor=white&labelColor=0B1020)](https://github.com/datascyther/Jouspace/pulls)
 
-</details>
+<br />
 
-<div align="center">
-<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png" alt="divider" width="100%" />
-</div>
+<!-- ─────────────── NAV ─────────────── -->
 
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<!--                      THE IDEA SECTION                         -->
-<!-- ═══════════════════════════════════════════════════════════════ -->
+### [ 🧭 Thesis ](#-the-product-thesis) · [ 🔁 Core Loop ](#-the-core-loop) · [ ✨ Experiences ](#-core-experiences) · [ 🏛 Architecture ](#-system-architecture) · [ 🧠 Memory ](#-memory-architecture) · [ 🚀 Quickstart ](#-getting-started) · [ 🗺 Roadmap ](#-roadmap) · [ ⭐ Star Graphs ](#-star-growth)
 
-## 🌌 The Idea
+<br />
 
-<div align="center">
-
-> *"Most journals are good at storing thoughts. The problem is that stored thoughts eventually become an archive."*
+<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" width="100%" alt="divider" />
 
 </div>
 
-Something you wrote three months ago may explain what you are thinking today, but conventional journaling software rarely understands that relationship.
+<br />
 
-AI chat has almost the opposite problem. It can be useful in the moment, yet without meaningful continuity, every conversation risks becoming another isolated interaction.
+## 📖 Table of Contents
 
-**Jouspace explores what happens when those two ideas are combined.**
+<table>
+<tr>
+<td valign="top" width="33%">
 
-It treats your writing, conversations, mood context, and reflections as parts of a growing personal history. Instead of making AI the center of the experience, Jouspace makes **your context** the center. The AI exists as a reflective layer over that context.
+**Product**
+- [Why Jouspace exists](#-why-jouspace-exists)
+- [The product thesis](#-the-product-thesis)
+- [The core loop](#-the-core-loop)
+- [Core experiences](#-core-experiences)
+- [What makes it different](#-what-makes-jouspace-different)
+- [Design language](#-design-language)
 
-<div align="center">
+</td>
+<td valign="top" width="33%">
 
-| 📊 | 💡 |
-|:---:|:---|
-| **Conventional Journaling** | Entries become static archives |
-| **AI Chat** | Conversations lack continuity |
-| **Jouspace** | *Persistent context with reflective intelligence* |
+**Engineering**
+- [Intelligence model](#-jouspace-intelligence-model)
+- [Anatomy of a reflection](#-anatomy-of-a-reflection)
+- [System architecture](#-system-architecture)
+- [Memory architecture](#-memory-architecture)
+- [Technology](#-technology)
+- [Repository structure](#-repository-structure)
 
-</div>
+</td>
+<td valign="top" width="33%">
 
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<!--                   PRODUCT THESIS SECTION                      -->
-<!-- ═══════════════════════════════════════════════════════════════ -->
+**Community**
+- [Getting started](#-getting-started)
+- [Scripts](#-available-scripts)
+- [Roadmap](#-roadmap)
+- [Contributing](#-contributing)
+- [Responsible AI](#-responsible-ai)
+- [Star growth](#-star-growth)
 
-## 🎯 Product Thesis
+</td>
+</tr>
+</table>
 
-<div align="center">
+<br />
 
-### A personal space where writing, memory, mood, and AI context accumulate over time.
+---
 
-</div>
+## 🌱 Why Jouspace Exists
 
+<table>
+<tr>
+<td width="50%" valign="top">
+
+### The archive problem
+
+Most journals are excellent at **storing** thoughts.
+
+The problem is that stored thoughts eventually become an *archive*.
+
+Something you wrote three months ago may perfectly explain what you're thinking today — but conventional journaling software rarely understands that relationship.
+
+</td>
+<td width="50%" valign="top">
+
+### The amnesia problem
+
+AI chat has almost the opposite problem.
+
+It can be genuinely useful in the moment, yet without meaningful continuity every conversation risks becoming another **isolated interaction**.
+
+Yesterday's insight evaporates. The context resets. You start over.
+
+</td>
+</tr>
+</table>
+
+```text
+   ┌───────────────────────────────┐          ┌───────────────────────────────┐
+   │        TRADITIONAL JOURNAL    │          │        TRADITIONAL AI CHAT    │
+   │                               │          │                               │
+   │   Jan ▓                       │          │   session ▢ ▢ ▢ ▢ ▢ ▢ ▢       │
+   │   Feb ▓                       │          │            ↑                  │
+   │   Mar ▓   ← never revisited   │          │            └ no continuity    │
+   │   Apr ▓                       │          │                               │
+   │   May ▓                       │          │   "Remind me what we…"        │
+   │        ↓                      │          │   → context not found         │
+   │     the archive               │          │                               │
+   └───────────────────────────────┘          └───────────────────────────────┘
+
+                        ╭──────────────────────────────╮
+                        │           JOUSPACE           │
+                        │                              │
+                        │  Jan ▓──┐                    │
+                        │  Feb ▓──┼──▶ ⟨ context ⟩ ──┐ │
+                        │  Mar ▓──┤                  │ │
+                        │  Apr ▓──┘                  ▼ │
+                        │  May ▓ ◀────── reflection ──┘ │
+                        │                              │
+                        │   history that stays useful  │
+                        ╰──────────────────────────────╯
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                                                             │
-│   Personal software becomes more useful when it understands  │
-│   continuity.                                                │
-│                                                             │
-│   ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
-│   │   Journal    │  │   Memory     │  │   Reflect    │     │
-│   │   Entries    │  │   Layer      │  │   Surface    │     │
-│   └──────┬───────┘  └──────┬───────┘  └──────┬───────┘     │
-│          │                 │                 │              │
-│          └─────────────────┼─────────────────┘              │
-│                            ▼                                │
-│                    ┌──────────────┐                         │
-│                    │  YOUR CONTEXT │                        │
-│                    └──────────────┘                         │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
 
-A journal entry should not become irrelevant once it leaves the top of a timeline. A conversation should not automatically become disconnected from everything that came before it. A mood entry should provide context, not merely become another point on a chart.
+> **Jouspace explores what happens when those two ideas are combined.**
+>
+> It treats your writing, conversations, mood context, and reflections as parts of a *growing personal history*.
+> Instead of making AI the center of the experience, Jouspace makes **your context** the center —
+> and the AI exists as a reflective layer over it.
+
+<br />
+
+---
+
+## 🧭 The Product Thesis
+
+<div align="center">
+
+<img src="https://img.shields.io/badge/THESIS-A%20personal%20space%20where%20writing%2C%20memory%2C%20mood%20%26%20AI%20context%20accumulate%20over%20time-8B5CF6?style=for-the-badge&labelColor=0B1020" alt="thesis" />
+
+</div>
+
+<br />
+
+Jouspace is built around a single conviction:
+
+> ### Personal software becomes more useful when it understands **continuity**.
+
+<table>
+<tr>
+<td align="center" width="33%">
+
+**📄**
+### A journal entry
+should not become irrelevant
+the moment it leaves the top
+of a timeline.
+
+</td>
+<td align="center" width="33%">
+
+**💬**
+### A conversation
+should not automatically be
+disconnected from everything
+that came before it.
+
+</td>
+<td align="center" width="33%">
+
+**🌤**
+### A mood entry
+should provide *context* —
+not merely become another
+point on a chart.
+
+</td>
+</tr>
+</table>
+
+<div align="center">
 
 **Jouspace is designed to make accumulated history useful again.**
 
-<div align="center">
-<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png" alt="divider" width="100%" />
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<!--                    CORE LOOP SECTION                          -->
-<!-- ═══════════════════════════════════════════════════════════════ -->
+<br />
 
-## 🔄 The Core Loop
+---
 
-<div align="center">
+## 🔁 The Core Loop
 
 ```mermaid
-%%{init: {'theme': 'dark', 'themeVariables': { 'primaryColor': '#58a6ff', 'primaryTextColor': '#c9d1d9', 'primaryBorderColor': '#30363d', 'lineColor': '#8b949e', 'secondaryColor': '#161b22', 'tertiaryColor': '#21262d'}}}%%
 flowchart LR
-    A["✍️ Write"] -->|"Capture freely"| B["🧠 Remember"]
-    B -->|"Preserve context"| C["🔗 Connect"]
-    C -->|"Find relationships"| D["🪞 Reflect"]
-    D -. "New perspective" .-> A
+    A(["✍️ &nbsp;WRITE<br/><sub>capture freely</sub>"]) --> B(["🧠 &nbsp;REMEMBER<br/><sub>persist context</sub>"])
+    B --> C(["🔗 &nbsp;CONNECT<br/><sub>surface relations</sub>"])
+    C --> D(["🪞 &nbsp;REFLECT<br/><sub>see yourself</sub>"])
+    D -. "new perspective" .-> A
 
-    style A fill:#0d1117,stroke:#58a6ff,stroke-width:2px,color:#c9d1d9
-    style B fill:#0d1117,stroke:#238636,stroke-width:2px,color:#c9d1d9
-    style C fill:#0d1117,stroke:#f0883e,stroke-width:2px,color:#c9d1d9
-    style D fill:#0d1117,stroke:#8957e5,stroke-width:2px,color:#c9d1d9
+    classDef node fill:#0B1020,stroke:#8B5CF6,stroke-width:2px,color:#E9E9FF,rx:14,ry:14;
+    class A,B,C,D node;
 ```
 
-</div>
-
-### ✍️ Write
-Capture thoughts freely. Jouspace is designed around **freeform writing first**. AI prompts and assistance should support the writing process rather than turn journaling into a questionnaire.
-
-### 🧠 Remember
-Preserve useful context across time. Entries, conversations, reflections, and supporting signals can contribute to a persistent personal context instead of existing as disconnected records.
-
-### 🔗 Connect
-Find relationships across your history. Past ideas, recurring themes, emotional context, and related moments can become discoverable when they matter again.
-
-### 🪞 Reflect
-Use AI to examine your own context. The goal is not to outsource thinking to an assistant. It is to create a system capable of helping you look back at your own history with more context.
-
-<div align="center">
-<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png" alt="divider" width="100%" />
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<!--              WHAT MAKES IT DIFFERENT SECTION                  -->
-<!-- ═══════════════════════════════════════════════════════════════ -->
-
-## ✨ What Makes Jouspace Different?
-
-Jouspace is **not simply a journal with an AI chat box attached to it**. Its architecture is being developed around longitudinal context.
-
-<div align="center">
-
 <table>
 <tr>
-<td width="50%" valign="top">
+<th width="25%">✍️ Write</th>
+<th width="25%">🧠 Remember</th>
+<th width="25%">🔗 Connect</th>
+<th width="25%">🪞 Reflect</th>
+</tr>
+<tr>
+<td valign="top">
 
-#### ❌ Conventional Approach
+Capture thoughts freely.
 
-- Entries become an archive
-- AI reacts to the current prompt
-- Mood is treated as the product
-- Chat is the primary experience
-- Memory means chat history
-- AI constantly tries to engage
-- Journaling is structured around prompts
+Jouspace is designed around **freeform writing first**. AI prompts should support the writing process — never turn journaling into a questionnaire.
 
 </td>
-<td width="50%" valign="top">
+<td valign="top">
 
-#### ✅ Jouspace Approach
+Preserve useful context across time.
 
-- Entries contribute to persistent context
-- AI can reason over relevant historical context
-- Mood acts as supporting context
-- AI exists across the broader product
-- Memory represents useful personal context
-- User agency remains central
-- Freeform writing comes first
+Entries, conversations, and signals contribute to a **persistent personal context** instead of existing as disconnected records.
+
+</td>
+<td valign="top">
+
+Find relationships across your history.
+
+Past ideas, recurring themes, and emotional context become **discoverable again** exactly when they matter.
+
+</td>
+<td valign="top">
+
+Use AI to examine your own context.
+
+The goal is not to outsource thinking — it's to help you **look back with more context** than memory alone allows.
 
 </td>
 </tr>
 </table>
 
-</div>
+<br />
 
-> **The objective is not more AI. The objective is better continuity.**
+---
 
-<div align="center">
-<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png" alt="divider" width="100%" />
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<!--                 INTELLIGENCE MODEL SECTION                    -->
-<!-- ═══════════════════════════════════════════════════════════════ -->
-
-## 🧠 Intelligence Model
+## ✨ Core Experiences
 
 <div align="center">
 
-### 🪞 Mirror first · 🤝 Companion second · 📝 Scribe third
+| | Surface | What it is | Role in the system |
+|:--:|:--|:--|:--|
+| 📓 | **Journal** | A persistent writing space built around freeform thought | The primary source of truth |
+| 🤝 | **AI Companion** | Conversation connected to your broader context | User-initiated, context-aware |
+| 🧠 | **Memory** | Persistent personal memory beyond chat history | Retrieval, not accumulation |
+| 🔗 | **Connections** | Emergent relationships across your history | Discovery layer |
+| 🌤 | **Mood Context** | A contextual signal, not the product itself | Enrichment |
+| 🪞 | **Reflection** | Revisiting history with interpretation | Sits above raw storage |
+
+</div>
+
+<br />
+
+<details>
+<summary><b>📓 &nbsp;Journal — see the surface</b></summary>
+
+<br />
+
+```text
+┌──────────────────────────────────────────────────────────────────────────┐
+│  Jouspace ▸ Journal                                     ⌘K   ◐   ⚙︎      │
+├──────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│   Tuesday, 14 March                                    🌤 steady · 6/10  │
+│   ────────────────────────────────────────────────────────────────────   │
+│                                                                          │
+│   I keep circling the same decision about the project scope. It          │
+│   feels less like indecision and more like I haven't named what          │
+│   I'm actually afraid of yet.▊                                           │
+│                                                                          │
+│                                                                          │
+│   ╭─ 🔗 Related from your history ─────────────────────────────────╮     │
+│   │  • 18 Nov — "scope creep and the fear of finishing"      82%  │     │
+│   │  • 03 Jan — "I mistake preparation for progress"         74%  │     │
+│   ╰────────────────────────────────────────────────────────────────╯     │
+│                                                                          │
+│   [ Save ]   [ 🪞 Reflect on this ]   [ 🤝 Ask companion ]               │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
+Journal entries are **not disposable documents**. They become part of the historical context that makes future reflection more useful.
+
+</details>
+
+<details>
+<summary><b>🤝 &nbsp;AI Companion — see the surface</b></summary>
+
+<br />
+
+```text
+┌──────────────────────────────────────────────────────────────────────────┐
+│  Jouspace ▸ Companion                              context: 4 sources ⓘ  │
+├──────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│   you ▸  why do I keep stalling on this?                                 │
+│                                                                          │
+│   ◈ jouspace                                                             │
+│     You've written about this shape of hesitation three times            │
+│     since November. Each time it appeared right before a                 │
+│     commitment became public rather than private.                        │
+│                                                                          │
+│     ╭ drawn from ─────────────────────────────────────────────╮          │
+│     │ 📓 18 Nov entry   📓 03 Jan entry   🌤 Mar mood window   │          │
+│     ╰──────────────────────────────────────────────────────────╯         │
+│                                                                          │
+│     Would it help to look at what changed the one time you               │
+│     didn't stall?                                                        │
+│                                                                          │
+│   ▸ type a message…                                          [ send ]    │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
+The companion is **primarily user-initiated** and cites the context it used.
+
+</details>
+
+<details>
+<summary><b>🧠 &nbsp;Memory & Connections — see the surface</b></summary>
+
+<br />
+
+```text
+   RELEVANCE MAP ─ query: "fear of finishing"
+
+   18 Nov · scope creep            ████████████████████░░░░  0.82   📓
+   03 Jan · preparation ≠ progress ██████████████████░░░░░░  0.74   📓
+   27 Feb · companion thread       ████████████░░░░░░░░░░░░  0.51   💬
+   09 Mar · mood dip window        ████████░░░░░░░░░░░░░░░░  0.34   🌤
+   ─────────────────────────────────────────────────────────────────
+   retrieved: 3 · discarded: 1 (below threshold)
+```
+
+**Retrieve what matters, when it matters.** Not every stored event deserves permanent attention.
+
+</details>
+
+<br />
+
+---
+
+## 🔍 What Makes Jouspace Different?
+
+Jouspace is **not simply a journal with an AI chat box attached to it**. Its architecture is being developed around *longitudinal context*.
+
+<div align="center">
+
+| | 🗄 Conventional approach | ◈ Jouspace approach |
+|:--:|:--|:--|
+| **Entries** | Become an archive | Contribute to persistent context |
+| **AI** | Reacts to the current prompt | Reasons over relevant historical context |
+| **Mood** | Is treated as the product | Acts as supporting context |
+| **Chat** | Is the primary experience | Exists across the broader product |
+| **Memory** | Means chat history | Means useful personal context |
+| **Engagement** | AI constantly tries to engage | User agency remains central |
+| **Structure** | Journaling built around prompts | Freeform writing comes first |
 
 </div>
 
 <div align="center">
 
-| Priority | Role | Description |
-|:---:|:---|:---|
-| **1st** | 🪞 **Mirror** | The system should help surface patterns, connections, contradictions, and relevant pieces of your own history. |
-| **2nd** | 🤝 **Companion** | Conversation remains important, but useful conversation should emerge from context rather than artificial personality alone. |
-| **3rd** | 📝 **Scribe** | AI can assist with organization, recall, summarization, and reflection without replacing the user's own voice. |
+> ### The objective is not *more AI*. The objective is **better continuity**.
 
 </div>
 
-<div align="center">
-<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png" alt="divider" width="100%" />
-</div>
+<br />
 
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<!--                 CORE EXPERIENCES SECTION                      -->
-<!-- ═══════════════════════════════════════════════════════════════ -->
+---
 
-## 🎨 Core Experiences
+## 🪞 Jouspace Intelligence Model
 
 <div align="center">
 
-<table>
-<tr>
-<td align="center" width="33%">
-
-### 📓 Journal
-
-A persistent writing space designed around freeform thought. Journal entries are not disposable documents — they become part of the historical context that can make future reflection more useful.
-
-</td>
-<td align="center" width="33%">
-
-### 💬 AI Companion
-
-A conversational interface connected to the broader Jouspace context. The companion is primarily user-initiated and designed to respond using relevant personal context when appropriate.
-
-</td>
-<td align="center" width="33%">
-
-### 🧠 Memory
-
-Jouspace explores persistent personal memory beyond ordinary conversation history. The goal is to retrieve **relevant context**, not dump an entire history into every model request.
-
-</td>
-</tr>
-<tr>
-<td align="center" width="33%">
-
-### 🔗 Connections
-
-As history grows, previously separate moments can become related. Connections may emerge across journal entries, conversations, recurring subjects, reflections, and contextual signals.
-
-</td>
-<td align="center" width="33%">
-
-### 🎭 Mood Context
-
-Mood remains part of Jouspace, but it does not define the product. Instead, mood acts as another contextual signal that can help make historical reflection more meaningful.
-
-</td>
-<td align="center" width="33%">
-
-### 🪞 Reflection
-
-Reflection sits above raw storage. Rather than merely showing what happened, Jouspace is designed to help users revisit their own history and understand how different moments may relate.
-
-</td>
-</tr>
-</table>
+## Mirror first · Companion second · Scribe third
 
 </div>
-
-<div align="center">
-<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png" alt="divider" width="100%" />
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<!--               SYSTEM ARCHITECTURE SECTION                     -->
-<!-- ═══════════════════════════════════════════════════════════════ -->
-
-## 🏗️ System Architecture
-
-Jouspace separates the product experience from the intelligence and persistence layers.
-
-<div align="center">
 
 ```mermaid
-%%{init: {'theme': 'dark', 'themeVariables': { 'primaryColor': '#58a6ff', 'primaryTextColor': '#c9d1d9', 'primaryBorderColor': '#30363d', 'lineColor': '#8b949e', 'secondaryColor': '#161b22', 'tertiaryColor': '#21262d'}}}%%
+flowchart TB
+    subgraph L1[" "]
+        M["🪞 &nbsp;<b>MIRROR</b> — first<br/><sub>surface patterns, connections,<br/>contradictions, forgotten context</sub>"]
+    end
+    subgraph L2[" "]
+        C["🤝 &nbsp;<b>COMPANION</b> — second<br/><sub>conversation that emerges from context,<br/>not from artificial personality</sub>"]
+    end
+    subgraph L3[" "]
+        S["✒️ &nbsp;<b>SCRIBE</b> — third<br/><sub>organization, recall, summarization —<br/>without replacing the user's voice</sub>"]
+    end
+
+    M --> C --> S
+
+    classDef a fill:#1E1B4B,stroke:#8B5CF6,stroke-width:2px,color:#EDE9FE,rx:12,ry:12;
+    classDef b fill:#0B1020,stroke:#4F46E5,stroke-width:2px,color:#C7D2FE,rx:12,ry:12;
+    classDef c fill:#0B1020,stroke:#22D3EE,stroke-width:2px,color:#A5F3FC,rx:12,ry:12;
+    class M a
+    class C b
+    class S c
+    style L1 fill:none,stroke:none
+    style L2 fill:none,stroke:none
+    style L3 fill:none,stroke:none
+```
+
+<br />
+
+---
+
+## 🔬 Anatomy of a Reflection
+
+What actually happens between *"help me understand this"* and a grounded answer:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant U as 🧑 User
+    participant UI as 🖥 Experience Layer
+    participant CA as 🧩 Context Assembly
+    participant RT as 🔎 Retrieval
+    participant VDB as 🧠 Vector Memory
+    participant DB as 🗃 Application Data
+    participant AI as ◈ AI Runtime
+
+    U->>UI: Writes an entry / asks a question
+    UI->>CA: Submit intent + current surface state
+    CA->>DB: Fetch structured context (recent, mood, threads)
+    CA->>RT: Request semantically relevant history
+    RT->>VDB: Similarity search (scoped to user)
+    VDB-->>RT: Candidate memories + scores
+    RT-->>CA: Filtered, thresholded, ranked set
+    CA->>AI: Minimal, relevant, attributable context window
+    AI-->>UI: Response + source attribution
+    UI-->>U: Reflection with visible provenance
+    Note over CA,RT: Selective retrieval — not the entire history
+```
+
+<br />
+
+---
+
+## 🏛 System Architecture
+
+Jouspace deliberately separates the **product experience** from the **intelligence** and **persistence** layers.
+
+```mermaid
 flowchart TB
 
-    subgraph Experience["🎨 Experience Layer"]
-        direction TB
+    subgraph Experience["🖥 &nbsp;EXPERIENCE LAYER"]
+        direction LR
         JOURNAL["📓 Journal"]
-        CHAT["💬 AI Companion"]
-        MOOD["🎭 Mood Context"]
+        CHAT["🤝 AI Companion"]
+        MOOD["🌤 Mood Context"]
         REFLECTION["🪞 Reflection"]
     end
 
-    subgraph Intelligence["🧠 Intelligence Layer"]
-        direction TB
-        RUNTIME["⚙️ AI Runtime"]
-        CONTEXT["📦 Context Assembly"]
-        RETRIEVAL["🔍 Context Retrieval"]
-        MEMORY["🧬 Personal Memory"]
+    subgraph Intelligence["◈ &nbsp;INTELLIGENCE LAYER"]
+        direction LR
+        RUNTIME["AI Runtime"]
+        CONTEXT["Context Assembly"]
+        RETRIEVAL["Context Retrieval"]
+        MEMORY["Personal Memory"]
     end
 
-    subgraph Data["💾 Data Layer"]
-        direction TB
-        SUPABASE["🗄️ Supabase"]
-        PINECONE["📊 Pinecone"]
-        STORAGE["📁 Persistent App Data"]
+    subgraph Data["🗃 &nbsp;DATA LAYER"]
+        direction LR
+        SUPABASE["Supabase<br/><sub>app data · auth</sub>"]
+        PINECONE["Pinecone<br/><sub>vectors · semantics</sub>"]
+        STORAGE["Persistent<br/>Application Data"]
     end
 
     JOURNAL --> CONTEXT
@@ -382,561 +525,701 @@ flowchart TB
     RUNTIME --> CHAT
     RUNTIME --> REFLECTION
 
-    style Experience fill:#0d1117,stroke:#58a6ff,stroke-width:2px
-    style Intelligence fill:#0d1117,stroke:#238636,stroke-width:2px
-    style Data fill:#0d1117,stroke:#f0883e,stroke-width:2px
+    classDef exp fill:#0B1020,stroke:#22D3EE,stroke-width:2px,color:#A5F3FC,rx:10,ry:10;
+    classDef intel fill:#0B1020,stroke:#8B5CF6,stroke-width:2px,color:#DDD6FE,rx:10,ry:10;
+    classDef data fill:#0B1020,stroke:#10B981,stroke-width:2px,color:#A7F3D0,rx:10,ry:10;
+
+    class JOURNAL,CHAT,MOOD,REFLECTION exp
+    class RUNTIME,CONTEXT,RETRIEVAL,MEMORY intel
+    class SUPABASE,PINECONE,STORAGE data
+
+    style Experience fill:#0B102055,stroke:#22D3EE44,stroke-width:1px
+    style Intelligence fill:#0B102055,stroke:#8B5CF644,stroke-width:1px
+    style Data fill:#0B102055,stroke:#10B98144,stroke-width:1px
 ```
 
-</div>
+> **The important distinction:** memory, retrieval, and generation are **separate concerns**.
+> This makes it possible to retrieve relevant context *selectively*, instead of treating every previous
+> interaction as permanent prompt baggage.
 
-> **The important distinction is that memory, retrieval, and generation are separate concerns.** This makes it possible to retrieve relevant context selectively instead of treating every previous interaction as permanent prompt baggage.
+<br />
 
-<div align="center">
-<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png" alt="divider" width="100%" />
-</div>
+---
 
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<!--                MEMORY ARCHITECTURE SECTION                    -->
-<!-- ═══════════════════════════════════════════════════════════════ -->
+## 🧠 Memory Architecture
 
-## 🧩 Memory Architecture
-
-A useful personal AI system needs more than a long chat transcript. Conceptually, Jouspace treats memory as a pipeline:
-
-<div align="center">
+A useful personal AI system needs more than a long chat transcript. Conceptually, Jouspace treats memory as a **pipeline**.
 
 ```mermaid
-%%{init: {'theme': 'dark', 'themeVariables': { 'primaryColor': '#58a6ff', 'primaryTextColor': '#c9d1d9', 'primaryBorderColor': '#30363d', 'lineColor': '#8b949e', 'secondaryColor': '#161b22', 'tertiaryColor': '#21262d'}}}%%
 flowchart LR
+    A["🧑 User Activity<br/><sub>entries · chats · mood</sub>"] --> B["⚙️ Context Processing<br/><sub>normalize · chunk · embed</sub>"]
+    B --> C["🗃 Persistent Data<br/><sub>structured, queryable</sub>"]
+    B --> D["🧠 Retrievable Memory<br/><sub>semantic vectors</sub>"]
+    C --> E["🧩 Context Assembly"]
+    D --> F["🔎 Semantic Retrieval"]
+    E --> G["◈ AI Runtime"]
+    F --> G
+    G --> H["🪞 Contextual Response<br/>/ Reflection"]
 
-    A["👤 User Activity"] -->|"Generate"| B["⚙️ Context Processing"]
-    B -->|"Store"| C["💾 Persistent Data"]
-    B -->|"Index"| D["🔍 Retrievable Memory"]
-
-    C -->|"Assemble"| E["📦 Context Assembly"]
-    D -->|"Search"| F["🎯 Semantic Retrieval"]
-
-    E -->|"Feed"| G["🤖 AI Runtime"]
-    F -->|"Feed"| G
-
-    G -->|"Generate"| H["✨ Contextual Response / Reflection"]
-
-    style A fill:#0d1117,stroke:#58a6ff,stroke-width:2px
-    style B fill:#0d1117,stroke:#238636,stroke-width:2px
-    style C fill:#0d1117,stroke:#f0883e,stroke-width:2px
-    style D fill:#0d1117,stroke:#f0883e,stroke-width:2px
-    style E fill:#0d1117,stroke:#8957e5,stroke-width:2px
-    style F fill:#0d1117,stroke:#8957e5,stroke-width:2px
-    style G fill:#0d1117,stroke:#58a6ff,stroke-width:3px
-    style H fill:#0d1117,stroke:#238636,stroke-width:2px
+    classDef n fill:#0B1020,stroke:#8B5CF6,stroke-width:1.6px,color:#E9E9FF,rx:10,ry:10;
+    class A,B,C,D,E,F,G,H n;
 ```
 
-</div>
+### How context budget is allocated
+
+```mermaid
+pie showData
+    title Illustrative context window composition
+    "Semantically retrieved history" : 38
+    "Recent journal entries" : 24
+    "Active conversation" : 18
+    "Mood / temporal signals" : 12
+    "System framing" : 8
+```
 
 <div align="center">
 
-> **The long-term objective is simple:** *Retrieve what matters when it matters.*
->
+> ### Retrieve what matters, **when** it matters.
 > Not every stored event deserves permanent attention.
 
 </div>
 
-<div align="center">
-<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png" alt="divider" width="100%" />
-</div>
+<br />
 
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<!--                  TECHNOLOGY STACK SECTION                     -->
-<!-- ═══════════════════════════════════════════════════════════════ -->
+---
 
-## ⚡ Technology Stack
+## 🎨 Design Language
 
-Jouspace is being built as a full-stack AI product rather than a thin interface around a model API.
-
-### 🖥️ Application
+The Jouspace surface is intentionally quiet: **ink-dark canvas, low-noise typography, one accent of intelligence.**
 
 <div align="center">
 
-| Technology | Purpose | Badge |
-|:---|:---|:---|
-| **React 19** | Primary web UI | [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black&style=flat-square)](https://react.dev/) |
-| **React Native** | Cross-platform application architecture | [![React Native](https://img.shields.io/badge/React_Native-0.74-61DAFB?logo=react&logoColor=black&style=flat-square)](https://reactnative.dev/) |
-| **Expo** | Native application tooling | [![Expo](https://img.shields.io/badge/Expo-SDK_51-000020?logo=expo&logoColor=white&style=flat-square)](https://expo.dev/) |
-| **TypeScript** | Type-safe application development | [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript&logoColor=white&style=flat-square)](https://www.typescriptlang.org/) |
-| **Vite** | Web development and production builds | [![Vite](https://img.shields.io/badge/Vite-5.0-646CFF?logo=vite&logoColor=white&style=flat-square)](https://vitejs.dev/) |
-| **Tailwind CSS** | UI styling | [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-06B6D4?logo=tailwindcss&logoColor=white&style=flat-square)](https://tailwindcss.com/) |
-| **Zustand** | Client state management | [![Zustand](https://img.shields.io/badge/Zustand-4.5-FF9F43?logo=react&logoColor=white&style=flat-square)](https://github.com/pmndrs/zustand) |
-| **TanStack Query** | Asynchronous server-state management | [![TanStack Query](https://img.shields.io/badge/TanStack_Query-5.0-FF4154?logo=reactquery&logoColor=white&style=flat-square)](https://tanstack.com/query) |
+![Ink](https://img.shields.io/badge/Ink-%230B1020-0B1020?style=for-the-badge&labelColor=0B1020)
+![Indigo](https://img.shields.io/badge/Indigo-%234F46E5-4F46E5?style=for-the-badge&labelColor=4F46E5)
+![Violet](https://img.shields.io/badge/Violet-%238B5CF6-8B5CF6?style=for-the-badge&labelColor=8B5CF6)
+![Cyan](https://img.shields.io/badge/Signal-%2322D3EE-22D3EE?style=for-the-badge&labelColor=22D3EE)
+![Mint](https://img.shields.io/badge/Calm-%2310B981-10B981?style=for-the-badge&labelColor=10B981)
+![Paper](https://img.shields.io/badge/Paper-%23E9E9FF-E9E9FF?style=for-the-badge&labelColor=E9E9FF)
 
 </div>
 
-### 🧠 Data & Intelligence
+| Principle | In practice |
+|:--|:--|
+| **Quiet canvas** | Nothing competes with the sentence you're writing |
+| **Provenance visible** | Whenever AI uses your history, the source is shown |
+| **Motion with meaning** | Transitions signal continuity, never decoration |
+| **Type as texture** | A single serif/mono pairing carries the whole surface |
+| **Accessible by default** | Contrast, focus rings, and reduced-motion are requirements |
+
+<br />
+
+---
+
+## 🛠 Technology
+
+Jouspace is being built as a **full-stack AI product**, not a thin interface around a model API.
 
 <div align="center">
 
-| Technology | Purpose | Badge |
-|:---|:---|:---|
-| **Supabase** | Application data and authentication | [![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?logo=supabase&logoColor=white&style=flat-square)](https://supabase.com/) |
-| **Pinecone** | Vector retrieval and semantic memory | [![Pinecone](https://img.shields.io/badge/Pinecone-000000?logo=pinecone&logoColor=white&style=flat-square)](https://www.pinecone.io/) |
-| **LLM Runtime** | Contextual AI generation and reflection | 🤖 Custom |
-| **RAG** | Selective retrieval of relevant context | 🔍 Custom |
+<img src="https://skillicons.dev/icons?i=react,ts,tailwind,vite,nodejs,supabase,expo,vitest,git,github&theme=dark&perline=10" alt="tech stack" />
 
 </div>
-
-### 🔧 Engineering
-
-<div align="center">
-
-| Technology | Purpose | Badge |
-|:---|:---|:---|
-| **Vitest** | Testing framework | [![Vitest](https://img.shields.io/badge/Vitest-1.0-6E9F18?logo=vitest&logoColor=white&style=flat-square)](https://vitest.dev/) |
-| **Zod** | Runtime validation | [![Zod](https://img.shields.io/badge/Zod-3.22-3E67B3?logo=typescript&logoColor=white&style=flat-square)](https://zod.dev/) |
-| **GitHub** | Source control and collaboration | [![GitHub](https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white&style=flat-square)](https://github.com/) |
-
-</div>
-
-<div align="center">
-<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png" alt="divider" width="100%" />
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<!--                 GETTING STARTED SECTION                       -->
-<!-- ═══════════════════════════════════════════════════════════════ -->
-
-## 🚀 Getting Started
-
-### ✅ Prerequisites
-
-Before running Jouspace locally, ensure you have:
-
-<div align="center">
-
-| Requirement | Version | Verify Command |
-|:---|:---:|:---|
-| **Node.js** | `20+` | `node --version` |
-| **npm** | `latest` | `npm --version` |
-| **Git** | `latest` | `git --version` |
-
-</div>
-
-### 📦 Installation
-
-<div align="center">
 
 <table>
 <tr>
-<td width="60px" align="center"><h3>1️⃣</h3></td>
-<td>
+<th width="34%">🖥 Application</th>
+<th width="33%">🧠 Data & Intelligence</th>
+<th width="33%">🧪 Engineering</th>
+</tr>
+<tr>
+<td valign="top">
 
-**Clone the repository**
+- **React 19** — primary web UI
+- **React Native** — cross-platform architecture
+- **Expo** — native tooling
+- **TypeScript** — type-safe development
+- **Vite** — dev server & production builds
+- **NativeWind / Tailwind** — UI styling
+- **Zustand** — client state
+- **TanStack Query** — server-state
+
+</td>
+<td valign="top">
+
+- **Supabase** — application data & auth
+- **Pinecone** — vector retrieval & semantic memory
+- **LLM runtime** — contextual generation & reflection
+- **RAG** — selective retrieval of relevant context
+
+</td>
+<td valign="top">
+
+- **Vitest** — unit & integration testing
+- **Zod** — runtime validation
+- **GitHub** — source control & collaboration
+- Incremental, verify-before-commit workflow
+
+</td>
+</tr>
+</table>
+
+<br />
+
+---
+
+## 🗂 Repository Structure
+
+The project is evolving, but the repository broadly separates product surfaces, shared logic, backend infrastructure, AI services, and supporting scripts.
+
+```text
+Jouspace/
+│
+├── 📁 src/                 # Web application and shared product code
+├── 📁 app/                 # Application routes / experiences
+├── 📁 components/          # Reusable interface components
+├── 📁 backend/             # Backend and AI infrastructure
+├── 📁 scripts/             # Development and infrastructure utilities
+├── 📁 docs/                # Technical and product documentation
+├── 📁 public/              # Public assets
+│
+├── 📄 package.json
+└── 📄 README.md
+```
+
+> ℹ️ The exact structure may evolve as the Jouspace migration and architecture continue to mature.
+
+<br />
+
+---
+
+## 🚀 Getting Started
+
+<div align="center">
+
+![Step 1](https://img.shields.io/badge/1-Prerequisites-0B1020?style=for-the-badge&labelColor=4F46E5)
+![Step 2](https://img.shields.io/badge/2-Clone-0B1020?style=for-the-badge&labelColor=6D28D9)
+![Step 3](https://img.shields.io/badge/3-Install-0B1020?style=for-the-badge&labelColor=7C3AED)
+![Step 4](https://img.shields.io/badge/4-Configure-0B1020?style=for-the-badge&labelColor=8B5CF6)
+![Step 5](https://img.shields.io/badge/5-Run-0B1020?style=for-the-badge&labelColor=22D3EE)
+
+</div>
+
+### Prerequisites
+
+![Node](https://img.shields.io/badge/Node.js-20%2B-339933?style=flat-square&logo=nodedotjs&logoColor=white&labelColor=0B1020)
+![npm](https://img.shields.io/badge/npm-latest-CB3837?style=flat-square&logo=npm&logoColor=white&labelColor=0B1020)
+![Git](https://img.shields.io/badge/Git-any-F05032?style=flat-square&logo=git&logoColor=white&labelColor=0B1020)
+
+```bash
+node --version   # v20+
+npm --version
+git --version
+```
+
+### 1 · Clone the repository
 
 ```bash
 git clone https://github.com/datascyther/Jouspace.git
 cd Jouspace
 ```
 
-</td>
-</tr>
-<tr>
-<td width="60px" align="center"><h3>2️⃣</h3></td>
-<td>
-
-**Install dependencies**
+### 2 · Install dependencies
 
 ```bash
 npm install
 ```
 
-</td>
-</tr>
-<tr>
-<td width="60px" align="center"><h3>3️⃣</h3></td>
-<td>
-
-**Configure the environment**
+### 3 · Configure the environment
 
 Jouspace relies on external services for parts of its data and intelligence infrastructure.
-
-Create your local environment configuration based on the environment templates and documentation available in the repository.
+Create your local environment configuration from the templates and documentation in the repository.
 
 > ⚠️ **Never commit secrets or API keys to source control.**
 
-</td>
-</tr>
-<tr>
-<td width="60px" align="center"><h3>4️⃣</h3></td>
-<td>
-
-**Start the web application**
+### 4 · Run the web application
 
 ```bash
-npm run dev
+npm run dev        # start the Vite development server
+npm run build      # create a production build
+npm run preview    # preview the production build
 ```
 
-</td>
-</tr>
-<tr>
-<td width="60px" align="center"><h3>5️⃣</h3></td>
-<td>
+<details>
+<summary><b>📱 &nbsp;Running the native app (Expo)</b></summary>
 
-**Create a production build**
+<br />
 
 ```bash
-npm run build
+npm run dev:expo   # start the Expo development environment
+npm run android    # run on Android
+npm run ios        # run on iOS
+npm run web:expo   # Expo web target
 ```
 
-</td>
-</tr>
-<tr>
-<td width="60px" align="center"><h3>6️⃣</h3></td>
-<td>
+</details>
 
-**Preview the production build**
+<details>
+<summary><b>🧠 &nbsp;Initializing memory & retrieval infrastructure</b></summary>
+
+<br />
 
 ```bash
-npm run preview
+npm run rag:ingest          # run the RAG ingestion workflow
+npm run pinecone:describe   # inspect Pinecone configuration
+npm run pinecone:stats      # inspect index statistics
 ```
 
-</td>
-</tr>
-</table>
+</details>
 
-</div>
+<br />
 
-<div align="center">
-<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png" alt="divider" width="100%" />
-</div>
+---
 
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<!--                 AVAILABLE SCRIPTS SECTION                     -->
-<!-- ═══════════════════════════════════════════════════════════════ -->
+## ⚡ Available Scripts
 
-## 📋 Available Scripts
+| Command | Purpose |
+|:--|:--|
+| `npm run dev` | Start the Vite development server |
+| `npm run build` | Create the production web build |
+| `npm run preview` | Preview the production build |
+| `npm run test` | Run the test suite |
+| `npm run test:integration` | Run backend integration tests |
+| `npm run dev:expo` | Start the Expo development environment |
+| `npm run android` | Run the Android application |
+| `npm run ios` | Run the iOS application |
+| `npm run web:expo` | Start the Expo web target |
+| `npm run rag:ingest` | Run the RAG ingestion workflow |
+| `npm run pinecone:describe` | Inspect Pinecone configuration |
+| `npm run pinecone:stats` | Inspect Pinecone index statistics |
 
-<div align="center">
+<br />
 
-| Command | Purpose | Environment |
-|:---|:---|:---:|
-| `npm run dev` | Start the Vite development server | 🌐 Web |
-| `npm run build` | Create the production web build | 🌐 Web |
-| `npm run preview` | Preview the production build | 🌐 Web |
-| `npm run test` | Run the test suite | 🧪 Test |
-| `npm run test:integration` | Run backend integration tests | 🧪 Test |
-| `npm run dev:expo` | Start the Expo development environment | 📱 Mobile |
-| `npm run android` | Run the Android application | 📱 Mobile |
-| `npm run ios` | Run the iOS application | 📱 Mobile |
-| `npm run web:expo` | Start the Expo web target | 📱 Mobile |
-| `npm run rag:ingest` | Run the RAG ingestion workflow | 🤖 AI |
-| `npm run pinecone:describe` | Inspect Pinecone configuration | 🤖 AI |
-| `npm run pinecone:stats` | Inspect Pinecone index statistics | 🤖 AI |
+---
 
-</div>
+## 🧱 Product Principles
 
-<div align="center">
-<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png" alt="divider" width="100%" />
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<!--                    ROADMAP SECTION                            -->
-<!-- ═══════════════════════════════════════════════════════════════ -->
-
-## 🗺️ Roadmap
-
-Jouspace is being developed incrementally with an outcome-oriented approach.
-
-### ✅ Completed
-
-<div align="center">
-
-| Milestone | Status |
-|:---|:---:|
-| Establish Jouspace product thesis | ✅ |
-| Define journal-first product direction | ✅ |
-| Build conversational AI foundation | ✅ |
-| Build contextual retrieval infrastructure | ✅ |
-| Establish persistent data infrastructure | ✅ |
-| Implement mood history foundation | ✅ |
-
-</div>
-
-### 🚧 In Progress
-
-<div align="center">
-
-| Milestone | Status |
-|:---|:---:|
-| Complete Jouspace identity migration | 🚧 |
-| Refine journal experience | 🚧 |
-| Connect journal history to contextual memory | 🚧 |
-
-</div>
-
-### 📅 Upcoming
-
-<div align="center">
-
-| Milestone | Status |
-|:---|:---:|
-| Improve longitudinal retrieval | 📅 |
-| Develop connection discovery | 📅 |
-| Expand reflection experiences | 📅 |
-| Strengthen privacy and data controls | 📅 |
-| Expand automated evaluation and testing | 📅 |
-| Mature cross-platform experience | 📅 |
-
-</div>
-
-> The roadmap is intentionally outcome-oriented. Features may change as the underlying product model is tested.
-
-<div align="center">
-<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png" alt="divider" width="100%" />
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<!--                  CONTRIBUTING SECTION                         -->
-<!-- ═══════════════════════════════════════════════════════════════ -->
-
-## 🤝 Contributing
-
-Contributions, technical discussion, bug reports, and thoughtful product feedback are welcome.
-
-### 🔄 Development Workflow
-
-<div align="center">
-
-```
-┌─────────┐    ┌──────────┐    ┌────────┐    ┌──────┐    ┌─────────┐    ┌─────────┐
-│   🍴    │───▶│   🌿     │───▶│  🛠️   │───▶│  🧪  │───▶│   🏗️    │───▶│   🚀    │
-│   Fork  │    │  Branch  │    │ Change │    │ Test │    │  Build  │    │   PR    │
-└─────────┘    └──────────┘    └────────┘    └──────┘    └─────────┘    └─────────┘
-```
-
-</div>
-
-1. **Fork** the repository
-2. **Create a branch:** `git checkout -b feature/your-feature`
-3. **Make your changes**
-4. **Run the relevant tests:** `npm run test`
-5. **Verify the production build:** `npm run build`
-6. **Commit** using a clear message: `git commit -m "feat: describe your change"`
-7. **Push** your branch: `git push origin feature/your-feature`
-8. **Open a Pull Request** explaining:
-   - What changed
-   - Why it changed
-   - How it was tested
-   - Any architectural implications
-
-### 📋 Contribution Principles
-
-<div align="center">
-
-| Principle | Description |
-|:---|:---|
-| ✅ **Correctness** | Code should be correct and well-tested |
-| 🔒 **Privacy** | Respect user data and privacy boundaries |
-| 🧹 **Maintainability** | Write code that others can understand and maintain |
-| ♿ **Accessibility** | Ensure the product is usable by everyone |
-| 🛡️ **Type Safety** | Leverage TypeScript for runtime confidence |
-| 🧪 **Testability** | Design for testing from the start |
-| 🎯 **Clear Product Behavior** | Features should behave predictably |
-| 🪶 **Minimal Complexity** | Avoid unnecessary complexity |
-
-</div>
-
-> For substantial architectural changes, opening an issue for discussion before implementation is recommended.
-
-<div align="center">
-<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png" alt="divider" width="100%" />
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<!--                    SECURITY SECTION                           -->
-<!-- ═══════════════════════════════════════════════════════════════ -->
-
-## 🔒 Security
-
-- Do not report security vulnerabilities through public GitHub issues.
-- Sensitive credentials, API keys, private user information, environment files, and production secrets must **never** be committed to the repository.
-- When working with Jouspace's memory and context systems, assume that stored personal information may be sensitive and design accordingly.
-
-<div align="center">
-<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png" alt="divider" width="100%" />
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<!--                 RESPONSIBLE AI SECTION                        -->
-<!-- ═══════════════════════════════════════════════════════════════ -->
-
-## 🧭 Responsible AI
-
-Jouspace deals with personal writing and contextual information, which creates responsibilities beyond ordinary application development.
-
-<div align="center">
-
-| Boundary | Commitment |
-|:---|:---|
-| 🎯 **Truth** | AI-generated output should not be presented as objective truth. |
-| 📖 **Context** | Historical context can be incomplete or interpreted incorrectly. |
-| 🏷️ **Attribution** | Retrieved memories should remain attributable to user context where practical. |
-| 🎭 **Authenticity** | AI should avoid pretending to possess human memory or emotions. |
-| 🎚️ **User Control** | User control should take priority over artificial engagement. |
-| 🔐 **Selective Retrieval** | Sensitive personal context should be retrieved only when relevant. |
-| 🔍 **Transparency** | The product should remain transparent about what AI can and cannot infer. |
-
-</div>
-
-> **The objective is not to create an artificial person. It is to build better software for working with personal context.**
-
-<div align="center">
-<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png" alt="divider" width="100%" />
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<!--               WHAT JOUSPACE IS NOT SECTION                    -->
-<!-- ═══════════════════════════════════════════════════════════════ -->
-
-## ⚠️ What Jouspace Is Not
-
-<div align="center">
-
-Jouspace is **not**:
-
-🚫 a therapist &nbsp;&nbsp; 🚫 a medical device &nbsp;&nbsp; 🚫 a diagnostic system
-🚫 a crisis intervention service &nbsp;&nbsp; 🚫 a replacement for professional healthcare
-🚫 an autonomous decision-maker &nbsp;&nbsp; 🚫 a system intended to manufacture emotional dependency
-
-</div>
-
-Jouspace is an experimental open-source AI product focused on **journaling, personal context, memory, and reflection**.
-
-<div align="center">
-<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png" alt="divider" width="100%" />
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<!--                 PROJECT STATUS SECTION                        -->
-<!-- ═══════════════════════════════════════════════════════════════ -->
-
-## 📊 Project Status
-
-> **Jouspace is under active development.**
-
-The project is currently evolving from an earlier product direction into the Jouspace architecture and identity.
-
-Core engineering work already exists across areas including:
-
-<div align="center">
+Seven constraints that shape both product and engineering decisions.
 
 <table>
 <tr>
-<td align="center">💬 Conversational AI</td>
-<td align="center">🔍 Contextual Retrieval</td>
-<td align="center">🧠 Personal Memory</td>
-<td align="center">📓 Journaling</td>
-</tr>
-<tr>
-<td align="center">🎭 Mood History</td>
-<td align="center">🔐 Authentication</td>
-<td align="center">🏗️ Infrastructure</td>
-<td align="center">📱 Cross-Platform UI</td>
+<td width="50%" valign="top">
+
+**01 · Journal first**
+Writing should remain useful without requiring an AI interaction.
+
+**02 · Context over conversation volume**
+A system that remembers meaningfully doesn't need to talk constantly.
+
+**03 · User agency**
+The AI should not manufacture engagement merely because it can.
+
+**04 · Memory should be selective**
+More stored information does not automatically produce better intelligence. *Relevant* retrieval matters more than *maximum* retrieval.
+
+</td>
+<td width="50%" valign="top">
+
+**05 · AI should support reflection**
+Jouspace should help you think *with* your own history — not attempt to think *for* you.
+
+**06 · Mood is context**
+Mood can enrich understanding without turning Jouspace into a mood-tracking product.
+
+**07 · Privacy is architectural**
+Personal context is unusually sensitive data. Privacy, ownership, retrieval boundaries, and secure handling are **engineering concerns**, not marketing copy.
+
+</td>
 </tr>
 </table>
 
-</div>
+<br />
 
-The current work focuses on integrating those systems around the new product thesis rather than rebuilding the application simply for the sake of a rebrand.
+---
 
-APIs, interfaces, architecture, and product behavior may change while the project matures.
-
-<div align="center">
-<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png" alt="divider" width="100%" />
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<!--                  STAR HISTORY SECTION                         -->
-<!-- ═══════════════════════════════════════════════════════════════ -->
-
-## 🌟 Star History
-
-If Jouspace is useful to you, starring the repository helps other developers discover the project and gives us a pleasantly primitive but effective signal that someone on the internet cared.
+## 🚫 What Jouspace Is Not
 
 <div align="center">
 
-[![Star History Chart](https://api.star-history.com/svg?repos=datascyther/Jouspace&type=Date&theme=dark)](https://star-history.com/#datascyther/Jouspace&Date)
+![Not a therapist](https://img.shields.io/badge/✕-not%20a%20therapist-EF4444?style=for-the-badge&labelColor=0B1020)
+![Not medical](https://img.shields.io/badge/✕-not%20a%20medical%20device-EF4444?style=for-the-badge&labelColor=0B1020)
+![Not diagnostic](https://img.shields.io/badge/✕-not%20diagnostic-EF4444?style=for-the-badge&labelColor=0B1020)
+![Not crisis care](https://img.shields.io/badge/✕-not%20crisis%20intervention-EF4444?style=for-the-badge&labelColor=0B1020)
+![Not healthcare](https://img.shields.io/badge/✕-not%20a%20healthcare%20replacement-EF4444?style=for-the-badge&labelColor=0B1020)
+![Not autonomous](https://img.shields.io/badge/✕-not%20an%20autonomous%20decision--maker-EF4444?style=for-the-badge&labelColor=0B1020)
+![Not dependency](https://img.shields.io/badge/✕-not%20built%20for%20emotional%20dependency-EF4444?style=for-the-badge&labelColor=0B1020)
 
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<!--                 REPOSITORY ACTIVITY SECTION                   -->
-<!-- ═══════════════════════════════════════════════════════════════ -->
-
-## 📈 Repository Activity
-
-<div align="center">
-
-[![GitHub stars](https://img.shields.io/github/stars/datascyther/Jouspace?style=for-the-badge&logo=github&label=Stars&color=58a6ff)](https://github.com/datascyther/Jouspace/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/datascyther/Jouspace?style=for-the-badge&logo=github&label=Forks&color=238636)](https://github.com/datascyther/Jouspace/network/members)
-[![GitHub issues](https://img.shields.io/github/issues/datascyther/Jouspace?style=for-the-badge&logo=github&label=Issues&color=f0883e)](https://github.com/datascyther/Jouspace/issues)
-[![GitHub pull requests](https://img.shields.io/github/issues-pr/datascyther/Jouspace?style=for-the-badge&logo=github&label=Pull%20Requests&color=8957e5)](https://github.com/datascyther/Jouspace/pulls)
-
-</div>
-
-<div align="center">
-<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png" alt="divider" width="100%" />
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<!--                    LICENSE SECTION                            -->
-<!-- ═══════════════════════════════════════════════════════════════ -->
-
-## 📜 License
-
-This project is licensed under the terms provided in the repository's [LICENSE](LICENSE) file.
-
-Please review the license before redistributing, modifying, or incorporating Jouspace into another project.
-
-<div align="center">
-<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png" alt="divider" width="100%" />
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<!--                      FOOTER SECTION                           -->
-<!-- ═══════════════════════════════════════════════════════════════ -->
-
-<div align="center">
-
-<img src="https://capsule-render.vercel.app/api?type=rect&height=80&color=0d1117&text=Jouspace&fontColor=58a6ff&fontSize=40&stroke=30363d&strokeWidth=2" alt="Jouspace Footer" />
+Jouspace is an **experimental open-source AI product** focused on journaling, personal context, memory, and reflection.
+If you are in crisis, please contact local emergency services or a qualified professional.
 
 <br />
 
-### Write → Remember → Connect → Reflect
+---
 
-**Your thoughts should become more useful with time, not disappear into an archive.**
+## 📊 Project Status
+
+> **Jouspace is under active development.** The project is evolving from an earlier product direction into the Jouspace architecture and identity.
+
+```text
+CONVERSATIONAL AI          ████████████████████░░░░   built · refining
+CONTEXTUAL RETRIEVAL       ██████████████████░░░░░░   built · refining
+PERSONAL MEMORY            ██████████████░░░░░░░░░░   in progress
+JOURNALING SURFACE         ████████████████░░░░░░░░   in progress
+MOOD HISTORY               ██████████████████░░░░░░   foundation done
+AUTHENTICATION             ██████████████████████░░   stable
+APP INFRASTRUCTURE         ████████████████████░░░░   stable
+CROSS-PLATFORM UI          ████████████░░░░░░░░░░░░   maturing
+AI ORCHESTRATION           ████████████████░░░░░░░░   in progress
+IDENTITY MIGRATION         ██████████░░░░░░░░░░░░░░   underway
+```
+
+Current work focuses on **integrating existing systems around the new product thesis** — not rebuilding the application for the sake of a rebrand.
+
+> ⚠️ APIs, interfaces, architecture, and product behavior may change while the project matures.
 
 <br />
 
-[📁 Repository](https://github.com/datascyther/Jouspace)
-·
-[🐛 Issues](https://github.com/datascyther/Jouspace/issues)
-·
-[🔀 Pull Requests](https://github.com/datascyther/Jouspace/pulls)
-·
-[💬 Discussions](https://github.com/datascyther/Jouspace/discussions)
+---
+
+## 🗺 Roadmap
+
+```mermaid
+gantt
+    title Jouspace — outcome-oriented roadmap
+    dateFormat  YYYY-MM-DD
+    axisFormat  %b
+
+    section Foundation
+    Product thesis & journal-first direction   :done,    f1, 2024-11-01, 60d
+    Conversational AI foundation               :done,    f2, 2024-12-01, 75d
+    Contextual retrieval infrastructure        :done,    f3, 2025-01-01, 70d
+    Persistent data infrastructure             :done,    f4, 2025-01-15, 60d
+    Mood history foundation                    :done,    f5, 2025-02-01, 45d
+
+    section Jouspace Identity
+    Identity migration                         :active,  i1, 2025-03-01, 70d
+    Journal experience refinement              :active,  i2, 2025-03-15, 80d
+
+    section Continuity
+    Journal history → contextual memory        :         c1, 2025-05-01, 70d
+    Longitudinal retrieval quality             :         c2, 2025-06-01, 70d
+    Connection discovery                       :         c3, 2025-07-01, 80d
+    Expanded reflection experiences            :         c4, 2025-08-01, 70d
+
+    section Trust & Scale
+    Privacy and data controls                  :         t1, 2025-06-15, 90d
+    Automated evaluation & testing             :         t2, 2025-07-15, 90d
+    Mature cross-platform experience           :         t3, 2025-09-01, 90d
+```
+
+<details>
+<summary><b>✅ &nbsp;Roadmap as a checklist</b></summary>
 
 <br />
 
-Built in public as an open-source exploration of AI, memory, personal context, and reflective software.
+- [x] Establish Jouspace product thesis
+- [x] Define journal-first product direction
+- [x] Build conversational AI foundation
+- [x] Build contextual retrieval infrastructure
+- [x] Establish persistent data infrastructure
+- [x] Implement mood history foundation
+- [ ] Complete Jouspace identity migration
+- [ ] Refine journal experience
+- [ ] Connect journal history to contextual memory
+- [ ] Improve longitudinal retrieval
+- [ ] Develop connection discovery
+- [ ] Expand reflection experiences
+- [ ] Strengthen privacy and data controls
+- [ ] Expand automated evaluation and testing
+- [ ] Mature cross-platform experience
+
+</details>
+
+> The roadmap is intentionally **outcome-oriented**. Features may change as the underlying product model is tested.
 
 <br />
 
-<!-- Footer badge -->
-<img src="https://img.shields.io/badge/Made%20with%20%E2%9D%A4%EF%B8%8F%20in%20Public-0d1117?style=for-the-badge&logoColor=white" alt="Built in Public" />
+---
+
+## 🧭 Engineering Philosophy
+
+```mermaid
+flowchart LR
+    O["🎯 Objective"] --> I["⌨️ Implement"] --> V["🔍 Verify"] --> T["🧪 Test"] --> C["📦 Commit"] --> N["➡️ Continue"]
+    N -.-> O
+
+    classDef s fill:#0B1020,stroke:#22D3EE,stroke-width:2px,color:#A5F3FC,rx:12,ry:12;
+    class O,I,V,T,C,N s;
+```
+
+Large architectural rewrites are avoided when existing engineering can be evolved safely.
+
+The repository is intended to document not only the final product, but also **the engineering decisions required to build a context-aware AI application responsibly.**
+
+<br />
+
+---
+
+## 🤝 Contributing
+
+Contributions, technical discussion, bug reports, and thoughtful product feedback are genuinely welcome.
+
+<details open>
+<summary><b>Development workflow</b></summary>
+
+<br />
+
+```bash
+# 1 · Fork, then branch
+git checkout -b feature/your-feature
+
+# 2 · Make your changes, then verify
+npm run test
+npm run build
+
+# 3 · Commit with a clear, conventional message
+git commit -m "feat: describe your change"
+
+# 4 · Push and open a Pull Request
+git push origin feature/your-feature
+```
+
+Your PR description should explain:
+
+| | |
+|:--|:--|
+| **What** | changed |
+| **Why** | it changed |
+| **How** | it was tested |
+| **Impact** | any architectural implications |
+
+</details>
+
+### Contribution principles
+
+<div align="center">
+
+![correctness](https://img.shields.io/badge/correctness-8B5CF6?style=flat-square&labelColor=0B1020)
+![privacy](https://img.shields.io/badge/privacy-8B5CF6?style=flat-square&labelColor=0B1020)
+![maintainability](https://img.shields.io/badge/maintainability-8B5CF6?style=flat-square&labelColor=0B1020)
+![accessibility](https://img.shields.io/badge/accessibility-8B5CF6?style=flat-square&labelColor=0B1020)
+![type%20safety](https://img.shields.io/badge/type%20safety-8B5CF6?style=flat-square&labelColor=0B1020)
+![testability](https://img.shields.io/badge/testability-8B5CF6?style=flat-square&labelColor=0B1020)
+![clear%20behavior](https://img.shields.io/badge/clear%20product%20behavior-8B5CF6?style=flat-square&labelColor=0B1020)
+![minimal%20complexity](https://img.shields.io/badge/minimal%20complexity-8B5CF6?style=flat-square&labelColor=0B1020)
+
+</div>
+
+> For substantial architectural changes, please open an issue for discussion **before** implementation.
+
+<br />
+
+---
+
+## 🔐 Security
+
+> **Do not report security vulnerabilities through public GitHub issues.**
+
+- Sensitive credentials, API keys, private user information, environment files, and production secrets must **never** be committed.
+- When working with Jouspace's memory and context systems, assume that stored personal information **is** sensitive and design accordingly.
+- Retrieval must always be scoped to the owning user. Cross-user leakage is treated as a critical defect.
+
+<br />
+
+---
+
+## ⚖️ Responsible AI
+
+Jouspace deals with personal writing and contextual information, which creates responsibilities beyond ordinary application development.
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+- AI-generated output should **not** be presented as objective truth
+- Historical context can be incomplete or misinterpreted
+- Retrieved memories should remain **attributable** to user context where practical
+- AI should avoid pretending to possess human memory or emotions
+
+</td>
+<td width="50%" valign="top">
+
+- User control takes priority over artificial engagement
+- Sensitive personal context should be retrieved **only when relevant**
+- The product should remain transparent about what AI can and cannot infer
+- Reflection is offered, never imposed
+
+</td>
+</tr>
+</table>
+
+<div align="center">
+
+> ### The objective is not to create an artificial person.
+> ### It is to build better software for working with personal context.
+
+</div>
+
+<br />
+
+---
+
+## ⭐ Star Growth
+
+If Jouspace is useful to you, starring the repository helps other developers discover the project — and gives us a pleasantly primitive but highly effective signal that someone on the internet cared.
+
+<div align="center">
+
+<a href="https://star-history.com/#datascyther/Jouspace&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=datascyther/Jouspace&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=datascyther/Jouspace&type=Date" />
+    <img alt="Jouspace star history over time" src="https://api.star-history.com/svg?repos=datascyther/Jouspace&type=Date" width="82%" />
+  </picture>
+</a>
 
 <br /><br />
 
-<!-- Back to top link -->
-<a href="#top">
-  <img src="https://img.shields.io/badge/%E2%AC%86%EF%B8%8F%20Back%20to%20top-21262d?style=for-the-badge&logoColor=white" alt="Back to top" />
+<details>
+<summary><b>📈 &nbsp;More star & growth visualizations</b></summary>
+
+<br />
+
+**Cumulative stargazers (Starchart)**
+
+<img src="https://starchart.cc/datascyther/Jouspace.svg?variant=adaptive" width="82%" alt="Jouspace cumulative star chart" />
+
+<br /><br />
+
+**Repository pulse — commits, issues, PRs & contributors**
+
+<!-- Generate your own embed at https://repobeats.axiom.co and replace the URL below -->
+<img src="https://repobeats.axiom.co/api/embed/REPLACE_WITH_YOUR_REPOBEATS_HASH.svg" width="92%" alt="Repobeats analytics for Jouspace" />
+
+<br /><br />
+
+**Contribution activity graph**
+
+<img src="https://github-readme-activity-graph.vercel.app/graph?username=datascyther&repo=Jouspace&theme=react-dark&bg_color=0B1020&color=8B5CF6&line=22D3EE&point=FFFFFF&hide_border=true&area=true" width="92%" alt="Jouspace commit activity graph" />
+
+</details>
+
+<br />
+
+<a href="https://github.com/datascyther/Jouspace/stargazers">
+  <img src="https://img.shields.io/badge/⭐%20Star%20Jouspace-Support%20the%20project-8B5CF6?style=for-the-badge&labelColor=0B1020" alt="Star Jouspace" />
 </a>
+
+</div>
+
+<br />
+
+---
+
+## 📡 Repository Activity
+
+<div align="center">
+
+[![Stars](https://img.shields.io/github/stars/datascyther/Jouspace?style=for-the-badge&logo=github&label=STARS&labelColor=0B1020&color=8B5CF6)](https://github.com/datascyther/Jouspace/stargazers)
+[![Forks](https://img.shields.io/github/forks/datascyther/Jouspace?style=for-the-badge&logo=github&label=FORKS&labelColor=0B1020&color=4F46E5)](https://github.com/datascyther/Jouspace/network/members)
+[![Issues](https://img.shields.io/github/issues/datascyther/Jouspace?style=for-the-badge&logo=github&label=ISSUES&labelColor=0B1020&color=22D3EE)](https://github.com/datascyther/Jouspace/issues)
+[![Pull Requests](https://img.shields.io/github/issues-pr/datascyther/Jouspace?style=for-the-badge&logo=github&label=PULL%20REQUESTS&labelColor=0B1020&color=10B981)](https://github.com/datascyther/Jouspace/pulls)
+
+[![Last commit](https://img.shields.io/github/last-commit/datascyther/Jouspace?style=flat-square&logo=git&logoColor=white&label=last%20commit&labelColor=0B1020&color=8B5CF6)](https://github.com/datascyther/Jouspace/commits)
+[![Commit activity](https://img.shields.io/github/commit-activity/m/datascyther/Jouspace?style=flat-square&label=commits%2Fmonth&labelColor=0B1020&color=4F46E5)](https://github.com/datascyther/Jouspace/pulse)
+[![Code size](https://img.shields.io/github/languages/code-size/datascyther/Jouspace?style=flat-square&label=code%20size&labelColor=0B1020&color=22D3EE)](https://github.com/datascyther/Jouspace)
+[![Top language](https://img.shields.io/github/languages/top/datascyther/Jouspace?style=flat-square&label=top%20language&labelColor=0B1020&color=10B981)](https://github.com/datascyther/Jouspace)
+[![Contributors](https://img.shields.io/github/contributors/datascyther/Jouspace?style=flat-square&label=contributors&labelColor=0B1020&color=F59E0B)](https://github.com/datascyther/Jouspace/graphs/contributors)
+
+<br />
+
+### 👥 Contributors
+
+<a href="https://github.com/datascyther/Jouspace/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=datascyther/Jouspace" alt="Jouspace contributors" />
+</a>
+
+</div>
+
+<br />
+
+---
+
+## ❓ FAQ
+
+<details>
+<summary><b>Is my journal data sent to an AI model on every request?</b></summary>
+<br />
+No. Context is <i>assembled selectively</i>. Retrieval is thresholded and ranked, and only relevant, scoped context reaches the model. Maximum retrieval is explicitly an anti-goal.
+</details>
+
+<details>
+<summary><b>Can I use Jouspace purely as a journal, with no AI?</b></summary>
+<br />
+Yes — that is principle #1. Writing must remain useful without any AI interaction. AI is a layer <i>over</i> your context, never a gate in front of it.
+</details>
+
+<details>
+<summary><b>How is this different from an AI chatbot with long-term memory?</b></summary>
+<br />
+Chat is one surface, not the product. Jouspace's center of gravity is your writing and the accumulated context around it — journal, mood, reflections, and connections — with chat as one of several ways to interrogate that history.
+</details>
+
+<details>
+<summary><b>Is mood tracking required?</b></summary>
+<br />
+No. Mood is a contextual signal that enriches retrieval and reflection. Jouspace is deliberately not a mood-tracking product.
+</details>
+
+<details>
+<summary><b>Is Jouspace production-ready?</b></summary>
+<br />
+Not yet. It is under active development and migrating from an earlier product direction. Expect interfaces and behavior to change.
+</details>
+
+<br />
+
+---
+
+## 📜 License
+
+This project is licensed under the terms provided in the repository's [**LICENSE**](LICENSE) file.
+
+Please review the license before redistributing, modifying, or incorporating Jouspace into another project.
+
+<br />
+
+---
+
+<div align="center">
+
+<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" width="100%" alt="divider" />
+
+<br />
+
+# Jouspace
+
+### ✍️ Write → 🧠 Remember → 🔗 Connect → 🪞 Reflect
+
+**Your thoughts should become more useful with time — not disappear into an archive.**
+
+<br />
+
+[![Repository](https://img.shields.io/badge/Repository-0B1020?style=for-the-badge&logo=github&logoColor=white)](https://github.com/datascyther/Jouspace)
+[![Issues](https://img.shields.io/badge/Issues-0B1020?style=for-the-badge&logo=github&logoColor=white)](https://github.com/datascyther/Jouspace/issues)
+[![Pull Requests](https://img.shields.io/badge/Pull%20Requests-0B1020?style=for-the-badge&logo=github&logoColor=white)](https://github.com/datascyther/Jouspace/pulls)
+[![Discussions](https://img.shields.io/badge/Discussions-0B1020?style=for-the-badge&logo=github&logoColor=white)](https://github.com/datascyther/Jouspace/discussions)
+
+<br />
+
+Built in public as an open-source exploration of **AI, memory, personal context, and reflective software.**
+
+<br />
+
+<img
+  src="https://capsule-render.vercel.app/api?type=waving&color=0:22D3EE,30:7C3AED,65:4F46E5,100:0B1020&height=140&section=footer"
+  alt="footer"
+/>
 
 </div>
