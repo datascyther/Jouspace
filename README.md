@@ -50,7 +50,7 @@ so what you write today can still be useful months from now.
 
 <br />
 
-<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" width="100%" alt="divider" />
+<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png" alt="divider" width="100%" />
 
 </div>
 
@@ -1194,7 +1194,7 @@ Please review the license before redistributing, modifying, or incorporating Jou
 
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" width="100%" alt="divider" />
+<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png" alt="divider" width="100%" />
 
 <br />
 
