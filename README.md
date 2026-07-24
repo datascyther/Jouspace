@@ -19,7 +19,7 @@
   alt="Write. Remember. Connect. Reflect."
 />
 
-<br /><br />
+<br />
 
 **An open-source, AI-native journal for writing, remembering, connecting, and reflecting across your personal history.**
 
