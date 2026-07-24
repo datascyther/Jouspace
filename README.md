@@ -1088,14 +1088,21 @@ If Jouspace is useful to you, starring the repository helps other developers dis
 
 **Cumulative stargazers (Starchart)**
 
-<img src="https://starchart.cc/datascyther/Jouspace.svg?variant=adaptive" width="82%" alt="Jouspace cumulative star chart" />
+<a href="https://starchart.cc/datascyther/Jouspace">
+  <img src="https://starchart.cc/datascyther/Jouspace.svg?variant=adaptive" width="82%" alt="Jouspace cumulative star chart" />
+</a>
 
 <br /><br />
 
 **Repository pulse — commits, issues, PRs & contributors**
 
-<!-- Generate your own embed at https://repobeats.axiom.co and replace the URL below -->
-<img src="https://repobeats.axiom.co/api/embed/REPLACE_WITH_YOUR_REPOBEATS_HASH.svg" width="92%" alt="Repobeats analytics for Jouspace" />
+<a href="https://github.com/datascyther/Jouspace/pulse">
+  <img
+    src="https://repobeats.axiom.co/api/embed/cb8141bad522d4520e16d0352226c793b6372251.svg"
+    width="92%"
+    alt="Repobeats analytics for Jouspace — commits, issues, pull requests and contributors"
+  />
+</a>
 
 <br /><br />
 
