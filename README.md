@@ -1,4 +1,4 @@
-# 🚀 Velness: Revolutionizing Mental Health with AI
+# Jouspace 
 
 [![GitHub Release](https://img.shields.io/github/v/release/DataScyther/Velness?color=4F46E5&style=for-the-badge)](https://github.com/DataScyther/Velness/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-4F46E5.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
@@ -10,7 +10,7 @@
 
 ---
 
-# Velness
+# Jouspace
 
 A conversational AI project exploring mood tracking, reflective journaling, and CBT-inspired exercises using modern LLM tooling.
 
