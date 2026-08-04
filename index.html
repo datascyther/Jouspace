@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <!-- ─── Favicon & App Icons ─── -->
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <link rel="apple-touch-icon" href="/logo.svg" />
+
+    <!-- ─── Viewport & PWA ─── -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Jouspace">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#8b5cf6">
+
+    <!-- ─── Primary Meta ─── -->
+    <title>Jouspace — Your Mental Wellness Companion</title>
+    <meta name="description" content="Jouspace is your personal mental wellness companion — offering AI-powered therapy support, mood tracking, CBT exercises, guided meditation, and crisis support, 24/7." />
+    <meta name="keywords" content="mental health, AI therapy, wellness app, mood tracker, CBT, guided meditation, Jouspace" />
+    <meta name="author" content="Jouspace" />
+    <meta name="robots" content="noindex, nofollow">
+
+    <!-- ─── Open Graph (Facebook, WhatsApp, LinkedIn previews) ─── -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Jouspace — Your Mental Wellness Companion" />
+    <meta property="og:description" content="Your personal AI-powered mental wellness companion. Talk to Jouspace anytime — mood tracking, CBT, guided meditation & 24/7 emotional support." />
+    <meta property="og:image" content="/logo.svg" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta property="og:image:alt" content="Jouspace Logo" />
+    <meta property="og:site_name" content="Jouspace" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- ─── Twitter / X Card ─── -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Jouspace — Your Mental Wellness Companion" />
+    <meta name="twitter:description" content="Your personal AI-powered mental wellness companion. Talk to Jouspace anytime." />
+    <meta name="twitter:image" content="/logo.svg" />
+    <meta name="twitter:image:alt" content="Jouspace Logo" />
+
+    <!-- ─── Flash-prevention: apply theme before React hydrates ─── -->
+    <script>
+      (function() {
+        var mode = localStorage.getItem('jouspace-theme-mode') || localStorage.getItem('jouspace-theme-mode') || localStorage.getItem('neeva-theme-mode') || 'auto';
+        var theme;
+        if (mode === 'auto') {
+          theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        } else {
+          theme = mode;
+        }
+        document.documentElement.setAttribute('data-theme', theme);
+        document.documentElement.classList.toggle('dark', theme === 'dark');
+        document.documentElement.style.colorScheme = theme;
+        document.documentElement.classList.add('preload');
+        requestAnimationFrame(function() {
+          requestAnimationFrame(function() {
+            document.documentElement.classList.remove('preload');
+          });
+        });
+      })();
+    </script>
+
+    <!-- ─── Google Fonts ─── -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

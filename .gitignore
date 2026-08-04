@@ -1,0 +1,104 @@
+# ═══════════════════════════════════════════════════════════════
+# Jouspace — .gitignore
+# ═══════════════════════════════════════════════════════════════
+
+# ── Node ──────────────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ── Build Outputs & TypeScript Cache ─────────────────────────
+dist/
+build/
+coverage/
+tsconfig.tsbuildinfo
+
+# ── Environment & Secrets ─────────────────────────────────────
+# Block ALL .env files by default, then whitelist ONLY the safe template
+.env
+.env.local
+.env.*.local
+.env.*
+!.env.example
+# Never commit real credential / secret files anywhere in the tree
+*.service-account.json
+*serviceAccountKey*.json
+firebase-credentials.json
+secrets.json
+*.service-role.key
+
+# Credential / key files
+*.pem
+*.key
+client_secret_*.json
+google-services.json
+GoogleService-Info.plist
+android/app/google-services.json
+ios/**/GoogleService-Info.plist
+
+# ── OS Metadata ───────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+._*
+
+# ── IDE / Editor ──────────────────────────────────────────────
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+
+# ── Deployment / CI ───────────────────────────────────────────
+.vercel/
+.netlify/
+
+# ── Cache ─────────────────────────────────────────────────────
+.cache/
+.parcel-cache/
+.eslintcache
+vite.config.timestamp-*
+.expo/
+
+# ── Logs ──────────────────────────────────────────────────────
+logs/
+*.log
+firebase-debug.log
+
+# ── Android / Native ──────────────────────────────────────────
+android/.gradle/
+android/local.properties
+*.apk
+*.keystore
+*.jks
+
+# ── Local Development & Repro Artifacts ───────────────────────
+repro.html
+src/repro-sendbutton.tsx
+src/utils/repro/
+vite.config.repro.ts
+
+# ── Local Agent / Tooling Artifacts ───────────────────────────
+jouspace-frontend/
+.github/
+.opencode/
+.playwright-mcp/
+.blackbox/
+.agents/
+.claude/
+.kilocode/
+.kilo/
+.aider*
+kilo.json
+opencode.jsonc
+skills-lock.json
+Full Tech Stack/
+AI/
+.crush/
+.devin/
+
+# ── Generated RAG Manifest ────────────────────────────────────
+scripts/rag-corpus/.rag-manifest.json

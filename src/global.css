@@ -1,0 +1,117 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * These CSS variables are the static fallback that mirrors src/theme/light.ts
+ * and src/theme/dark.ts. At runtime, ThemeProvider overwrites them on
+ * <html> so Tailwind classes and inline tokens can never drift. Keep the
+ * values here identical to the token source of truth.
+ */
+@layer base {
+  :root {
+    --background-primary: #FBF9F5;
+    --background-secondary: #FCFAF7;
+    --background-tertiary: #F5F2EC;
+    --background-elevated: #FFFFFF;
+    --surface-primary: #FFFEFC;
+    --surface-secondary: #FCFAF7;
+    --surface-tertiary: #F5F2EC;
+    --surface-card: #FFFEFC;
+    --surface-elevated: #FFFFFF;
+    --text-primary: #0D102B;
+    --text-secondary: #68677E;
+    --text-tertiary: #8B8998;
+    --text-inverse: #FFFFFF;
+    --text-disabled: #B8B5C4;
+    --text-muted: #8B8998;
+    --border-subtle: #E9E4E0;
+    --border-default: #E7E1EF;
+    --border-strong: #D8D0E8;
+    --border-focus: #9B8AD9;
+    --glass-highlight: rgba(255, 255, 255, 0.65);
+    --glass-light: rgba(255, 255, 255, 0.72);
+    --glass-medium: rgba(246, 243, 255, 0.55);
+    --glass-strong: rgba(246, 243, 255, 0.80);
+    --glass-tint: rgba(125, 102, 222, 0.10);
+    --glass-dark: rgba(26, 19, 39, 0.70);
+    --glass-border: rgba(125, 102, 222, 0.35);
+    --brand-primary: #6D4FD7;
+    --brand-primaryDeep: #5A3FC0;
+    --brand-secondary: #8D72E6;
+    --brand-tertiary: #B8A9D7;
+    --brand-onPrimary: #FFFFFF;
+    --brand-contrastText: #FFFFFF;
+    --brand-subtle: rgba(125, 102, 222, 0.12);
+    --brand-border: rgba(125, 102, 222, 0.40);
+    --overlay-light: rgba(42, 27, 71, 0.25);
+    --overlay-medium: rgba(42, 27, 71, 0.45);
+    --overlay-strong: rgba(42, 27, 71, 0.62);
+    --overlay-backdrop: rgba(246, 243, 255, 0.60);
+    --success: #1F8A4D;
+    --warning: #9A6512;
+    --danger: #C12A4B;
+    --info: #1F6FB0;
+    --successSubtle: rgba(31, 138, 77, 0.12);
+    --warningSubtle: rgba(154, 101, 18, 0.12);
+    --dangerSubtle: rgba(193, 42, 75, 0.12);
+    --infoSubtle: rgba(31, 111, 176, 0.12);
+    --successText: #166B3A;
+    --warningText: #7A4E0C;
+    --dangerText: #9B1F3C;
+    --infoText: #155A93;
+  }
+
+  .dark {
+    --background-primary: #1A1327;
+    --background-secondary: #221936;
+    --background-tertiary: #2B2142;
+    --background-elevated: #2A2040;
+    --surface-primary: #1F1830;
+    --surface-secondary: #251C38;
+    --surface-tertiary: #2E2444;
+    --surface-card: #241A36;
+    --surface-elevated: #322447;
+    --text-primary: #F3EEFB;
+    --text-secondary: #C9BCDD;
+    --text-tertiary: #9A8CB4;
+    --text-inverse: #1A1327;
+    --text-disabled: #6E6288;
+    --text-muted: #8A7CA8;
+    --border-subtle: rgba(125, 102, 222, 0.08);
+    --border-default: rgba(125, 102, 222, 0.16);
+    --border-strong: rgba(125, 102, 222, 0.28);
+    --border-focus: #A894E8;
+    --glass-highlight: rgba(255, 255, 255, 0.10);
+    --glass-light: rgba(255, 255, 255, 0.70);
+    --glass-medium: rgba(125, 102, 222, 0.18);
+    --glass-strong: rgba(125, 102, 222, 0.28);
+    --glass-tint: rgba(125, 102, 222, 0.10);
+    --glass-dark: rgba(23, 17, 34, 0.70);
+    --glass-border: rgba(125, 102, 222, 0.30);
+    --brand-primary: #7D66DE;
+    --brand-primaryDeep: #624DBF;
+    --brand-secondary: #A894E8;
+    --brand-tertiary: #5847A6;
+    --brand-onPrimary: #171122;
+    --brand-contrastText: #171122;
+    --brand-subtle: rgba(125, 102, 222, 0.16);
+    --brand-border: rgba(125, 102, 222, 0.45);
+    --overlay-light: rgba(26, 19, 39, 0.45);
+    --overlay-medium: rgba(26, 19, 39, 0.62);
+    --overlay-strong: rgba(26, 19, 39, 0.78);
+    --overlay-backdrop: rgba(26, 19, 39, 0.55);
+    --success: #4FD08A;
+    --warning: #F4C95B;
+    --danger: #F58BA1;
+    --info: #6FB6E8;
+    --successSubtle: rgba(79, 208, 138, 0.14);
+    --warningSubtle: rgba(244, 201, 91, 0.14);
+    --dangerSubtle: rgba(245, 139, 161, 0.14);
+    --infoSubtle: rgba(111, 182, 232, 0.14);
+    --successText: #9FE7C2;
+    --warningText: #FBE3A0;
+    --dangerText: #FBC3D0;
+    --infoText: #BFE0F6;
+  }
+}

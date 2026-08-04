@@ -1,0 +1,1 @@
+../../backend/schema/0006_guided_progress.sql

@@ -1,0 +1,17 @@
+diff --git a/node_modules/react-native-reanimated/src/animation/util.ts b/node_modules/react-native-reanimated/src/animation/util.ts
+index 2466ac9..77780ad 100644
+--- a/node_modules/react-native-reanimated/src/animation/util.ts
++++ b/node_modules/react-native-reanimated/src/animation/util.ts
+@@ -554,12 +554,6 @@ export function defineAnimation<
+   U extends AnimationObject | StyleLayoutAnimation = T, // type that's received
+ >(starting: AnimationToDecoration<T, U>, factory: () => T): T {
+   'worklet';
+-  if (
+-    globalThis.__RUNTIME_KIND === RuntimeKind.ReactNative &&
+-    IN_STYLE_UPDATER.current
+-  ) {
+-    return starting as unknown as T;
+-  }
+   const create = () => {
+     'worklet';
+     const animation = factory();

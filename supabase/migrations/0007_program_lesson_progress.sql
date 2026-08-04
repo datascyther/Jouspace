@@ -1,0 +1,1 @@
+../../backend/schema/0007_program_lesson_progress.sql
