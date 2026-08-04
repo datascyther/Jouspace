@@ -102,3 +102,11 @@ AI/
 
 # ── Generated RAG Manifest ────────────────────────────────────
 scripts/rag-corpus/.rag-manifest.json
+
+# ── Design references (not source code) ──────────────────
+assets/AI Screen.png
+assets/Home Screen UI.png
+assets/Journal Screen UI.png
+assets/Memory Screen UI.png
+src/shared/assets/favicon.png
+assets/xcassets/
