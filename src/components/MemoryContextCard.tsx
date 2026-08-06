@@ -28,7 +28,7 @@ export const MemoryContextCard: React.FC<MemoryContextCardProps> = ({
       <MemoryLabel text={label} />
 
       {/* Editorial Body: Recent threads */}
-      <p className="font-serif text-[19px] sm:text-[20px] leading-[1.4] text-[#0D102B] font-normal tracking-tight">
+      <p className="font-serif text-[19px] leading-[1.4] text-[#0D102B] font-normal tracking-tight">
         {isEmptyContext
           ? 'No memory threads selected yet.'
           : `Recent threads: ${threads.join(', ')}`}

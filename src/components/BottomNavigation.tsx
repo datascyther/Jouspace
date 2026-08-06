@@ -1,6 +1,7 @@
 import React from 'react';
 import { CenterWriteButton } from './CenterWriteButton';
-import { Home, BookOpen, Layers, Sparkles } from 'lucide-react';
+import { Home, BookOpen, Layers } from 'lucide-react';
+import { TbSparkle } from 'react-icons/tb';
 
 export type NavTab = 'home' | 'journal' | 'write' | 'memory' | 'ai';
 
@@ -18,59 +19,62 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
   return (
     <nav
       aria-label="Bottom Navigation"
-      className={`relative bg-[#FFFEFC] border border-[#E7E1EF] rounded-[28px] shadow-sm px-4 py-2 flex items-center justify-between min-h-[72px] ${className}`}
+      className={`relative bg-surface border border-border rounded-[20px] shadow-sm px-4 py-2 flex items-center justify-between min-h-[60px] ${className}`}
     >
-      {/* 1. Home */}
       <button
         type="button"
         onClick={() => onTabChange?.('home')}
-        className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
-          activeTab === 'home' ? 'text-[#6D4FD7]' : 'text-[#8B8998] hover:text-[#0D102B]'
+        aria-label="Home"
+        aria-current={activeTab === 'home' ? 'page' : undefined}
+        className={`flex flex-col items-center justify-center flex-1 py-2.5 min-h-11 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 rounded-xl ${
+          activeTab === 'home' ? 'text-accent' : 'text-muted hover:text-primaryText'
         }`}
       >
-        <Home className={`w-[22px] h-[22px] ${activeTab === 'home' ? 'stroke-[2]' : 'stroke-[1.6]'}`} />
-        <span className="text-[11.5px] font-sans mt-1 font-medium leading-none">Home</span>
+        <Home className={`w-5 h-5 ${activeTab === 'home' ? 'stroke-2' : 'stroke-[1.6]'}`} />
+        <span className="text-[10.5px] font-sans mt-1 font-medium leading-none">Home</span>
       </button>
 
-      {/* 2. Journal */}
       <button
         type="button"
         onClick={() => onTabChange?.('journal')}
-        className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
-          activeTab === 'journal' ? 'text-[#6D4FD7]' : 'text-[#8B8998] hover:text-[#0D102B]'
+        aria-label="Journal"
+        aria-current={activeTab === 'journal' ? 'page' : undefined}
+        className={`flex flex-col items-center justify-center flex-1 py-2.5 min-h-11 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 rounded-xl ${
+          activeTab === 'journal' ? 'text-accent' : 'text-muted hover:text-primaryText'
         }`}
       >
-        <BookOpen className={`w-[22px] h-[22px] ${activeTab === 'journal' ? 'stroke-[2]' : 'stroke-[1.6]'}`} />
-        <span className="text-[11.5px] font-sans mt-1 font-medium leading-none">Journal</span>
+        <BookOpen className={`w-5 h-5 ${activeTab === 'journal' ? 'stroke-2' : 'stroke-[1.6]'}`} />
+        <span className="text-[10.5px] font-sans mt-1 font-medium leading-none">Journal</span>
       </button>
 
-      {/* 3. Center Write Floating Button */}
       <div className="flex-1 flex justify-center items-center relative">
         <CenterWriteButton onClick={() => onTabChange?.('write')} />
       </div>
 
-      {/* 4. Memory */}
       <button
         type="button"
         onClick={() => onTabChange?.('memory')}
-        className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
-          activeTab === 'memory' ? 'text-[#6D4FD7]' : 'text-[#8B8998] hover:text-[#0D102B]'
+        aria-label="Memory"
+        aria-current={activeTab === 'memory' ? 'page' : undefined}
+        className={`flex flex-col items-center justify-center flex-1 py-2.5 min-h-11 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 rounded-xl ${
+          activeTab === 'memory' ? 'text-accent' : 'text-muted hover:text-primaryText'
         }`}
       >
-        <Layers className={`w-[22px] h-[22px] ${activeTab === 'memory' ? 'stroke-[2]' : 'stroke-[1.6]'}`} />
-        <span className="text-[11.5px] font-sans mt-1 font-medium leading-none">Memory</span>
+        <Layers className={`w-5 h-5 ${activeTab === 'memory' ? 'stroke-2' : 'stroke-[1.6]'}`} />
+        <span className="text-[10.5px] font-sans mt-1 font-medium leading-none">Memory</span>
       </button>
 
-      {/* 5. AI */}
       <button
         type="button"
         onClick={() => onTabChange?.('ai')}
-        className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
-          activeTab === 'ai' ? 'text-[#6D4FD7]' : 'text-[#8B8998] hover:text-[#0D102B]'
+        aria-label="AI"
+        aria-current={activeTab === 'ai' ? 'page' : undefined}
+        className={`flex flex-col items-center justify-center flex-1 py-2.5 min-h-11 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 rounded-xl ${
+          activeTab === 'ai' ? 'text-accent' : 'text-muted hover:text-primaryText'
         }`}
       >
-        <Sparkles className={`w-[22px] h-[22px] ${activeTab === 'ai' ? 'stroke-[2]' : 'stroke-[1.6]'}`} />
-        <span className="text-[11.5px] font-sans mt-1 font-medium leading-none">AI</span>
+        <TbSparkle className={`w-5 h-5 ${activeTab === 'ai' ? 'stroke-2' : 'stroke-[1.6]'}`} />
+        <span className="text-[10.5px] font-sans mt-1 font-medium leading-none">AI</span>
       </button>
     </nav>
   );

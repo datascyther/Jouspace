@@ -45,7 +45,7 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
         onBlur={onBlur}
         readOnly={readOnly}
         placeholder="What I'm trying to understand"
-        className="w-full font-serif text-[26px] sm:text-[28px] text-[#0D102B] font-normal leading-tight tracking-tight bg-transparent border-none outline-none focus:outline-none p-0 caret-[#6D4FD7] placeholder:text-[#8B8998]/50 selection:bg-[#6D4FD7]/15"
+        className="w-full font-serif text-[26px] text-[#0D102B] font-normal leading-tight tracking-tight bg-transparent border-none outline-none focus:outline-none p-0 caret-[#6D4FD7] placeholder:text-[#8B8998]/50 selection:bg-[#6D4FD7]/15"
       />
 
       {/* Journal Body Textarea */}
@@ -58,7 +58,7 @@ export const JournalEditor: React.FC<JournalEditorProps> = ({
         readOnly={readOnly}
         placeholder="Write your thoughts quietly..."
         rows={4}
-        className="w-full font-sans text-[15.5px] sm:text-[16px] text-[#0D102B] leading-[1.8] font-normal bg-transparent border-none outline-none focus:outline-none resize-none p-0 caret-[#6D4FD7] placeholder:text-[#8B8998]/50 selection:bg-[#6D4FD7]/15 overflow-hidden transition-all"
+        className="w-full font-sans text-[15.5px] text-[#0D102B] leading-[1.8] font-normal bg-transparent border-none outline-none focus:outline-none resize-none p-0 caret-[#6D4FD7] placeholder:text-[#8B8998]/50 selection:bg-[#6D4FD7]/15 overflow-hidden transition-all"
       />
     </div>
   );

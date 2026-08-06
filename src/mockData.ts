@@ -52,7 +52,7 @@ export const DEFAULT_RECENT_ENTRIES: Entry[] = [
     date: 'Jul 29',
     title: 'Why this app matters to me',
     theme: 'purpose',
-    content: 'A space that doesn’t push streaks or check-ins, just quiet space for thought.',
+    content: "A space that doesn't push streaks or check-ins, just quiet space for thought.",
   },
   {
     id: 'entry-3',
@@ -62,3 +62,25 @@ export const DEFAULT_RECENT_ENTRIES: Entry[] = [
     content: 'Unpacking the noise from the week and returning to core priorities.',
   },
 ];
+
+// ── Profile Screen Data ──
+
+export interface ProfileData {
+  initials: string;
+  displayName: string;
+  email: string;
+  joinedDate: string;
+  avatarUrl: string | null;
+  entryCount: number;
+  topThemes: string[];
+}
+
+export const DEFAULT_PROFILE: ProfileData = {
+  initials: 'VU',
+  displayName: 'VU',
+  email: 'vu@example.com',
+  joinedDate: 'July 2026',
+  avatarUrl: null,
+  entryCount: 24,
+  topThemes: ['clarity', 'discipline', 'purpose'],
+};

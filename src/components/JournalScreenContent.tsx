@@ -27,7 +27,6 @@ export const JournalScreenContent: React.FC<JournalScreenContentProps> = ({
   isKeyboardOpen = false,
   onToast,
 }) => {
-  // Production default state content matching reference image exactly
   const defaultTitle = isEmptyEntry ? '' : "What I'm trying to understand";
   const defaultBody = isEmptyEntry
     ? ''
@@ -80,60 +79,60 @@ export const JournalScreenContent: React.FC<JournalScreenContentProps> = ({
   };
 
   return (
-    <div className="flex flex-col gap-5 w-full">
-      {/* 1. Header */}
-      <JournalHeader
-        onBack={onBackToHome}
-        onSave={handleManualSave}
-        saveState={currentSaveStatus}
-      />
-
-      {/* 2. Metadata */}
-      <JournalMetadata
-        dateLabel="Today"
-        timeLabel="Aug 4, 2026 • 6:58 PM"
-        status={currentSaveStatus}
-      />
-
-      {/* 3. Divider */}
-      <div className="w-full border-t border-[#E9E4E0] -mt-1 -mb-1" />
-
-      {/* 4. Journal Editor */}
-      {isLoading ? (
-        <div className="animate-pulse space-y-4 py-4">
-          <div className="h-8 bg-[#E7E1EF] rounded-md w-3/4" />
-          <div className="h-4 bg-[#E7E1EF] rounded-md w-full" />
-          <div className="h-4 bg-[#E7E1EF] rounded-md w-5/6" />
-          <div className="h-4 bg-[#E7E1EF] rounded-md w-2/3" />
-        </div>
-      ) : (
-        <JournalEditor
-          title={title}
-          onTitleChange={handleTitleChange}
-          body={body}
-          onBodyChange={handleBodyChange}
-          onFocus={() => {
-            if (currentSaveStatus === 'autosaved') {
-              setCurrentSaveStatus('editing');
-            }
-          }}
-        />
-      )}
-
-      {/* 5. Memory Thread Card */}
-      {!isLoading && (
-        <section className="mt-2">
-          <MemoryThreadCard
-            label="Memory thread"
-            bodyText="You've written about building Jouspace with less noise and more clarity several times this week."
-            actionText="Use this thread"
-            onUseThread={handleUseThread}
+    <div className="flex flex-col flex-1 min-h-0">
+      {/* Scrollable content */}
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-4 pt-2 pb-4">
+        <div className="flex flex-col gap-7 w-full">
+          <JournalHeader
+            onBack={onBackToHome}
+            onSave={handleManualSave}
+            saveState={currentSaveStatus}
           />
-        </section>
-      )}
 
-      {/* 6. Writing Toolbar */}
-      <section className="mt-2 -mx-6 w-[calc(100%+48px)]">
+          <JournalMetadata
+            dateLabel="Today"
+            timeLabel="Aug 4, 2026 • 6:58 PM"
+            status={currentSaveStatus}
+          />
+
+          <div className="w-full border-t border-[#E9E4E0] -mt-1 -mb-1" />
+
+          {isLoading ? (
+            <div className="animate-pulse space-y-4 py-4">
+              <div className="h-8 bg-[#E7E1EF] rounded-md w-3/4" />
+              <div className="h-4 bg-[#E7E1EF] rounded-md w-full" />
+              <div className="h-4 bg-[#E7E1EF] rounded-md w-5/6" />
+              <div className="h-4 bg-[#E7E1EF] rounded-md w-2/3" />
+            </div>
+          ) : (
+            <JournalEditor
+              title={title}
+              onTitleChange={handleTitleChange}
+              body={body}
+              onBodyChange={handleBodyChange}
+              onFocus={() => {
+                if (currentSaveStatus === 'autosaved') {
+                  setCurrentSaveStatus('editing');
+                }
+              }}
+            />
+          )}
+
+          {!isLoading && (
+            <section className="mt-2">
+              <MemoryThreadCard
+                label="Memory thread"
+                bodyText="You've written about building Jouspace with less noise and more clarity several times this week."
+                actionText="Use this thread"
+                onUseThread={handleUseThread}
+              />
+            </section>
+          )}
+        </div>
+      </div>
+
+      {/* Pinned WritingToolbar — full width, outside scroll padding */}
+      <div className="shrink-0">
         <WritingToolbar
           isKeyboardOpen={isKeyboardOpen}
           onMicClick={() => onToast?.('Voice memo recorder opened')}
@@ -142,10 +141,10 @@ export const JournalScreenContent: React.FC<JournalScreenContentProps> = ({
           onAiSparkleClick={() => onToast?.('AI memory contextual assistant')}
           onDoneClick={handleDone}
         />
-      </section>
+      </div>
 
-      {/* 7. Bottom Navigation */}
-      <div className="sticky bottom-4 z-40 mt-1">
+      {/* Pinned BottomNavigation */}
+      <div className="shrink-0 px-3 pb-2 pb-safe">
         <BottomNavigation
           activeTab={activeTab}
           onTabChange={onTabChange}

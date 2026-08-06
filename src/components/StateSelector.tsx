@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type ScreenView = 'home' | 'journal' | 'memory' | 'ai';
+export type ScreenView = 'home' | 'journal' | 'memory' | 'ai' | 'profile' | 'search' | 'notifications' | 'entry-detail' | 'memory-thread' | 'settings' | 'signin' | 'create-account' | 'forgot-password' | 'email-verification';
 
 export type AppStateMode =
   | 'returning_user'
@@ -25,8 +25,9 @@ export type AppStateMode =
   | 'no_conversation'
   | 'composer_focused'
   | 'offline'
-  | 'small_screen'
-  | 'large_screen';
+  | 'no_avatar'
+  | 'empty_journal_profile'
+  | 'signed_out';
 
 interface StateSelectorProps {
   currentScreen: ScreenView;
@@ -58,6 +59,11 @@ export const StateSelector: React.FC<StateSelectorProps> = ({
     { id: 'no_memory_context', label: 'No Memory Context', forScreen: 'ai' },
     { id: 'no_conversation', label: 'No Conversation', forScreen: 'ai' },
     { id: 'composer_focused', label: 'Composer Focused', forScreen: 'ai' },
+    { id: 'returning_user', label: 'Profile Default', forScreen: 'profile' },
+    { id: 'no_avatar', label: 'No Avatar', forScreen: 'profile' },
+    { id: 'empty_journal_profile', label: 'Empty Journal', forScreen: 'profile' },
+    { id: 'offline', label: 'Profile Offline', forScreen: 'profile' },
+    { id: 'signed_out', label: 'Signed Out', forScreen: 'profile' },
     { id: 'editing', label: 'Editing State', forScreen: 'journal' },
     { id: 'autosaving', label: 'Autosaving State', forScreen: 'journal' },
     { id: 'saved', label: 'Saved State', forScreen: 'journal' },
@@ -68,23 +74,21 @@ export const StateSelector: React.FC<StateSelectorProps> = ({
     { id: 'loading', label: 'Loading State' },
     { id: 'no_ai_insight', label: 'No AI Insight', forScreen: 'home' },
     { id: 'offline', label: 'Offline Mode' },
-    { id: 'small_screen', label: 'Small Device (360px)' },
-    { id: 'large_screen', label: 'Large Device' },
   ];
 
   return (
     <div className="w-full max-w-xl mb-3 z-30 px-4">
-      <div className="bg-[#FFFEFC] border border-[#E7E1EF] rounded-[20px] p-2.5 shadow-sm text-xs font-sans">
+      <div className="bg-surface border border-border rounded-[20px] p-2.5 shadow-sm text-xs font-sans">
         <div className="flex items-center justify-between flex-wrap gap-2">
           {/* Active Screen Tab Switcher */}
-          <div className="flex items-center gap-1 bg-[#FBF9F5] p-1 rounded-[14px] border border-[#E7E1EF]">
+          <div className="flex items-center gap-1 bg-background p-1 rounded-[14px] border border-border">
             <button
               type="button"
               onClick={() => onSelectScreen('home')}
               className={`px-3 py-1 rounded-[10px] font-medium transition-all ${
                 currentScreen === 'home'
-                  ? 'bg-[#6D4FD7] text-white shadow-xs'
-                  : 'text-[#68677E] hover:text-[#0D102B]'
+                  ? 'bg-accent text-white shadow-xs'
+                  : 'text-secondaryText hover:text-primaryText'
               }`}
             >
               Home
@@ -94,8 +98,8 @@ export const StateSelector: React.FC<StateSelectorProps> = ({
               onClick={() => onSelectScreen('journal')}
               className={`px-3 py-1 rounded-[10px] font-medium transition-all ${
                 currentScreen === 'journal'
-                  ? 'bg-[#6D4FD7] text-white shadow-xs'
-                  : 'text-[#68677E] hover:text-[#0D102B]'
+                  ? 'bg-accent text-white shadow-xs'
+                  : 'text-secondaryText hover:text-primaryText'
               }`}
             >
               Journal
@@ -105,8 +109,8 @@ export const StateSelector: React.FC<StateSelectorProps> = ({
               onClick={() => onSelectScreen('memory')}
               className={`px-3 py-1 rounded-[10px] font-medium transition-all ${
                 currentScreen === 'memory'
-                  ? 'bg-[#6D4FD7] text-white shadow-xs'
-                  : 'text-[#68677E] hover:text-[#0D102B]'
+                  ? 'bg-accent text-white shadow-xs'
+                  : 'text-secondaryText hover:text-primaryText'
               }`}
             >
               Memory
@@ -116,25 +120,54 @@ export const StateSelector: React.FC<StateSelectorProps> = ({
               onClick={() => onSelectScreen('ai')}
               className={`px-3 py-1 rounded-[10px] font-medium transition-all ${
                 currentScreen === 'ai'
-                  ? 'bg-[#6D4FD7] text-white shadow-xs'
-                  : 'text-[#68677E] hover:text-[#0D102B]'
+                  ? 'bg-accent text-white shadow-xs'
+                  : 'text-secondaryText hover:text-primaryText'
               }`}
             >
               AI
             </button>
+            <button
+              type="button"
+              onClick={() => onSelectScreen('profile')}
+              className={`px-3 py-1 rounded-[10px] font-medium transition-all ${
+                currentScreen === 'profile'
+                  ? 'bg-accent text-white shadow-xs'
+                  : 'text-secondaryText hover:text-primaryText'
+              }`}
+            >
+              Profile
+            </button>
+          </div>
+
+          {/* Overlay Screen Tabs */}
+          <div className="flex items-center gap-1 bg-background p-1 rounded-[14px] border border-border">
+            {(['search', 'notifications', 'entry-detail', 'memory-thread', 'settings', 'signin'] as ScreenView[]).map((screen) => (
+              <button
+                key={screen}
+                type="button"
+                onClick={() => onSelectScreen(screen)}
+                className={`px-2.5 py-1 rounded-[10px] font-medium text-[11px] transition-all ${
+                  currentScreen === screen
+                    ? 'bg-accent text-white shadow-xs'
+                    : 'text-secondaryText hover:text-primaryText'
+                }`}
+              >
+                {screen === 'entry-detail' ? 'Entry' : screen === 'memory-thread' ? 'Thread' : screen === 'signin' ? 'Sign In' : screen.charAt(0).toUpperCase() + screen.slice(1)}
+              </button>
+            ))}
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#6D4FD7]" />
-            <span className="font-medium text-[#0D102B]">State:</span>
-            <span className="text-[#6D4FD7] font-semibold capitalize">
+            <span className="w-2 h-2 rounded-full bg-accent" />
+            <span className="font-medium text-primaryText">State:</span>
+            <span className="text-accent font-semibold capitalize">
               {currentMode.replace(/_/g, ' ')}
             </span>
 
             <button
               type="button"
               onClick={onToggleOpen}
-              className="text-[#6D4FD7] hover:underline font-medium px-2 py-1 rounded cursor-pointer ml-1"
+              className="text-accent hover:underline font-medium px-2 py-1 rounded cursor-pointer ml-1"
             >
               {isOpen ? 'Close QA Bar' : 'Switch State'}
             </button>
@@ -142,7 +175,7 @@ export const StateSelector: React.FC<StateSelectorProps> = ({
         </div>
 
         {isOpen && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 mt-2.5 pt-2.5 border-t border-[#E9E4E0]">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 mt-2.5 pt-2.5 border-t border-divider">
             {modes.map((m, idx) => (
               <button
                 key={`${m.id}-${idx}`}
@@ -156,8 +189,8 @@ export const StateSelector: React.FC<StateSelectorProps> = ({
                 }}
                 className={`px-2.5 py-1.5 rounded-[10px] text-left transition-all text-[11px] font-sans ${
                   currentMode === m.id
-                    ? 'bg-[#6D4FD7] text-white font-medium shadow-xs'
-                    : 'bg-[#FBF9F5] text-[#68677E] hover:bg-[#F0ECFF] hover:text-[#0D102B]'
+                    ? 'bg-accent text-white font-medium shadow-xs'
+                    : 'bg-background text-secondaryText hover:bg-accentSoft hover:text-primaryText'
                 }`}
               >
                 {m.label}

@@ -16,11 +16,11 @@ export const AIHeader: React.FC<AIHeaderProps> = ({
 }) => {
   return (
     <header
-      className={`flex items-start justify-between w-full py-1 bg-transparent border-none shadow-none ${className}`}
+      className={`flex items-center justify-between w-full py-2 bg-transparent border-none shadow-none ${className}`}
     >
       {/* Left: Editorial page title + subtitle */}
       <div className="flex flex-col text-left">
-        <h1 className="font-serif font-normal text-[32px] sm:text-[34px] text-[#0D102B] leading-tight tracking-tight">
+        <h1 className="font-serif font-normal text-[28px] text-[#0D102B] leading-tight tracking-tight">
           AI
         </h1>
         <p className="font-sans font-normal text-[14px] text-[#8B8998] mt-0.5">
@@ -29,7 +29,7 @@ export const AIHeader: React.FC<AIHeaderProps> = ({
       </div>
 
       {/* Right: History icon + circular avatar */}
-      <div className="flex items-center gap-2.5 pt-1.5">
+      <div className="flex items-center gap-2.5">
         <button
           type="button"
           onClick={onHistoryClick}

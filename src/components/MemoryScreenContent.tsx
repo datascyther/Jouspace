@@ -31,7 +31,7 @@ export const MEMORY_DATA_BY_THEME: Record<string, ThemeMemoryData> = {
         date: 'Jul 29',
         title: 'Why this app matters to me',
         theme: 'purpose',
-        content: 'A space that doesn’t push streaks or check-ins, just quiet space for thought.',
+        content: "A space that doesn't push streaks or check-ins, just quiet space for thought.",
       },
       {
         id: 'mem-3',
@@ -204,140 +204,139 @@ export const MemoryScreenContent: React.FC<MemoryScreenContentProps> = ({
   );
 
   return (
-    <div className="flex flex-col gap-7 w-full">
-      {/* 1. Memory Header */}
-      <MemoryHeader
-        userInitials={userInitials}
-        onSearchClick={() => setLocalSearchOpen(!localSearchOpen)}
-        onAvatarClick={() => onToast?.('User Profile & Memory Engine settings')}
-      />
-
-      {/* Search Input Bar Overlay if Active */}
-      {(localSearchOpen || isSearchActive) && (
-        <div className="flex items-center gap-2 bg-[#FFFEFC] border border-[#6D4FD7]/40 rounded-[16px] px-4 py-2.5 shadow-xs transition-all animate-fadeIn -mt-2">
-          <Search className="w-4 h-4 text-[#6D4FD7]" />
-          <input
-            type="text"
-            placeholder="Search memory patterns..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 font-sans text-sm text-[#0D102B] bg-transparent outline-none placeholder:text-[#8B8998]"
-            autoFocus
+    <div className="flex flex-col flex-1 min-h-0">
+      {/* Scrollable content */}
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-4 pt-2 pb-4">
+        <div className="flex flex-col gap-7 w-full">
+          <MemoryHeader
+            userInitials={userInitials}
+            onSearchClick={() => setLocalSearchOpen(!localSearchOpen)}
+            onAvatarClick={() => onToast?.('User Profile & Memory Engine settings')}
           />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery('')}
-              className="text-[#8B8998] hover:text-[#0D102B]"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-      )}
 
-      {/* 2. Memory Insight Card (Hero Card) */}
-      <section>
-        {isLoading ? (
-          <div className="bg-[#FFFEFC] rounded-[24px] border border-[#E7E1EF] p-6 animate-pulse space-y-3">
-            <div className="h-4 bg-[#E7E1EF] rounded w-1/3" />
-            <div className="h-10 bg-[#E7E1EF] rounded w-3/4" />
-            <div className="h-4 bg-[#E7E1EF] rounded w-1/2" />
-            <div className="h-4 bg-[#E7E1EF] rounded w-1/4 pt-2" />
-          </div>
-        ) : isNoMemories ? (
-          <div className="bg-[#FFFEFC] rounded-[24px] border border-[#E7E1EF] p-6 flex flex-col gap-3">
-            <span className="text-[#6D4FD7] font-sans text-xs font-medium">
-              ✦ Jouspace listening
-            </span>
-            <h2 className="font-serif text-[22px] text-[#0D102B]">
-              Memory patterns are forming
-            </h2>
-            <p className="font-sans text-[14px] text-[#68677E]">
-              Write a few more entries to allow Jouspace to connect memory
-              threads across time.
-            </p>
-          </div>
-        ) : (
-          <MemoryInsightCard
-            label="Jouspace remembered"
-            statement={currentData.statement}
-            supportingCopy={currentData.supportingCopy}
-            actionText="Explore thread"
-            onExploreThread={onExploreThread}
-          />
-        )}
-      </section>
-
-      {/* 3. Themes Section */}
-      <section>
-        {isLoading ? (
-          <div className="animate-pulse space-y-3">
-            <div className="h-5 bg-[#E7E1EF] rounded w-1/4" />
-            <div className="flex gap-2">
-              <div className="h-10 bg-[#E7E1EF] rounded-full w-20" />
-              <div className="h-10 bg-[#E7E1EF] rounded-full w-24" />
-              <div className="h-10 bg-[#E7E1EF] rounded-full w-20" />
-            </div>
-          </div>
-        ) : (
-          <ThemeChipGroup
-            themes={DEFAULT_THEMES}
-            selectedThemeId={selectedThemeId}
-            onSelectTheme={handleThemeSelect}
-          />
-        )}
-      </section>
-
-      {/* 4. Connected Entries Section */}
-      <section className="flex flex-col gap-3">
-        <h3 className="font-serif text-[19px] sm:text-[20px] text-[#0D102B] font-normal tracking-tight text-left">
-          Connected entries
-        </h3>
-
-        {isLoading ? (
-          <div className="space-y-3 animate-pulse">
-            <div className="h-12 bg-[#E7E1EF] rounded-xl" />
-            <div className="h-12 bg-[#E7E1EF] rounded-xl" />
-            <div className="h-12 bg-[#E7E1EF] rounded-xl" />
-          </div>
-        ) : isNoConnectedEntries || filteredEntries.length === 0 ? (
-          <p className="font-sans text-[14px] text-[#8B8998] py-3 text-left">
-            No connected entries found for this theme.
-          </p>
-        ) : (
-          <div className="flex flex-col divide-y divide-[#E9E4E0]">
-            {filteredEntries.map((entry, idx) => (
-              <EntryRow
-                key={entry.id}
-                entry={entry}
-                isLast={idx === filteredEntries.length - 1}
-                onClick={onEntryClick}
+          {(localSearchOpen || isSearchActive) && (
+            <div className="flex items-center gap-2 bg-[#FFFEFC] border border-[#6D4FD7]/40 rounded-[16px] px-4 py-2.5 shadow-xs transition-all animate-fadeIn -mt-2">
+              <Search className="w-4 h-4 text-[#6D4FD7]" />
+              <input
+                type="text"
+                placeholder="Search memory patterns..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1 font-sans text-sm text-[#0D102B] bg-transparent outline-none placeholder:text-[#8B8998]"
+                autoFocus
               />
-            ))}
-          </div>
-        )}
-      </section>
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="text-[#8B8998] hover:text-[#0D102B]"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          )}
 
-      {/* 5. Reflection Prompt Card */}
-      <section>
-        {isLoading ? (
-          <div className="bg-[#FFFEFC] rounded-[24px] border border-[#E7E1EF] p-6 animate-pulse space-y-3">
-            <div className="h-4 bg-[#E7E1EF] rounded w-1/4" />
-            <div className="h-8 bg-[#E7E1EF] rounded w-3/4" />
-            <div className="h-4 bg-[#E7E1EF] rounded w-1/3" />
-          </div>
-        ) : (
-          <ReflectionPromptCard
-            label="Reflection prompt"
-            promptText={currentData.reflectionPrompt}
-            actionText="Reflect with AI"
-            onReflect={onReflectWithAi}
-          />
-        )}
-      </section>
+          <section>
+            {isLoading ? (
+              <div className="bg-[#FFFEFC] rounded-[24px] border border-[#E7E1EF] p-6 animate-pulse space-y-3">
+                <div className="h-4 bg-[#E7E1EF] rounded w-1/3" />
+                <div className="h-10 bg-[#E7E1EF] rounded w-3/4" />
+                <div className="h-4 bg-[#E7E1EF] rounded w-1/2" />
+                <div className="h-4 bg-[#E7E1EF] rounded w-1/4 pt-2" />
+              </div>
+            ) : isNoMemories ? (
+              <div className="bg-[#FFFEFC] rounded-[24px] border border-[#E7E1EF] p-6 flex flex-col gap-3">
+                <span className="text-[#6D4FD7] font-sans text-xs font-medium">
+                  ✦ Jouspace listening
+                </span>
+                <h2 className="font-serif text-[22px] text-[#0D102B]">
+                  Memory patterns are forming
+                </h2>
+                <p className="font-sans text-[14px] text-[#68677E]">
+                  Write a few more entries to allow Jouspace to connect memory
+                  threads across time.
+                </p>
+              </div>
+            ) : (
+              <MemoryInsightCard
+                label="Jouspace remembered"
+                statement={currentData.statement}
+                supportingCopy={currentData.supportingCopy}
+                actionText="Explore thread"
+                onExploreThread={onExploreThread}
+              />
+            )}
+          </section>
 
-      {/* 6. Bottom Navigation */}
-      <div className="sticky bottom-4 z-40 mt-1">
+          <section>
+            {isLoading ? (
+              <div className="animate-pulse space-y-3">
+                <div className="h-5 bg-[#E7E1EF] rounded w-1/4" />
+                <div className="flex gap-2">
+                  <div className="h-10 bg-[#E7E1EF] rounded-full w-20" />
+                  <div className="h-10 bg-[#E7E1EF] rounded-full w-24" />
+                  <div className="h-10 bg-[#E7E1EF] rounded-full w-20" />
+                </div>
+              </div>
+            ) : (
+              <ThemeChipGroup
+                themes={DEFAULT_THEMES}
+                selectedThemeId={selectedThemeId}
+                onSelectTheme={handleThemeSelect}
+              />
+            )}
+          </section>
+
+          <section className="flex flex-col gap-3">
+            <h3 className="font-serif text-[19px] text-[#0D102B] font-normal tracking-tight text-left">
+              Connected entries
+            </h3>
+
+            {isLoading ? (
+              <div className="space-y-3 animate-pulse">
+                <div className="h-12 bg-[#E7E1EF] rounded-xl" />
+                <div className="h-12 bg-[#E7E1EF] rounded-xl" />
+                <div className="h-12 bg-[#E7E1EF] rounded-xl" />
+              </div>
+            ) : isNoConnectedEntries || filteredEntries.length === 0 ? (
+              <p className="font-sans text-[14px] text-[#8B8998] py-3 text-left">
+                No connected entries found for this theme.
+              </p>
+            ) : (
+              <div className="flex flex-col divide-y divide-[#E9E4E0]">
+                {filteredEntries.map((entry, idx) => (
+                  <EntryRow
+                    key={entry.id}
+                    entry={entry}
+                    isLast={idx === filteredEntries.length - 1}
+                    onClick={onEntryClick}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section>
+            {isLoading ? (
+              <div className="bg-[#FFFEFC] rounded-[24px] border border-[#E7E1EF] p-6 animate-pulse space-y-3">
+                <div className="h-4 bg-[#E7E1EF] rounded w-1/4" />
+                <div className="h-8 bg-[#E7E1EF] rounded w-3/4" />
+                <div className="h-4 bg-[#E7E1EF] rounded w-1/3" />
+              </div>
+            ) : (
+              <ReflectionPromptCard
+                label="Reflection prompt"
+                promptText={currentData.reflectionPrompt}
+                actionText="Reflect with AI"
+                onReflect={onReflectWithAi}
+              />
+            )}
+          </section>
+        </div>
+      </div>
+
+      {/* Pinned BottomNavigation */}
+      <div className="shrink-0 px-3 pb-2 pb-safe">
         <BottomNavigation activeTab={activeTab} onTabChange={onTabChange} />
       </div>
     </div>

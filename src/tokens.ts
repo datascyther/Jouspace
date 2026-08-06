@@ -14,13 +14,13 @@ export const COLORS = {
 } as const;
 
 export const SPACING = {
-  screenPadding: 24, // px
+  screenPadding: 16, // px
   sectionGap: 28, // px
   cardPadding: 24, // px
   cardRadius: 24, // px
   rowHeight: 60, // px
-  bottomNavHeight: 78, // px
-  floatingButton: 64, // px
+  bottomNavHeight: 60, // px
+  floatingButton: 52, // px
 } as const;
 
 export const FONTS = {

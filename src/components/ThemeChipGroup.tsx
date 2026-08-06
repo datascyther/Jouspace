@@ -29,12 +29,12 @@ export const ThemeChipGroup: React.FC<ThemeChipGroupProps> = ({
 }) => {
   return (
     <div className={`flex flex-col gap-3.5 w-full text-left ${className}`}>
-      <h3 className="font-serif text-[19px] sm:text-[20px] text-[#0D102B] font-normal tracking-tight">
+      <h3 className="font-serif text-[19px] text-[#0D102B] font-normal tracking-tight">
         Themes
       </h3>
 
       {/* Horizontal Chip Container with subtle scroll overflow for small screens */}
-      <div className="flex items-center gap-2.5 overflow-x-auto pb-1 no-scrollbar -mx-1 px-1">
+      <div className="flex items-center gap-2.5 overflow-x-auto overflow-y-hidden pb-1 no-scrollbar -mx-1 px-1">
         {themes.map((theme) => {
           const isSelected = selectedThemeId === theme.id;
           return (

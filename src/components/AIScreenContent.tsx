@@ -8,6 +8,10 @@ import {
 } from './MessageBubbles';
 import { Composer } from './Composer';
 import { BottomNavigation, NavTab } from './BottomNavigation';
+import {
+  useJouspaceIntelligence,
+  type IntelligenceMessage,
+} from '../hooks/useJouspaceIntelligence';
 
 export interface AIMessage {
   id: string;
@@ -50,8 +54,18 @@ interface AIScreenContentProps {
   isNoMemoryContext?: boolean;
   isNoConversation?: boolean;
   isComposerFocused?: boolean;
-  isKeyboardOpen?: boolean;
   onToast?: (msg: string) => void;
+}
+
+function toAIMessage(m: IntelligenceMessage): AIMessage {
+  return {
+    id: m.id,
+    role: m.role,
+    text: m.text,
+    timestamp: m.timestamp,
+    citationCount: m.citationCount,
+    citationDates: m.citationDates,
+  };
 }
 
 export const AIScreenContent: React.FC<AIScreenContentProps> = ({
@@ -59,35 +73,32 @@ export const AIScreenContent: React.FC<AIScreenContentProps> = ({
   onTabChange,
   userInitials = 'VU',
   isLoading = false,
-  isThinking = false,
-  isStreaming = false,
+  isThinking: qaThinking = false,
+  isStreaming: qaStreaming = false,
   isNoMemoryContext = false,
   isNoConversation = false,
   isComposerFocused = false,
-  isKeyboardOpen = false,
   onToast,
 }) => {
   const [composerValue, setComposerValue] = useState('');
   const [focused, setFocused] = useState(isComposerFocused);
-  const [messages, setMessages] = useState<AIMessage[]>(
-    isNoConversation ? [] : DEFAULT_CONVERSATION
-  );
-  const [thinking, setThinking] = useState(isThinking);
-  const [streamedText, setStreamedText] = useState<string | null>(null);
-  const streamTimer = useRef<number | null>(null);
 
-  // Streaming state demo: progressively reveal assistant response text
+  const ai = useJouspaceIntelligence('chat');
+
+  const streamTimer = useRef<number | null>(null);
+  const [qaStreamedText, setQaStreamedText] = useState<string | null>(null);
+
   useEffect(() => {
-    if (!isStreaming) {
-      setStreamedText(null);
+    if (!qaStreaming) {
+      setQaStreamedText(null);
       return;
     }
     const full = DEFAULT_CONVERSATION[1].text;
     let i = 0;
-    setStreamedText('');
+    setQaStreamedText('');
     streamTimer.current = window.setInterval(() => {
       i += 2;
-      setStreamedText(full.slice(0, i));
+      setQaStreamedText(full.slice(0, i));
       if (i >= full.length && streamTimer.current) {
         window.clearInterval(streamTimer.current);
       }
@@ -95,171 +106,152 @@ export const AIScreenContent: React.FC<AIScreenContentProps> = ({
     return () => {
       if (streamTimer.current) window.clearInterval(streamTimer.current);
     };
-  }, [isStreaming]);
+  }, [qaStreaming]);
+
+  const useQaDemoConversation = qaThinking || qaStreaming || !isNoConversation && ai.messages.length === 0;
+  const displayMessages: AIMessage[] = useQaDemoConversation
+    ? isNoConversation
+      ? []
+      : DEFAULT_CONVERSATION
+    : ai.messages.map(toAIMessage);
+
+  const showThinking = ai.isThinking || qaThinking;
 
   const handleSend = (overrideText?: string) => {
     const text = (overrideText ?? composerValue).trim();
     if (!text) return;
-
-    const userMsg: AIMessage = {
-      id: `u-${Date.now()}`,
-      role: 'user',
-      text,
-      timestamp: new Date().toLocaleTimeString([], {
-        hour: 'numeric',
-        minute: '2-digit',
-      }),
-    };
-    setMessages((prev) => [...prev, userMsg]);
     setComposerValue('');
-    setThinking(true);
-
-    window.setTimeout(() => {
-      setThinking(false);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `a-${Date.now()}`,
-          role: 'assistant',
-          text: 'Looking across your recent writing, this connects to how you return to consistency after a pause rather than pushing harder.',
-          citationCount: 3,
-          citationDates: ['Aug 1', 'Jul 29', 'Jul 24'],
-        },
-      ]);
-    }, 1400);
+    ai.send(text);
   };
 
-  const handleSuggestion = (question: string) => {
-    handleSend(question);
-  };
-
-  const showThinking = thinking || isThinking;
+  const handleSuggestion = (question: string) => handleSend(question);
 
   return (
-    <div className="flex flex-col gap-7 w-full">
-      {/* 1. Header */}
-      <AIHeader
-        userInitials={userInitials}
-        onHistoryClick={() => onToast?.('Reflection history')}
-        onAvatarClick={() => onToast?.('User Profile & Settings')}
-      />
-
-      {/* 2. Memory Context Card */}
-      <section>
-        {isLoading ? (
-          <div className="bg-[#FFFEFC] rounded-[24px] border border-[#E7E1EF] p-6 animate-pulse space-y-3">
-            <div className="h-4 bg-[#E7E1EF] rounded w-1/3" />
-            <div className="h-6 bg-[#E7E1EF] rounded w-3/4" />
-            <div className="h-4 bg-[#E7E1EF] rounded w-1/4" />
-          </div>
-        ) : (
-          <MemoryContextCard
-            label="Using your memory"
-            threads={['clarity', 'discipline', 'starting again']}
-            actionText="Change context"
-            isEmptyContext={isNoMemoryContext}
-            onChangeContext={() => onToast?.('Change memory context')}
+    <div className="flex flex-col flex-1 min-h-0">
+      {/* Scrollable content */}
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-4 pt-2 pb-4">
+        <div className="flex flex-col gap-7 w-full">
+          <AIHeader
+            userInitials={userInitials}
+            onHistoryClick={() => onToast?.('Reflection history')}
+            onAvatarClick={() => onToast?.('User Profile & Settings')}
           />
-        )}
-      </section>
 
-      {/* 3. Hero Prompt */}
-      <section className="flex flex-col gap-3 text-left">
-        {isLoading ? (
-          <div className="animate-pulse space-y-3">
-            <div className="h-10 bg-[#E7E1EF] rounded w-4/5" />
-            <div className="h-10 bg-[#E7E1EF] rounded w-3/5" />
-            <div className="h-4 bg-[#E7E1EF] rounded w-2/3" />
-          </div>
-        ) : (
-          <>
-            <h2 className="font-serif text-[32px] sm:text-[34px] text-[#0D102B] font-normal leading-[1.18] tracking-tight">
-              What should we look
-              <br />
-              at together?
-            </h2>
-            <p className="font-sans text-[14.5px] text-[#8B8998] font-normal leading-[1.6]">
-              Ask about a pattern, revisit an entry,
-              <br />
-              or reflect on what keeps showing up.
-            </p>
-          </>
-        )}
-      </section>
-
-      {/* 4. Suggested Questions */}
-      <section className="flex flex-col gap-3">
-        {isLoading
-          ? [0, 1, 2].map((i) => (
-              <div
-                key={i}
-                className="h-[56px] bg-[#E7E1EF] rounded-[18px] animate-pulse"
+          <section>
+            {isLoading ? (
+              <div className="bg-[#FFFEFC] rounded-[24px] border border-[#E7E1EF] p-6 animate-pulse space-y-3">
+                <div className="h-4 bg-[#E7E1EF] rounded w-1/3" />
+                <div className="h-6 bg-[#E7E1EF] rounded w-3/4" />
+                <div className="h-4 bg-[#E7E1EF] rounded w-1/4" />
+              </div>
+            ) : (
+              <MemoryContextCard
+                label="Using your memory"
+                threads={['clarity', 'discipline', 'starting again']}
+                actionText="Change context"
+                isEmptyContext={isNoMemoryContext}
+                onChangeContext={() => onToast?.('Change memory context')}
               />
-            ))
-          : DEFAULT_SUGGESTIONS.map((q) => (
-              <SuggestionRow key={q} question={q} onClick={handleSuggestion} />
-            ))}
-      </section>
-
-      {/* Divider between suggestions and conversation */}
-      <div className="w-full border-t border-[#E9E4E0]" />
-
-      {/* 5. Conversation Preview */}
-      <section className="flex flex-col gap-4">
-        {isLoading ? (
-          <div className="space-y-4 animate-pulse">
-            <div className="h-12 bg-[#E7E1EF] rounded-[20px] w-2/3 ml-auto" />
-            <div className="h-24 bg-[#E7E1EF] rounded-[20px] w-4/5" />
-          </div>
-        ) : messages.length === 0 && !showThinking ? (
-          <p className="font-sans text-[14px] text-[#8B8998] py-2 text-left">
-            Your reflections with Jouspace will appear here.
-          </p>
-        ) : (
-          <>
-            {messages.map((msg) =>
-              msg.role === 'user' ? (
-                <UserMessageBubble
-                  key={msg.id}
-                  text={msg.text}
-                  timestamp={msg.timestamp}
-                />
-              ) : (
-                <AssistantMessageBubble
-                  key={msg.id}
-                  text={
-                    isStreaming && streamedText !== null && msg.id === 'msg-assistant-1'
-                      ? streamedText
-                      : msg.text
-                  }
-                  citationCount={
-                    isStreaming && msg.id === 'msg-assistant-1'
-                      ? undefined
-                      : msg.citationCount
-                  }
-                  citationDates={
-                    isStreaming && msg.id === 'msg-assistant-1'
-                      ? undefined
-                      : msg.citationDates
-                  }
-                  onCitationClick={() =>
-                    onToast?.('Opening the 3 entries behind this reflection')
-                  }
-                />
-              )
             )}
+          </section>
 
-            {showThinking && <AssistantMessageBubble text="" isThinking />}
-          </>
-        )}
-      </section>
+          <section className="flex flex-col gap-3 text-left">
+            {isLoading ? (
+              <div className="animate-pulse space-y-3">
+                <div className="h-10 bg-[#E7E1EF] rounded w-4/5" />
+                <div className="h-10 bg-[#E7E1EF] rounded w-3/5" />
+                <div className="h-4 bg-[#E7E1EF] rounded w-2/3" />
+              </div>
+            ) : (
+              <>
+                <h2 className="font-serif text-[28px] text-[#0D102B] font-normal leading-[1.18] tracking-tight">
+                  What should we look
+                  <br />
+                  at together?
+                </h2>
+                <p className="font-sans text-[14.5px] text-[#8B8998] font-normal leading-[1.6]">
+                  Ask about a pattern, revisit an entry,
+                  <br />
+                  or reflect on what keeps showing up.
+                </p>
+              </>
+            )}
+          </section>
 
-      {/* 6. Composer — pinned above the bottom navigation */}
-      <div
-        className={`sticky z-40 mt-1 transition-all duration-200 ${
-          isKeyboardOpen ? 'bottom-[96px]' : 'bottom-[96px]'
-        }`}
-      >
+          <section className="flex flex-col gap-3">
+            {isLoading
+              ? [0, 1, 2].map((i) => (
+                  <div
+                    key={i}
+                    className="h-[56px] bg-[#E7E1EF] rounded-[18px] animate-pulse"
+                  />
+                ))
+              : DEFAULT_SUGGESTIONS.map((q) => (
+                  <SuggestionRow key={q} question={q} onClick={handleSuggestion} />
+                ))}
+          </section>
+
+          <div className="w-full border-t border-[#E9E4E0]" />
+
+          <section className="flex flex-col gap-4">
+            {isLoading ? (
+              <div className="space-y-4 animate-pulse">
+                <div className="h-12 bg-[#E7E1EF] rounded-[20px] w-2/3 ml-auto" />
+                <div className="h-24 bg-[#E7E1EF] rounded-[20px] w-4/5" />
+              </div>
+            ) : displayMessages.length === 0 && !showThinking ? (
+              <p className="font-sans text-[14px] text-[#8B8998] py-2 text-left">
+                Your reflections with Jouspace will appear here.
+              </p>
+            ) : (
+              <>
+                {displayMessages.map((msg) =>
+                  msg.role === 'user' ? (
+                    <UserMessageBubble
+                      key={msg.id}
+                      text={msg.text}
+                      timestamp={msg.timestamp}
+                    />
+                  ) : (
+                    <AssistantMessageBubble
+                      key={msg.id}
+                      text={
+                        qaStreaming && qaStreamedText !== null && msg.id === 'msg-assistant-1'
+                          ? qaStreamedText
+                          : msg.text
+                      }
+                      citationCount={
+                        qaStreaming && msg.id === 'msg-assistant-1'
+                          ? undefined
+                          : msg.citationCount
+                      }
+                      citationDates={
+                        qaStreaming && msg.id === 'msg-assistant-1'
+                          ? undefined
+                          : msg.citationDates
+                      }
+                      onCitationClick={() =>
+                        onToast?.('Opening the 3 entries behind this reflection')
+                      }
+                    />
+                  )
+                )}
+
+                {showThinking && <AssistantMessageBubble text="" isThinking />}
+
+                {ai.error && (
+                  <p className="font-sans text-[13px] text-[#8B8998] py-1">
+                    {ai.error}
+                  </p>
+                )}
+              </>
+            )}
+          </section>
+        </div>
+      </div>
+
+      {/* Pinned Composer */}
+      <div className="shrink-0 px-4 pt-1">
         <Composer
           value={composerValue}
           onChange={setComposerValue}
@@ -269,11 +261,12 @@ export const AIScreenContent: React.FC<AIScreenContentProps> = ({
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           isFocused={focused || isComposerFocused}
+          disabled={ai.isThinking || ai.isStreaming}
         />
       </div>
 
-      {/* 7. Bottom Navigation */}
-      <div className="sticky bottom-4 z-40">
+      {/* Pinned BottomNavigation */}
+      <div className="shrink-0 px-3 pb-2 pb-safe">
         <BottomNavigation activeTab={activeTab} onTabChange={onTabChange} />
       </div>
     </div>

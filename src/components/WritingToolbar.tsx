@@ -8,6 +8,8 @@ interface WritingToolbarProps {
   onAiSparkleClick?: () => void;
   onDoneClick?: () => void;
   className?: string;
+  // NOTE: isKeyboardOpen is a QA demo state, not runtime detection.
+  // Used for visual styling only (shadow/border). Keyboard repositioning is not implemented.
   isKeyboardOpen?: boolean;
 }
 
@@ -27,7 +29,7 @@ export const WritingToolbar: React.FC<WritingToolbarProps> = ({
       } ${className}`}
     >
       {/* Icon Group */}
-      <div className="flex items-center gap-5 sm:gap-6 text-[#8B8998]">
+      <div className="flex items-center gap-5 text-[#8B8998]">
         {/* 1. Microphone */}
         <button
           type="button"

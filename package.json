@@ -6,13 +6,16 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "server": "cd server && npm run dev",
+    "dev:all": "kill $(lsof -ti:3001) 2>/dev/null; concurrently --names \"vite,runtime\" --prefix-colors \"cyan,magenta\" \"npm run dev\" \"npm run server\""
   },
   "dependencies": {
     "clsx": "2.1.1",
     "lucide-react": "^1.28.0",
     "react": "19.2.6",
     "react-dom": "19.2.6",
+    "react-icons": "^5.7.0",
     "tailwind-merge": "3.4.0"
   },
   "devDependencies": {
@@ -21,6 +24,7 @@
     "@types/react": "19.2.7",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "5.1.1",
+    "concurrently": "9.1.2",
     "tailwindcss": "4.1.17",
     "typescript": "5.9.3",
     "vite": "7.3.2",

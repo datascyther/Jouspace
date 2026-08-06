@@ -1,0 +1,65 @@
+# Build Android APK — cloud build with zero local Android tooling.
+#
+# Trigger this workflow (Actions tab → "Build Android APK" → Run workflow), or
+# push a tag like v1.0.0, to produce a debug APK you can install on a phone.
+# The runner has Java + Android SDK preinstalled, so no setup on your Mac is
+# required.
+#
+# The built artifact downloads from the workflow run's "Artifacts" section.
+# For a signed release build, add a keystore + signing config and a
+# "Signing" job (see Android docs) — this file produces a debug-signed APK.
+
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install web app dependencies
+        run: npm ci
+
+      - name: Build web app (single-file dist)
+        run: npm run build
+
+      - name: Install Capacitor + Android platform
+        run: npm i -D @capacitor/cli @capacitor/core @capacitor/android
+
+      - name: Add Android platform
+        run: npx cap add android
+
+      - name: Sync web assets into native shell
+        run: npx cap sync android
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Build debug APK
+        working-directory: android
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: jouspace-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk

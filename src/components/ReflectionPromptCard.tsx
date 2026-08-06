@@ -63,7 +63,7 @@ export const ReflectionPromptCard: React.FC<ReflectionPromptCardProps> = ({
         <MemoryLabel text={label} />
 
         {/* Editorial Reflection Question */}
-        <h3 className="font-serif text-[18px] sm:text-[19px] text-[#0D102B] font-normal leading-[1.38] tracking-tight">
+        <h3 className="font-serif text-[18px] text-[#0D102B] font-normal leading-[1.38] tracking-tight">
           {promptText}
         </h3>
 

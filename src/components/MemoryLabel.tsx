@@ -10,7 +10,7 @@ export const MemoryLabel: React.FC<MemoryLabelProps> = ({ text, className = '' }
   const labelText = text.replace(/^✦\s*/, '');
 
   return (
-    <div className={`flex items-center gap-1.5 text-[#6D4FD7] font-sans text-[13.5px] font-medium leading-none ${className}`}>
+    <div className={`flex items-center gap-1.5 text-accent font-sans text-[13.5px] font-medium leading-none ${className}`}>
       {/* Precision 4-pointed star outline matching reference UI */}
       <svg
         width="14"
@@ -18,7 +18,7 @@ export const MemoryLabel: React.FC<MemoryLabelProps> = ({ text, className = '' }
         viewBox="0 0 16 16"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className="shrink-0 text-[#6D4FD7]"
+        className="shrink-0 text-accent"
       >
         <path
           d="M8 1C8 4.866 4.866 8 1 8C4.866 8 8 11.134 8 15C8 11.134 11.134 8 15 8C11.134 8 8 4.866 8 1Z"

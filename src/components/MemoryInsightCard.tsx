@@ -68,7 +68,7 @@ export const MemoryInsightCard: React.FC<MemoryInsightCardProps> = ({
         <MemoryLabel text={label} />
 
         {/* Hero Primary Statement */}
-        <h2 className="font-serif text-[24px] sm:text-[26px] text-[#0D102B] font-normal leading-[1.25] tracking-tight max-w-[280px] sm:max-w-none">
+        <h2 className="font-serif text-[24px] text-[#0D102B] font-normal leading-[1.25] tracking-tight max-w-none">
           {statement}
         </h2>
 
