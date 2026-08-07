@@ -69,8 +69,8 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
         <>
           {/* Error Message */}
           {error && (
-            <div className="w-full max-w-[320px] bg-[#FDECEC] border border-[#F5C6C6] rounded-xl px-4 py-3 mb-6">
-              <p className="font-sans text-[13px] text-[#C53030] text-center">{error}</p>
+            <div className="w-full max-w-[320px] bg-errorBg border border-errorBorder rounded-xl px-4 py-3 mb-6">
+              <p className="font-sans text-[13px] text-error text-center">{error}</p>
             </div>
           )}
 
@@ -91,7 +91,7 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
             type="button"
             onClick={onResetPassword}
             disabled={isLoading}
-            className="w-full max-w-[320px] mt-6 bg-accent hover:bg-[#5C3EC5] active:bg-[#5034B3] text-white font-sans font-medium text-[15px] py-4 rounded-[18px] transition-all duration-150 shadow-sm focus:outline-none focus:ring-2 focus:ring-accent/40 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full max-w-[320px] mt-6 bg-accent hover:bg-accentHover active:bg-accentActive text-white font-sans font-medium text-[15px] py-4 rounded-[18px] transition-all duration-150 shadow-sm focus:outline-none focus:ring-2 focus:ring-accent/40 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? 'Sending…' : 'Send reset link'}
           </button>
@@ -103,7 +103,7 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
         type="button"
         onClick={onBackToSignIn}
         disabled={isLoading}
-        className="mt-4 text-accent hover:text-[#5639BE] font-sans font-medium text-[14px] transition-colors duration-150 focus:outline-none cursor-pointer disabled:opacity-50"
+        className="mt-4 text-accent hover:text-accentAlt font-sans font-medium text-[14px] transition-colors duration-150 focus:outline-none cursor-pointer disabled:opacity-50"
       >
         Back to sign in
       </button>

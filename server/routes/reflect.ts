@@ -35,10 +35,20 @@ const HistoryMessageSchema = z.object({
   content: z.string().min(1).max(8000),
 });
 
+const EntrySchema = z.object({
+  id: z.string(),
+  date: z.string(),
+  title: z.string(),
+  theme: z.string(),
+  content: z.string(),
+});
+
 const ReflectRequestSchema = z.object({
   insight: z.string().min(1).max(1000),
   userThought: z.string().max(4000).optional(),
   history: z.array(HistoryMessageSchema).max(20).optional(),
+  /** Local-first: the client's real journal entries used for AI context */
+  entries: z.array(EntrySchema).max(20).optional(),
 });
 
 // ── Route ─────────────────────────────────────────────────────────────────────
@@ -54,12 +64,13 @@ reflectRouter.post('/reflect', async (req, res, next) => {
     return;
   }
 
-  const { insight, userThought, history = [] } = parsed.data;
+  const { insight, userThought, history = [], entries } = parsed.data;
 
   try {
     // 2. Assemble journal context with the insight as anchor
     const jouspaceContext = await assembleContext('user-1', 'reflect', {
       anchorInsight: insight,
+      entries,
     });
 
     // 3. Build the reflection-specific system prompt

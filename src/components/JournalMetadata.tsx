@@ -33,18 +33,18 @@ export const JournalMetadata: React.FC<JournalMetadataProps> = ({
 
   return (
     <div
-      className={`flex items-start justify-between w-full font-sans text-[12.5px] text-[#8B8998] tracking-normal select-none ${className}`}
+      className={`flex items-start justify-between w-full font-sans text-[12.5px] text-muted tracking-normal select-none ${className}`}
     >
       {/* Left: Today & Timestamp */}
       <div className="flex flex-col gap-0.5">
-        <span className="font-medium text-[#8B8998]">{dateLabel}</span>
-        <span className="text-[#8B8998]">{timeLabel}</span>
+        <span className="font-medium text-muted">{dateLabel}</span>
+        <span className="text-muted">{timeLabel}</span>
       </div>
 
       {/* Right: Autosave status indicator */}
       <div className="flex items-center gap-1.5 pt-0.5">
         {status === 'autosaving' && (
-          <span className="w-1.5 h-1.5 rounded-full bg-[#6D4FD7] animate-ping" />
+          <span className="w-1.5 h-1.5 rounded-full bg-accent animate-ping" />
         )}
         {status === 'failed' && (
           <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
@@ -53,7 +53,7 @@ export const JournalMetadata: React.FC<JournalMetadataProps> = ({
           className={
             status === 'failed'
               ? 'text-red-500 font-medium'
-              : 'text-[#8B8998] font-normal'
+              : 'text-muted font-normal'
           }
         >
           {getStatusText()}

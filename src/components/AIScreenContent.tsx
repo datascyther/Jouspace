@@ -139,10 +139,10 @@ export const AIScreenContent: React.FC<AIScreenContentProps> = ({
 
           <section>
             {isLoading ? (
-              <div className="bg-[#FFFEFC] rounded-[24px] border border-[#E7E1EF] p-6 animate-pulse space-y-3">
-                <div className="h-4 bg-[#E7E1EF] rounded w-1/3" />
-                <div className="h-6 bg-[#E7E1EF] rounded w-3/4" />
-                <div className="h-4 bg-[#E7E1EF] rounded w-1/4" />
+              <div className="bg-surface rounded-[24px] border border-border p-6 animate-pulse space-y-3">
+                <div className="h-4 bg-border rounded w-1/3" />
+                <div className="h-6 bg-border rounded w-3/4" />
+                <div className="h-4 bg-border rounded w-1/4" />
               </div>
             ) : (
               <MemoryContextCard
@@ -158,18 +158,18 @@ export const AIScreenContent: React.FC<AIScreenContentProps> = ({
           <section className="flex flex-col gap-3 text-left">
             {isLoading ? (
               <div className="animate-pulse space-y-3">
-                <div className="h-10 bg-[#E7E1EF] rounded w-4/5" />
-                <div className="h-10 bg-[#E7E1EF] rounded w-3/5" />
-                <div className="h-4 bg-[#E7E1EF] rounded w-2/3" />
+                <div className="h-10 bg-border rounded w-4/5" />
+                <div className="h-10 bg-border rounded w-3/5" />
+                <div className="h-4 bg-border rounded w-2/3" />
               </div>
             ) : (
               <>
-                <h2 className="font-serif text-[28px] text-[#0D102B] font-normal leading-[1.18] tracking-tight">
+                <h2 className="font-serif text-[28px] text-primaryText font-normal leading-[1.18] tracking-tight">
                   What should we look
                   <br />
                   at together?
                 </h2>
-                <p className="font-sans text-[14.5px] text-[#8B8998] font-normal leading-[1.6]">
+                <p className="font-sans text-[14.5px] text-muted font-normal leading-[1.6]">
                   Ask about a pattern, revisit an entry,
                   <br />
                   or reflect on what keeps showing up.
@@ -183,7 +183,7 @@ export const AIScreenContent: React.FC<AIScreenContentProps> = ({
               ? [0, 1, 2].map((i) => (
                   <div
                     key={i}
-                    className="h-[56px] bg-[#E7E1EF] rounded-[18px] animate-pulse"
+                    className="h-[56px] bg-border rounded-[18px] animate-pulse"
                   />
                 ))
               : DEFAULT_SUGGESTIONS.map((q) => (
@@ -191,16 +191,16 @@ export const AIScreenContent: React.FC<AIScreenContentProps> = ({
                 ))}
           </section>
 
-          <div className="w-full border-t border-[#E9E4E0]" />
+          <div className="w-full border-t border-divider" />
 
           <section className="flex flex-col gap-4">
             {isLoading ? (
               <div className="space-y-4 animate-pulse">
-                <div className="h-12 bg-[#E7E1EF] rounded-[20px] w-2/3 ml-auto" />
-                <div className="h-24 bg-[#E7E1EF] rounded-[20px] w-4/5" />
+                <div className="h-12 bg-border rounded-[20px] w-2/3 ml-auto" />
+                <div className="h-24 bg-border rounded-[20px] w-4/5" />
               </div>
             ) : displayMessages.length === 0 && !showThinking ? (
-              <p className="font-sans text-[14px] text-[#8B8998] py-2 text-left">
+              <p className="font-sans text-[14px] text-muted py-2 text-left">
                 Your reflections with Jouspace will appear here.
               </p>
             ) : (
@@ -240,7 +240,7 @@ export const AIScreenContent: React.FC<AIScreenContentProps> = ({
                 {showThinking && <AssistantMessageBubble text="" isThinking />}
 
                 {ai.error && (
-                  <p className="font-sans text-[13px] text-[#8B8998] py-1">
+                  <p className="font-sans text-[13px] text-muted py-1">
                     {ai.error}
                   </p>
                 )}
@@ -266,7 +266,7 @@ export const AIScreenContent: React.FC<AIScreenContentProps> = ({
       </div>
 
       {/* Pinned BottomNavigation */}
-      <div className="shrink-0 px-3 pb-2 pb-safe">
+      <div className="shrink-0 mx-2 pb-2 pb-safe">
         <BottomNavigation activeTab={activeTab} onTabChange={onTabChange} />
       </div>
     </div>

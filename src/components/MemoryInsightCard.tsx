@@ -22,18 +22,18 @@ export const MemoryInsightCard: React.FC<MemoryInsightCardProps> = ({
 }) => {
   return (
     <div
-      className={`relative bg-[#FFFEFC] rounded-[24px] border border-[#E7E1EF] p-6 text-[#0D102B] overflow-hidden flex flex-col gap-4 shadow-2xs ${className}`}
+      className={`relative bg-surface rounded-[24px] border border-border p-6 text-primaryText overflow-hidden flex flex-col gap-4 shadow-2xs ${className}`}
     >
       {/* Decorative Abstract Memory Artwork (subtle, low opacity, clipped inside card) */}
       <div className="absolute right-[-10px] top-[-10px] w-44 h-44 pointer-events-none select-none opacity-40">
         {/* Soft Radial Glow */}
-        <div className="absolute inset-0 bg-radial from-[#6D4FD7]/20 via-[#F0ECFF]/30 to-transparent rounded-full blur-xl" />
+        <div className="absolute inset-0 bg-radial from-accent/20 via-accentSoft/30 to-transparent rounded-full blur-xl" />
         {/* Abstract Infinity / Memory Star Vector */}
         <svg
           viewBox="0 0 160 160"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="w-full h-full text-[#6D4FD7]"
+          className="w-full h-full text-accent"
         >
           {/* Infinity loop / ribbon path */}
           <path
@@ -68,12 +68,12 @@ export const MemoryInsightCard: React.FC<MemoryInsightCardProps> = ({
         <MemoryLabel text={label} />
 
         {/* Hero Primary Statement */}
-        <h2 className="font-serif text-[24px] text-[#0D102B] font-normal leading-[1.25] tracking-tight max-w-none">
+        <h2 className="font-serif text-[24px] text-primaryText font-normal leading-[1.25] tracking-tight max-w-none">
           {statement}
         </h2>
 
         {/* Supporting Copy */}
-        <p className="font-sans text-[14px] text-[#68677E] font-normal leading-relaxed">
+        <p className="font-sans text-[14px] text-secondaryText font-normal leading-relaxed">
           {supportingCopy}
         </p>
 

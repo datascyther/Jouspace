@@ -8,9 +8,17 @@ export const COLORS = {
   secondaryText: '#68677E',
   muted: '#8B8998',
   accent: '#6D4FD7',
+  accentHover: '#5C3EC5',
+  accentActive: '#5034B3',
+  accentAlt: '#5639BE',
   accentSoft: '#F0ECFF',
   border: '#E7E1EF',
   divider: '#E9E4E0',
+  avatarBg: '#EFEBF5',
+  inputBg: '#F3F0EB',
+  error: '#C53030',
+  errorBg: '#FDECEC',
+  errorBorder: '#F5C6C6',
 } as const;
 
 export const SPACING = {

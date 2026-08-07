@@ -22,8 +22,8 @@ export const SettingsRow: React.FC<SettingsRowProps> = ({
       onClick={onClick}
       className={`w-full flex items-center gap-4 px-6 py-0 bg-transparent border-none text-left transition-colors duration-150 cursor-pointer ${
         variant === 'danger'
-          ? 'text-[#8B8998] hover:text-[#68677E]'
-          : 'text-[#0D102B] hover:text-[#6D4FD7]'
+          ? 'text-muted hover:text-secondaryText'
+          : 'text-primaryText hover:text-accent'
       } ${className}`}
       style={{ height: 60 }}
     >
@@ -36,8 +36,8 @@ export const SettingsRow: React.FC<SettingsRowProps> = ({
       <span
         className={`flex-1 font-sans text-[15px] ${
           variant === 'danger'
-            ? 'text-[#8B8998] font-normal'
-            : 'text-[#0D102B] font-medium'
+            ? 'text-muted font-normal'
+            : 'text-primaryText font-medium'
         }`}
       >
         {title}
@@ -46,7 +46,7 @@ export const SettingsRow: React.FC<SettingsRowProps> = ({
       {/* Chevron */}
       {variant === 'default' && (
         <ChevronRight
-          className="w-[18px] h-[18px] text-[#E7E1EF] shrink-0"
+          className="w-[18px] h-[18px] text-border shrink-0"
           strokeWidth={1.8}
         />
       )}

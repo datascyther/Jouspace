@@ -18,13 +18,13 @@ export const UserMessageBubble: React.FC<UserMessageBubbleProps> = ({
 }) => {
   return (
     <div className={`flex flex-col items-end w-full ${className}`}>
-      <div className="max-w-[85%] bg-[#F0ECFF] rounded-[20px] px-5 py-3.5">
-        <p className="font-sans text-[14.5px] leading-[1.5] text-[#0D102B] font-normal text-left">
+      <div className="max-w-[85%] bg-accentSoft rounded-[20px] px-5 py-3.5">
+        <p className="font-sans text-[14.5px] leading-[1.5] text-primaryText font-normal text-left">
           {text}
         </p>
       </div>
       {timestamp && (
-        <span className="font-sans text-[11.5px] text-[#8B8998] mt-1.5 mr-1">
+        <span className="font-sans text-[11.5px] text-muted mt-1.5 mr-1">
           {timestamp}
         </span>
       )}
@@ -53,10 +53,10 @@ export const MemoryCitation: React.FC<MemoryCitationProps> = ({
     <button
       type="button"
       onClick={onClick}
-      className={`group inline-flex items-center gap-1.5 text-[#6D4FD7] font-sans text-[12.5px] font-normal transition-opacity hover:opacity-80 cursor-pointer focus:outline-none text-left ${className}`}
+      className={`group inline-flex items-center gap-1.5 text-accent font-sans text-[12.5px] font-normal transition-opacity hover:opacity-80 cursor-pointer focus:outline-none text-left ${className}`}
     >
       <span>From {entryCount} entries</span>
-      <span className="text-[#6D4FD7]/60">•</span>
+      <span className="text-accent/60">•</span>
       <span>{dates.join(', ')}</span>
       <ChevronRight className="w-3.5 h-3.5 stroke-[1.9] shrink-0" />
     </button>
@@ -86,15 +86,15 @@ export const AssistantMessageBubble: React.FC<AssistantMessageBubbleProps> = ({
 }) => {
   return (
     <div className={`flex justify-start w-full ${className}`}>
-      <div className="max-w-[85%] bg-[#FFFEFC] border border-[#E7E1EF] rounded-[20px] px-5 py-4 flex flex-col gap-3">
+      <div className="max-w-[85%] bg-surface border border-border rounded-[20px] px-5 py-4 flex flex-col gap-3">
         {isThinking ? (
           <div className="flex items-center gap-1.5 py-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#8B8998] animate-bounce [animation-delay:-0.3s]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#8B8998] animate-bounce [animation-delay:-0.15s]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#8B8998] animate-bounce" />
+            <span className="w-1.5 h-1.5 rounded-full bg-muted animate-bounce [animation-delay:-0.3s]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-muted animate-bounce [animation-delay:-0.15s]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-muted animate-bounce" />
           </div>
         ) : (
-          <p className="font-sans text-[14.5px] leading-[1.65] text-[#0D102B] font-normal whitespace-pre-line text-left">
+          <p className="font-sans text-[14.5px] leading-[1.65] text-primaryText font-normal whitespace-pre-line text-left">
             {text}
           </p>
         )}

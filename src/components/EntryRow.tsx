@@ -27,15 +27,15 @@ export const EntryRow: React.FC<EntryRowProps> = ({
     <div
       onClick={() => onClick?.(entry)}
       className={`group flex items-center justify-between min-h-[60px] py-3.5 px-1 cursor-pointer transition-colors duration-150 ${
-        !isLast ? 'border-b border-[#E9E4E0]' : ''
+        !isLast ? 'border-b border-divider' : ''
       } ${className}`}
     >
       {/* Left + Middle: Date + Entry Title */}
       <div className="flex items-center gap-5 min-w-0 pr-3 flex-1">
-        <span className="font-sans text-[13.5px] text-[#8B8998] shrink-0 w-[48px]">
+        <span className="font-sans text-[13.5px] text-muted shrink-0 w-[48px]">
           {entry.date}
         </span>
-        <span className="font-sans text-[14.5px] text-[#0D102B] font-normal truncate group-hover:text-[#6D4FD7] transition-colors">
+        <span className="font-sans text-[14.5px] text-primaryText font-normal truncate group-hover:text-accent transition-colors">
           {entry.title}
         </span>
       </div>
@@ -43,7 +43,7 @@ export const EntryRow: React.FC<EntryRowProps> = ({
       {/* Right: Theme Chip + Chevron */}
       <div className="flex items-center gap-3 shrink-0">
         <ThemeChip label={entry.theme} />
-        <ChevronRight className="w-4 h-4 text-[#8B8998] group-hover:text-[#6D4FD7] transition-colors stroke-[1.8]" />
+        <ChevronRight className="w-4 h-4 text-muted group-hover:text-accent transition-colors stroke-[1.8]" />
       </div>
     </div>
   );

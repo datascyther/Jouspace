@@ -24,18 +24,18 @@ export const WritingToolbar: React.FC<WritingToolbarProps> = ({
 }) => {
   return (
     <div
-      className={`w-full bg-[#FFFEFC] border-t border-[#E9E4E0] min-h-[64px] py-2 px-4 flex items-center justify-between transition-all duration-200 ${
-        isKeyboardOpen ? 'shadow-md border-b border-[#E7E1EF]' : ''
+      className={`w-full bg-surface border-t border-divider min-h-[64px] py-2 px-4 flex items-center justify-between transition-all duration-200 ${
+        isKeyboardOpen ? 'shadow-md border-b border-border' : ''
       } ${className}`}
     >
       {/* Icon Group */}
-      <div className="flex items-center gap-5 text-[#8B8998]">
+      <div className="flex items-center gap-5 text-muted">
         {/* 1. Microphone */}
         <button
           type="button"
           onClick={onMicClick}
           aria-label="Voice memo"
-          className="p-1.5 hover:text-[#6D4FD7] transition-colors rounded-full focus:outline-none cursor-pointer"
+          className="p-1.5 hover:text-accent transition-colors rounded-full focus:outline-none cursor-pointer"
         >
           <Mic className="w-[20px] h-[20px] stroke-[1.6]" />
         </button>
@@ -45,7 +45,7 @@ export const WritingToolbar: React.FC<WritingToolbarProps> = ({
           type="button"
           onClick={onImageClick}
           aria-label="Insert image"
-          className="p-1.5 hover:text-[#6D4FD7] transition-colors rounded-full focus:outline-none cursor-pointer"
+          className="p-1.5 hover:text-accent transition-colors rounded-full focus:outline-none cursor-pointer"
         >
           <Image className="w-[20px] h-[20px] stroke-[1.6]" />
         </button>
@@ -55,7 +55,7 @@ export const WritingToolbar: React.FC<WritingToolbarProps> = ({
           type="button"
           onClick={onTagClick}
           aria-label="Add tag"
-          className="p-1.5 hover:text-[#6D4FD7] transition-colors rounded-full focus:outline-none cursor-pointer"
+          className="p-1.5 hover:text-accent transition-colors rounded-full focus:outline-none cursor-pointer"
         >
           <Tag className="w-[20px] h-[20px] stroke-[1.6]" />
         </button>
@@ -65,7 +65,7 @@ export const WritingToolbar: React.FC<WritingToolbarProps> = ({
           type="button"
           onClick={onAiSparkleClick}
           aria-label="AI memory assist"
-          className="p-1.5 hover:text-[#6D4FD7] transition-colors rounded-full focus:outline-none cursor-pointer"
+          className="p-1.5 hover:text-accent transition-colors rounded-full focus:outline-none cursor-pointer"
         >
           <Sparkles className="w-[20px] h-[20px] stroke-[1.6]" />
         </button>
@@ -75,7 +75,7 @@ export const WritingToolbar: React.FC<WritingToolbarProps> = ({
       <button
         type="button"
         onClick={onDoneClick}
-        className="bg-[#6D4FD7] hover:bg-[#5C3EC5] active:bg-[#5034B3] text-white font-sans font-medium text-[14px] px-5 py-2 rounded-[14px] transition-all duration-150 shadow-xs cursor-pointer focus:outline-none"
+        className="bg-accent hover:bg-accentHover active:bg-accentActive text-white font-sans font-medium text-[14px] px-5 py-2 rounded-[14px] transition-all duration-150 shadow-xs cursor-pointer focus:outline-none"
       >
         Done
       </button>

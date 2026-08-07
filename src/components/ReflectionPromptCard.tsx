@@ -20,7 +20,7 @@ export const ReflectionPromptCard: React.FC<ReflectionPromptCardProps> = ({
 }) => {
   return (
     <div
-      className={`relative bg-[#FFFEFC] rounded-[24px] border border-[#E7E1EF] p-6 text-[#0D102B] overflow-hidden flex flex-col gap-4 shadow-2xs ${className}`}
+      className={`relative bg-surface rounded-[24px] border border-border p-6 text-primaryText overflow-hidden flex flex-col gap-4 shadow-2xs ${className}`}
     >
       {/* Subtle Minimal Pencil Illustration Artwork in Bottom Right */}
       <div className="absolute right-3 bottom-2 w-32 h-24 pointer-events-none select-none opacity-30">
@@ -28,7 +28,7 @@ export const ReflectionPromptCard: React.FC<ReflectionPromptCardProps> = ({
           viewBox="0 0 120 90"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="w-full h-full text-[#6D4FD7]"
+          className="w-full h-full text-accent"
         >
           {/* Subtle paper line */}
           <path
@@ -63,7 +63,7 @@ export const ReflectionPromptCard: React.FC<ReflectionPromptCardProps> = ({
         <MemoryLabel text={label} />
 
         {/* Editorial Reflection Question */}
-        <h3 className="font-serif text-[18px] text-[#0D102B] font-normal leading-[1.38] tracking-tight">
+        <h3 className="font-serif text-[18px] text-primaryText font-normal leading-[1.38] tracking-tight">
           {promptText}
         </h3>
 

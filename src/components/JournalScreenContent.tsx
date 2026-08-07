@@ -15,6 +15,8 @@ interface JournalScreenContentProps {
   isEmptyEntry?: boolean;
   isKeyboardOpen?: boolean;
   onToast?: (msg: string) => void;
+  /** Called with the final title/body when the user saves — persists the entry */
+  onSaveEntry?: (input: { title: string; body: string }) => void;
 }
 
 export const JournalScreenContent: React.FC<JournalScreenContentProps> = ({
@@ -26,6 +28,7 @@ export const JournalScreenContent: React.FC<JournalScreenContentProps> = ({
   isEmptyEntry = false,
   isKeyboardOpen = false,
   onToast,
+  onSaveEntry,
 }) => {
   const defaultTitle = isEmptyEntry ? '' : "What I'm trying to understand";
   const defaultBody = isEmptyEntry
@@ -55,6 +58,8 @@ export const JournalScreenContent: React.FC<JournalScreenContentProps> = ({
   };
 
   const handleManualSave = () => {
+    // Persist the entry to the on-device store before showing the saved state.
+    onSaveEntry?.({ title, body });
     setCurrentSaveStatus('autosaving');
     setTimeout(() => {
       setCurrentSaveStatus('saved');
@@ -95,14 +100,14 @@ export const JournalScreenContent: React.FC<JournalScreenContentProps> = ({
             status={currentSaveStatus}
           />
 
-          <div className="w-full border-t border-[#E9E4E0] -mt-1 -mb-1" />
+          <div className="w-full border-t border-divider -mt-1 -mb-1" />
 
           {isLoading ? (
             <div className="animate-pulse space-y-4 py-4">
-              <div className="h-8 bg-[#E7E1EF] rounded-md w-3/4" />
-              <div className="h-4 bg-[#E7E1EF] rounded-md w-full" />
-              <div className="h-4 bg-[#E7E1EF] rounded-md w-5/6" />
-              <div className="h-4 bg-[#E7E1EF] rounded-md w-2/3" />
+              <div className="h-8 bg-border rounded-md w-3/4" />
+              <div className="h-4 bg-border rounded-md w-full" />
+              <div className="h-4 bg-border rounded-md w-5/6" />
+              <div className="h-4 bg-border rounded-md w-2/3" />
             </div>
           ) : (
             <JournalEditor
@@ -144,7 +149,7 @@ export const JournalScreenContent: React.FC<JournalScreenContentProps> = ({
       </div>
 
       {/* Pinned BottomNavigation */}
-      <div className="shrink-0 px-3 pb-2 pb-safe">
+      <div className="shrink-0 mx-2 pb-2 pb-safe">
         <BottomNavigation
           activeTab={activeTab}
           onTabChange={onTabChange}

@@ -11,7 +11,7 @@ export const SectionTitle: React.FC<SectionTitleProps> = ({
 }) => {
   return (
     <h2
-      className={`font-serif text-[20px] font-normal text-[#0D102B] tracking-tight leading-none select-none ${className}`}
+      className={`font-serif text-[20px] font-normal text-primaryText tracking-tight leading-none select-none ${className}`}
     >
       {children}
     </h2>

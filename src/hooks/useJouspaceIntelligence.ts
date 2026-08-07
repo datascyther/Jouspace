@@ -16,6 +16,7 @@
  */
 
 import { useState, useRef, useCallback } from 'react';
+import { journalStore } from '../store';
 
 // ── Runtime endpoint ──────────────────────────────────────────────────────────
 // The Intelligence Runtime base URL. In dev it is empty (same-origin; the Vite
@@ -70,6 +71,29 @@ export interface UseJouspaceIntelligenceReturn {
   abort: () => void;
   /** Clear message history */
   reset: () => void;
+}
+
+// ── Client context payload ────────────────────────────────────────────────────
+// Local-first: the device is the source of truth, so each request sends the
+// user's real journal entries as AI context. The runtime stays stateless.
+
+function clientEntriesPayload(): {
+  id: string;
+  date: string;
+  title: string;
+  theme: string;
+  content: string;
+}[] {
+  return journalStore
+    .list()
+    .slice(0, 20)
+    .map((e) => ({
+      id: e.id,
+      date: e.date,
+      title: e.title,
+      theme: e.theme,
+      content: e.content,
+    }));
 }
 
 // ── SSE parsing ───────────────────────────────────────────────────────────────
@@ -137,13 +161,16 @@ export function useJouspaceIntelligence(
       setIsStreaming(false);
       setError(null);
 
-      // Build request body based on capability
+      // Build request body based on capability.
+      // Both branches include the client's real journal entries so the runtime
+      // reflects the user's actual writing, not server-side seed data.
       const body: Record<string, unknown> =
         capability === 'reflect'
           ? {
               insight: (options as ReflectSendOptions)?.insight ?? trimmed,
               userThought: (options as ReflectSendOptions)?.userThought,
               history: [], // Fresh reflect sessions start clean
+              entries: clientEntriesPayload(),
             }
           : {
               messages: [
@@ -154,6 +181,7 @@ export function useJouspaceIntelligence(
                 { role: 'user', content: trimmed },
               ],
               context: (options as ChatSendOptions)?.context,
+              entries: clientEntriesPayload(),
             };
 
       // Placeholder assistant message — text will be streamed in

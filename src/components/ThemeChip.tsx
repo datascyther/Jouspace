@@ -19,8 +19,8 @@ export const ThemeChip: React.FC<ThemeChipProps> = ({
       onClick={onClick}
       className={`inline-flex items-center justify-center font-sans font-medium text-[13px] px-4 py-2 rounded-full leading-none transition-all duration-150 cursor-pointer ${
         isSelected
-          ? 'bg-[#F0ECFF] text-[#6D4FD7] border border-[#6D4FD7]/20 shadow-2xs'
-          : 'bg-[#FFFEFC] text-[#0D102B] border border-[#E7E1EF] hover:border-[#6D4FD7]/40'
+          ? 'bg-accentSoft text-accent border border-accent/20 shadow-2xs'
+          : 'bg-surface text-primaryText border border-border hover:border-accent/40'
       } ${className}`}
     >
       {label}

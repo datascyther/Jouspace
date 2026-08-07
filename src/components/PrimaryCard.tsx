@@ -14,8 +14,8 @@ export const PrimaryCard: React.FC<PrimaryCardProps> = ({
   return (
     <div
       onClick={onClick}
-      className={`bg-[#FFFEFC] rounded-[24px] border border-[#E7E1EF] p-6 text-[#0D102B] ${
-        onClick ? 'cursor-pointer hover:border-[#6D4FD7]/40 transition-colors duration-200' : ''
+      className={`bg-surface rounded-[24px] border border-border p-6 text-primaryText ${
+        onClick ? 'cursor-pointer hover:border-accent/40 transition-colors duration-200' : ''
       } ${className}`}
     >
       {children}

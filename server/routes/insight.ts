@@ -26,9 +26,19 @@ export const insightRouter = Router();
 
 // ── Request schema ────────────────────────────────────────────────────────────
 
+const EntrySchema = z.object({
+  id: z.string(),
+  date: z.string(),
+  title: z.string(),
+  theme: z.string(),
+  content: z.string(),
+});
+
 const InsightRequestSchema = z.object({
   userId: z.string().optional(),
   entryIds: z.array(z.string()).max(20).optional(),
+  /** Local-first: the client's real journal entries used for AI context */
+  entries: z.array(EntrySchema).max(20).optional(),
 });
 
 // ── Route ─────────────────────────────────────────────────────────────────────
@@ -45,8 +55,10 @@ insightRouter.post('/insight', async (req, res, next) => {
   }
 
   try {
-    // 2. Assemble journal context (insight uses the full recent-entry window)
-    const jouspaceContext = await assembleContext('user-1', 'insight');
+    // 2. Assemble journal context from the client's real entries
+    const jouspaceContext = await assembleContext('user-1', 'insight', {
+      entries: parsed.data.entries,
+    });
 
     // 3. Build the insight system prompt + a single user turn to anchor generation
     const systemPrompt = buildSystemPrompt(jouspaceContext, 'insight');

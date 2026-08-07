@@ -25,10 +25,20 @@ export const summarizeRouter = Router();
 
 // ── Request schema ────────────────────────────────────────────────────────────
 
+const EntrySchema = z.object({
+  id: z.string(),
+  date: z.string(),
+  title: z.string(),
+  theme: z.string(),
+  content: z.string(),
+});
+
 const SummarizeRequestSchema = z.object({
   userId: z.string().optional(),
   entryId: z.string().optional(),
   threadId: z.string().optional(),
+  /** Local-first: the client's real journal entries used for AI context */
+  entries: z.array(EntrySchema).max(20).optional(),
 });
 
 // ── Route ─────────────────────────────────────────────────────────────────────
@@ -48,6 +58,7 @@ summarizeRouter.post('/summarize', async (req, res, next) => {
     // 2. Assemble journal context (optionally anchored to a specific entry)
     const jouspaceContext = await assembleContext('user-1', 'summarize', {
       anchorEntryId: parsed.data.entryId,
+      entries: parsed.data.entries,
     });
 
     // 3. Build the summarize system prompt + a single user turn

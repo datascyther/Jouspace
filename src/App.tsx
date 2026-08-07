@@ -35,9 +35,10 @@ import {
   DEFAULT_USER,
   DEFAULT_CONTINUE_PROMPT,
   DEFAULT_AI_INSIGHT,
-  DEFAULT_RECENT_ENTRIES,
   DEFAULT_PROFILE,
 } from './mockData';
+import { useJournalStore } from './hooks/useJournalStore';
+import { dateLabel } from './store';
 
 type OnboardingScreen = 'splash' | 'welcome' | 'complete';
 
@@ -64,6 +65,9 @@ export function App() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(false);
 
+  // Live, persisted journal entries (local-first; cloud sync later)
+  const journal = useJournalStore();
+
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 2500);
@@ -87,6 +91,19 @@ export function App() {
   const handleNewEntry = () => {
     setCurrentScreen('journal');
     setActiveTab('journal');
+  };
+
+  // Persist a newly written entry to the on-device journal store.
+  const handleSaveEntry = (input: { title: string; body: string }) => {
+    const title = input.title.trim();
+    const body = input.body.trim();
+    if (!title && !body) return;
+    journal.save({
+      date: dateLabel(),
+      title: title || 'Untitled entry',
+      theme: 'thought',
+      content: body,
+    });
   };
 
   const handleReflectWithAI = () => {
@@ -297,6 +314,7 @@ export function App() {
             isEmptyEntry={isEmptyEntry}
             isKeyboardOpen={isKeyboardOpen}
             onToast={showToast}
+            onSaveEntry={handleSaveEntry}
           />
         ) : currentScreen === 'profile' ? (
           /* PROFILE SCREEN VIEW */
@@ -308,7 +326,7 @@ export function App() {
             email={DEFAULT_PROFILE.email}
             joinedDate={DEFAULT_PROFILE.joinedDate}
             avatarUrl={DEFAULT_PROFILE.avatarUrl}
-            entryCount={DEFAULT_PROFILE.entryCount}
+            entryCount={journal.entries.length}
             topThemes={DEFAULT_PROFILE.topThemes}
             isLoading={isLoading}
             isNoAvatar={isNoAvatar}
@@ -437,11 +455,11 @@ export function App() {
                     </p>
                   ) : (
                     <div className="flex flex-col divide-y divide-divider">
-                      {DEFAULT_RECENT_ENTRIES.map((entry, idx) => (
+                      {journal.entries.map((entry, idx) => (
                         <EntryRow
                           key={entry.id}
                           entry={entry}
-                          isLast={idx === DEFAULT_RECENT_ENTRIES.length - 1}
+                          isLast={idx === journal.entries.length - 1}
                           onClick={handleEntryClick}
                         />
                       ))}
@@ -451,7 +469,7 @@ export function App() {
               </div>
             </div>
 
-            <div className="shrink-0 px-3 pb-2 pb-safe">
+            <div className="shrink-0 mx-2 pb-2 pb-safe">
               <BottomNavigation
                 activeTab={activeTab}
                 onTabChange={handleTabChange}

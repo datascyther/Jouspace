@@ -23,7 +23,7 @@ export const AIInsightCard: React.FC<AIInsightCardProps> = ({
       <MemoryLabel text={label} />
 
       {/* Body text in Editorial Serif Font */}
-      <p className="font-serif text-[20px] leading-[1.35] text-[#0D102B] font-normal tracking-tight pr-2">
+      <p className="font-serif text-[20px] leading-[1.35] text-primaryText font-normal tracking-tight pr-2">
         {insightText}
       </p>
 

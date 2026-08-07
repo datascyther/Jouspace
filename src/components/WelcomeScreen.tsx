@@ -56,7 +56,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       <button
         type="button"
         onClick={onStartWriting}
-        className="w-full bg-accent hover:bg-[#5C3EC5] active:bg-[#5034B3] text-white font-sans font-medium text-[15px] py-4 rounded-[18px] transition-all duration-150 shadow-sm focus:outline-none focus:ring-2 focus:ring-accent/40 cursor-pointer"
+        className="w-full bg-accent hover:bg-accentHover active:bg-accentActive text-white font-sans font-medium text-[15px] py-4 rounded-[18px] transition-all duration-150 shadow-sm focus:outline-none focus:ring-2 focus:ring-accent/40 cursor-pointer"
       >
         Start writing
       </button>
@@ -65,7 +65,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       <button
         type="button"
         onClick={onAlreadyHaveAccount}
-        className="mt-6 text-accent hover:text-[#5639BE] font-sans font-medium text-[14px] transition-colors duration-150 focus:outline-none cursor-pointer"
+        className="mt-6 text-accent hover:text-accentAlt font-sans font-medium text-[14px] transition-colors duration-150 focus:outline-none cursor-pointer"
       >
         I already have an account
       </button>

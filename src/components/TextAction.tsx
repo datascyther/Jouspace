@@ -22,7 +22,7 @@ export const TextAction: React.FC<TextActionProps> = ({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`inline-flex items-center text-accent hover:text-[#5639BE] font-sans font-medium text-[14.5px] transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer min-h-11 px-2 ${
+      className={`inline-flex items-center text-accent hover:text-accentAlt font-sans font-medium text-[14.5px] transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer min-h-11 px-2 ${
         alignRight ? 'ml-auto' : ''
       } ${className}`}
     >

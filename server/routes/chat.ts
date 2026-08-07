@@ -29,11 +29,21 @@ const MessageSchema = z.object({
   content: z.string().min(1).max(8000),
 });
 
+const EntrySchema = z.object({
+  id: z.string(),
+  date: z.string(),
+  title: z.string(),
+  theme: z.string(),
+  content: z.string(),
+});
+
 const ChatRequestSchema = z.object({
   messages: z.array(MessageSchema).min(1).max(50),
   context: z
     .object({ entryId: z.string().optional() })
     .optional(),
+  /** Local-first: the client's real journal entries used for AI context */
+  entries: z.array(EntrySchema).max(20).optional(),
 });
 
 // ── Route ─────────────────────────────────────────────────────────────────────
@@ -49,12 +59,13 @@ chatRouter.post('/chat', async (req, res, next) => {
     return;
   }
 
-  const { messages, context: reqContext } = parsed.data;
+  const { messages, context: reqContext, entries } = parsed.data;
 
   try {
-    // 2. Assemble journal context
+    // 2. Assemble journal context from the client's real entries
     const jouspaceContext = await assembleContext('user-1', 'chat', {
       anchorEntryId: reqContext?.entryId,
+      entries,
     });
 
     // 3. Build the system prompt and full message array

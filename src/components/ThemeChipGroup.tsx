@@ -29,7 +29,7 @@ export const ThemeChipGroup: React.FC<ThemeChipGroupProps> = ({
 }) => {
   return (
     <div className={`flex flex-col gap-3.5 w-full text-left ${className}`}>
-      <h3 className="font-serif text-[19px] text-[#0D102B] font-normal tracking-tight">
+      <h3 className="font-serif text-[19px] text-primaryText font-normal tracking-tight">
         Themes
       </h3>
 

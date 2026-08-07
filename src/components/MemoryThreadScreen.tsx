@@ -86,7 +86,7 @@ export const MemoryThreadScreen: React.FC<MemoryThreadScreenProps> = ({
       <button
         type="button"
         onClick={onReflectWithAI}
-        className="w-full bg-accent hover:bg-[#5C3EC5] active:bg-[#5034B3] text-white font-sans font-medium text-[15px] py-4 rounded-[18px] transition-all duration-150 shadow-sm focus:outline-none focus:ring-2 focus:ring-accent/40 cursor-pointer flex items-center justify-center gap-2"
+        className="w-full bg-accent hover:bg-accentHover active:bg-accentActive text-white font-sans font-medium text-[15px] py-4 rounded-[18px] transition-all duration-150 shadow-sm focus:outline-none focus:ring-2 focus:ring-accent/40 cursor-pointer flex items-center justify-center gap-2"
       >
         <Sparkles className="w-[18px] h-[18px] stroke-[1.8]" />
         Reflect with AI

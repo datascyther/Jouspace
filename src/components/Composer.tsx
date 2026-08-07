@@ -28,8 +28,8 @@ export const Composer: React.FC<ComposerProps> = ({
 }) => {
   return (
     <div
-      className={`w-full bg-[#FFFEFC] border rounded-[26px] pl-2 pr-2 py-2 flex items-center gap-2 transition-colors duration-150 ${
-        isFocused ? 'border-[#6D4FD7]/50' : 'border-[#E7E1EF]'
+      className={`w-full bg-surface border rounded-[26px] pl-2 pr-2 py-2 flex items-center gap-2 transition-colors duration-150 ${
+        isFocused ? 'border-accent/50' : 'border-border'
       } ${className}`}
     >
       {/* Left: Attachment / Plus */}
@@ -37,7 +37,7 @@ export const Composer: React.FC<ComposerProps> = ({
         type="button"
         onClick={onAttach}
         aria-label="Add attachment"
-        className="w-[38px] h-[38px] shrink-0 rounded-full bg-[#F3F0EB] hover:bg-[#E9E4E0] flex items-center justify-center text-[#0D102B] transition-colors cursor-pointer focus:outline-none"
+        className="w-[38px] h-[38px] shrink-0 rounded-full bg-inputBg hover:bg-divider flex items-center justify-center text-primaryText transition-colors cursor-pointer focus:outline-none"
       >
         <Plus className="w-[18px] h-[18px] stroke-[1.9]" />
       </button>
@@ -54,7 +54,7 @@ export const Composer: React.FC<ComposerProps> = ({
         }}
         disabled={disabled}
         placeholder="Ask Jouspace..."
-        className="flex-1 min-w-0 bg-transparent font-sans text-[14.5px] text-[#0D102B] outline-none border-none placeholder:text-[#8B8998] caret-[#6D4FD7]"
+        className="flex-1 min-w-0 bg-transparent font-sans text-[14.5px] text-primaryText outline-none border-none placeholder:text-muted caret-accent"
       />
 
       {/* Right: Microphone */}
@@ -62,7 +62,7 @@ export const Composer: React.FC<ComposerProps> = ({
         type="button"
         onClick={onMic}
         aria-label="Voice input"
-        className="p-1.5 shrink-0 text-[#68677E] hover:text-[#6D4FD7] transition-colors cursor-pointer focus:outline-none"
+        className="p-1.5 shrink-0 text-secondaryText hover:text-accent transition-colors cursor-pointer focus:outline-none"
       >
         <Mic className="w-[19px] h-[19px] stroke-[1.6]" />
       </button>
@@ -73,7 +73,7 @@ export const Composer: React.FC<ComposerProps> = ({
         onClick={onSend}
         disabled={disabled}
         aria-label="Send message"
-        className="w-[38px] h-[38px] shrink-0 rounded-full bg-[#6D4FD7] hover:bg-[#5C3EC5] disabled:opacity-50 flex items-center justify-center text-white transition-colors cursor-pointer focus:outline-none"
+        className="w-[38px] h-[38px] shrink-0 rounded-full bg-accent hover:bg-accentHover disabled:opacity-50 flex items-center justify-center text-white transition-colors cursor-pointer focus:outline-none"
       >
         <ArrowUp className="w-[19px] h-[19px] stroke-[2]" />
       </button>

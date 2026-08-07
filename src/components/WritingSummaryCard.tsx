@@ -22,15 +22,15 @@ export const WritingSummaryCard: React.FC<WritingSummaryCardProps> = ({
 
   return (
     <div
-      className={`bg-[#FFFEFC] rounded-[24px] border border-[#E7E1EF] p-6 flex flex-col gap-4 ${className}`}
+      className={`bg-surface rounded-[24px] border border-border p-6 flex flex-col gap-4 ${className}`}
     >
       {/* Top Label */}
-      <span className="font-sans text-[12.5px] font-medium text-[#8B8998] tracking-wide uppercase select-none">
+      <span className="font-sans text-[12.5px] font-medium text-muted tracking-wide uppercase select-none">
         ✦ Your journal
       </span>
 
       {/* Body */}
-      <p className="font-serif text-[17px] font-normal text-[#0D102B] leading-[1.65] tracking-tight whitespace-pre-line m-0">
+      <p className="font-serif text-[17px] font-normal text-primaryText leading-[1.65] tracking-tight whitespace-pre-line m-0">
         {`You've written ${entryCount} entries.\n\nYour writing most often returns to\n${themesText}`}
       </p>
 

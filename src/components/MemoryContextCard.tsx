@@ -22,13 +22,13 @@ export const MemoryContextCard: React.FC<MemoryContextCardProps> = ({
 }) => {
   return (
     <div
-      className={`bg-[#FFFEFC] rounded-[24px] border border-[#E7E1EF] p-6 text-[#0D102B] flex flex-col gap-3 ${className}`}
+      className={`bg-surface rounded-[24px] border border-border p-6 text-primaryText flex flex-col gap-3 ${className}`}
     >
       {/* Top Label */}
       <MemoryLabel text={label} />
 
       {/* Editorial Body: Recent threads */}
-      <p className="font-serif text-[19px] leading-[1.4] text-[#0D102B] font-normal tracking-tight">
+      <p className="font-serif text-[19px] leading-[1.4] text-primaryText font-normal tracking-tight">
         {isEmptyContext
           ? 'No memory threads selected yet.'
           : `Recent threads: ${threads.join(', ')}`}

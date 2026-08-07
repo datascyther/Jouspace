@@ -24,13 +24,13 @@ export const JournalHeader: React.FC<JournalHeaderProps> = ({
         type="button"
         onClick={onBack}
         aria-label="Go back"
-        className="p-1.5 -ml-1 text-[#0D102B] hover:text-[#6D4FD7] rounded-full transition-colors cursor-pointer focus:outline-none"
+        className="p-1.5 -ml-1 text-primaryText hover:text-accent rounded-full transition-colors cursor-pointer focus:outline-none"
       >
         <ArrowLeft className="w-5 h-5 stroke-[1.8]" />
       </button>
 
       {/* Editorial Page Title */}
-      <h1 className="font-serif font-medium text-[20px] text-[#0D102B] tracking-tight">
+      <h1 className="font-serif font-medium text-[20px] text-primaryText tracking-tight">
         Journal
       </h1>
 
@@ -38,7 +38,7 @@ export const JournalHeader: React.FC<JournalHeaderProps> = ({
       <button
         type="button"
         onClick={onSave}
-        className="font-sans font-medium text-[14.5px] text-[#6D4FD7] hover:text-[#5639BE] transition-colors cursor-pointer focus:outline-none"
+        className="font-sans font-medium text-[14.5px] text-accent hover:text-accentAlt transition-colors cursor-pointer focus:outline-none"
       >
         {saveState === 'autosaving' ? 'Saving...' : 'Save'}
       </button>

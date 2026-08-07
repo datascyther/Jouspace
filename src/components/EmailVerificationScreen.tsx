@@ -67,7 +67,7 @@ export const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = (
         type="button"
         onClick={onResendEmail}
         disabled={isLoading}
-        className="w-full max-w-[320px] bg-accent hover:bg-[#5C3EC5] active:bg-[#5034B3] text-white font-sans font-medium text-[15px] py-4 rounded-[18px] transition-all duration-150 shadow-sm focus:outline-none focus:ring-2 focus:ring-accent/40 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full max-w-[320px] bg-accent hover:bg-accentHover active:bg-accentActive text-white font-sans font-medium text-[15px] py-4 rounded-[18px] transition-all duration-150 shadow-sm focus:outline-none focus:ring-2 focus:ring-accent/40 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isLoading ? 'Sending…' : 'Resend email'}
       </button>
@@ -77,7 +77,7 @@ export const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = (
         type="button"
         onClick={onBackToSignIn}
         disabled={isLoading}
-        className="mt-4 text-accent hover:text-[#5639BE] font-sans font-medium text-[14px] transition-colors duration-150 focus:outline-none cursor-pointer disabled:opacity-50"
+        className="mt-4 text-accent hover:text-accentAlt font-sans font-medium text-[14px] transition-colors duration-150 focus:outline-none cursor-pointer disabled:opacity-50"
       >
         Back to sign in
       </button>

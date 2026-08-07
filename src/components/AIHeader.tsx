@@ -20,10 +20,10 @@ export const AIHeader: React.FC<AIHeaderProps> = ({
     >
       {/* Left: Editorial page title + subtitle */}
       <div className="flex flex-col text-left">
-        <h1 className="font-serif font-normal text-[28px] text-[#0D102B] leading-tight tracking-tight">
+        <h1 className="font-serif font-normal text-[28px] text-primaryText leading-tight tracking-tight">
           AI
         </h1>
-        <p className="font-sans font-normal text-[14px] text-[#8B8998] mt-0.5">
+        <p className="font-sans font-normal text-[14px] text-muted mt-0.5">
           Reflect with your journal
         </p>
       </div>
@@ -34,7 +34,7 @@ export const AIHeader: React.FC<AIHeaderProps> = ({
           type="button"
           onClick={onHistoryClick}
           aria-label="Conversation history"
-          className="w-[38px] h-[38px] rounded-full border border-[#E7E1EF] bg-transparent flex items-center justify-center text-[#0D102B] hover:text-[#6D4FD7] hover:border-[#6D4FD7]/40 transition-colors cursor-pointer focus:outline-none"
+          className="w-[38px] h-[38px] rounded-full border border-border bg-transparent flex items-center justify-center text-primaryText hover:text-accent hover:border-accent/40 transition-colors cursor-pointer focus:outline-none"
         >
           <History className="w-[18px] h-[18px] stroke-[1.7]" />
         </button>
@@ -43,7 +43,7 @@ export const AIHeader: React.FC<AIHeaderProps> = ({
           type="button"
           onClick={onAvatarClick}
           aria-label="User profile"
-          className="w-[38px] h-[38px] rounded-full bg-[#EFEBF5] hover:bg-[#E7E1EF] flex items-center justify-center text-[#0D102B] font-sans font-medium text-[13px] tracking-wider transition-colors cursor-pointer focus:outline-none"
+          className="w-[38px] h-[38px] rounded-full bg-avatarBg hover:bg-border flex items-center justify-center text-primaryText font-sans font-medium text-[13px] tracking-wider transition-colors cursor-pointer focus:outline-none"
         >
           {userInitials}
         </button>

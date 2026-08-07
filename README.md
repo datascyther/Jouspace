@@ -36,7 +36,7 @@ Frontend (React)
 
 Intelligence Runtime (Express, server/)
   ├── routes/*          chat · reflect · insight · summarize (all SSE streaming)
-  ├── ContextAssembler  journal context (mock seed data → future DB)
+  ├── ContextAssembler  journal context from client-sent entries (seeded if absent)
   ├── PromptAssembler   Jouspace-branded system prompts per capability
   ├── gateway/*         provider abstraction (NvidiaGateway = live implementation)
   └── StreamController  AsyncIterable → SSE to the client
@@ -84,16 +84,21 @@ cd android && ./gradlew assembleDebug
 
 ### Production notes
 
+- **Deployment:** see [`DEPLOYMENT.md`](./DEPLOYMENT.md) for step-by-step
+  hosting (Fly.io / Railway / Render), runtime env vars, APK release signing
+  (keystore → `assembleRelease`), and the current auth status.
 - **Backend:** deploy the runtime to an HTTPS host and build with
   `VITE_API_BASE_URL=https://your-runtime-host`. The server is intentionally
   simple: `npm install && npm start` (set `PORT`, `NVIDIA_API_KEY`,
-  `CORS_ORIGINS`).
-- **Release signing:** the CI file produces a debug-signed APK. For Play Store
-  release, add a keystore (`KEYSTORE`, `KEYSTORE_PASSWORD`…) and a signing
-  config to Gradle, then run `assembleRelease`.
-- **Data:** the app currently runs on mock/seed data on both ends. Wire the
-  `ContextAssembler` to your real persistence layer and the frontend to real
-  auth before shipping.
+  `CORS_ORIGINS`). It is **stateless** — no database required.
+- **Data (local-first hybrid):** the frontend persists journal entries in
+  `localStorage` (`src/store/`) and sends the most recent ones to the runtime
+  with every AI request. The server falls back to seed data only when the
+  client sends none. A future cloud sync can be added behind the
+  `JournalStore` interface without touching the AI pipeline.
+- **Auth:** sign-in screens are currently mock UI (they complete without a
+  real account) — intentional for this private local-first pass. See
+  `DEPLOYMENT.md` §3 for the path to real auth / PIN lock.
 
 ## Scripts
 

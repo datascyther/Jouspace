@@ -215,20 +215,20 @@ export const MemoryScreenContent: React.FC<MemoryScreenContentProps> = ({
           />
 
           {(localSearchOpen || isSearchActive) && (
-            <div className="flex items-center gap-2 bg-[#FFFEFC] border border-[#6D4FD7]/40 rounded-[16px] px-4 py-2.5 shadow-xs transition-all animate-fadeIn -mt-2">
-              <Search className="w-4 h-4 text-[#6D4FD7]" />
+            <div className="flex items-center gap-2 bg-surface border border-accent/40 rounded-[16px] px-4 py-2.5 shadow-xs transition-all animate-fadeIn -mt-2">
+              <Search className="w-4 h-4 text-accent" />
               <input
                 type="text"
                 placeholder="Search memory patterns..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 font-sans text-sm text-[#0D102B] bg-transparent outline-none placeholder:text-[#8B8998]"
+                className="flex-1 font-sans text-sm text-primaryText bg-transparent outline-none placeholder:text-muted"
                 autoFocus
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="text-[#8B8998] hover:text-[#0D102B]"
+                  className="text-muted hover:text-primaryText"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -238,21 +238,21 @@ export const MemoryScreenContent: React.FC<MemoryScreenContentProps> = ({
 
           <section>
             {isLoading ? (
-              <div className="bg-[#FFFEFC] rounded-[24px] border border-[#E7E1EF] p-6 animate-pulse space-y-3">
-                <div className="h-4 bg-[#E7E1EF] rounded w-1/3" />
-                <div className="h-10 bg-[#E7E1EF] rounded w-3/4" />
-                <div className="h-4 bg-[#E7E1EF] rounded w-1/2" />
-                <div className="h-4 bg-[#E7E1EF] rounded w-1/4 pt-2" />
+              <div className="bg-surface rounded-[24px] border border-border p-6 animate-pulse space-y-3">
+                <div className="h-4 bg-border rounded w-1/3" />
+                <div className="h-10 bg-border rounded w-3/4" />
+                <div className="h-4 bg-border rounded w-1/2" />
+                <div className="h-4 bg-border rounded w-1/4 pt-2" />
               </div>
             ) : isNoMemories ? (
-              <div className="bg-[#FFFEFC] rounded-[24px] border border-[#E7E1EF] p-6 flex flex-col gap-3">
-                <span className="text-[#6D4FD7] font-sans text-xs font-medium">
+              <div className="bg-surface rounded-[24px] border border-border p-6 flex flex-col gap-3">
+                <span className="text-accent font-sans text-xs font-medium">
                   ✦ Jouspace listening
                 </span>
-                <h2 className="font-serif text-[22px] text-[#0D102B]">
+                <h2 className="font-serif text-[22px] text-primaryText">
                   Memory patterns are forming
                 </h2>
-                <p className="font-sans text-[14px] text-[#68677E]">
+                <p className="font-sans text-[14px] text-secondaryText">
                   Write a few more entries to allow Jouspace to connect memory
                   threads across time.
                 </p>
@@ -271,11 +271,11 @@ export const MemoryScreenContent: React.FC<MemoryScreenContentProps> = ({
           <section>
             {isLoading ? (
               <div className="animate-pulse space-y-3">
-                <div className="h-5 bg-[#E7E1EF] rounded w-1/4" />
+                <div className="h-5 bg-border rounded w-1/4" />
                 <div className="flex gap-2">
-                  <div className="h-10 bg-[#E7E1EF] rounded-full w-20" />
-                  <div className="h-10 bg-[#E7E1EF] rounded-full w-24" />
-                  <div className="h-10 bg-[#E7E1EF] rounded-full w-20" />
+                  <div className="h-10 bg-border rounded-full w-20" />
+                  <div className="h-10 bg-border rounded-full w-24" />
+                  <div className="h-10 bg-border rounded-full w-20" />
                 </div>
               </div>
             ) : (
@@ -288,22 +288,22 @@ export const MemoryScreenContent: React.FC<MemoryScreenContentProps> = ({
           </section>
 
           <section className="flex flex-col gap-3">
-            <h3 className="font-serif text-[19px] text-[#0D102B] font-normal tracking-tight text-left">
+            <h3 className="font-serif text-[19px] text-primaryText font-normal tracking-tight text-left">
               Connected entries
             </h3>
 
             {isLoading ? (
               <div className="space-y-3 animate-pulse">
-                <div className="h-12 bg-[#E7E1EF] rounded-xl" />
-                <div className="h-12 bg-[#E7E1EF] rounded-xl" />
-                <div className="h-12 bg-[#E7E1EF] rounded-xl" />
+                <div className="h-12 bg-border rounded-xl" />
+                <div className="h-12 bg-border rounded-xl" />
+                <div className="h-12 bg-border rounded-xl" />
               </div>
             ) : isNoConnectedEntries || filteredEntries.length === 0 ? (
-              <p className="font-sans text-[14px] text-[#8B8998] py-3 text-left">
+              <p className="font-sans text-[14px] text-muted py-3 text-left">
                 No connected entries found for this theme.
               </p>
             ) : (
-              <div className="flex flex-col divide-y divide-[#E9E4E0]">
+              <div className="flex flex-col divide-y divide-divider">
                 {filteredEntries.map((entry, idx) => (
                   <EntryRow
                     key={entry.id}
@@ -318,10 +318,10 @@ export const MemoryScreenContent: React.FC<MemoryScreenContentProps> = ({
 
           <section>
             {isLoading ? (
-              <div className="bg-[#FFFEFC] rounded-[24px] border border-[#E7E1EF] p-6 animate-pulse space-y-3">
-                <div className="h-4 bg-[#E7E1EF] rounded w-1/4" />
-                <div className="h-8 bg-[#E7E1EF] rounded w-3/4" />
-                <div className="h-4 bg-[#E7E1EF] rounded w-1/3" />
+              <div className="bg-surface rounded-[24px] border border-border p-6 animate-pulse space-y-3">
+                <div className="h-4 bg-border rounded w-1/4" />
+                <div className="h-8 bg-border rounded w-3/4" />
+                <div className="h-4 bg-border rounded w-1/3" />
               </div>
             ) : (
               <ReflectionPromptCard
@@ -336,7 +336,7 @@ export const MemoryScreenContent: React.FC<MemoryScreenContentProps> = ({
       </div>
 
       {/* Pinned BottomNavigation */}
-      <div className="shrink-0 px-3 pb-2 pb-safe">
+      <div className="shrink-0 mx-2 pb-2 pb-safe">
         <BottomNavigation activeTab={activeTab} onTabChange={onTabChange} />
       </div>
     </div>

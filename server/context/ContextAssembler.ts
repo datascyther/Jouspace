@@ -81,29 +81,41 @@ export interface ContextOptions {
   anchorEntryId?: string;
   /** Insight text to anchor a reflection */
   anchorInsight?: string;
+  /**
+   * Entries supplied by the client (local-first device data). When present,
+   * these replace the server-side seed — the AI reflects the user's real
+   * journal. Falls back to SEED_ENTRIES when omitted or empty.
+   */
+  entries?: JournalEntry[];
 }
 
 /**
  * Assemble context for a capability request.
  *
+ * Local-first architecture: the device is the source of truth and sends its
+ * journal entries with each request. The runtime stays stateless — a future
+ * cloud-synced deployment can instead look entries up from a database scoped
+ * to `_userId` and pass them the same way.
+ *
  * @param _userId     Future: used to look up entries from a database
  * @param capability  Shapes which context fields are populated
- * @param options     Optional filters and anchors
+ * @param options     Optional filters, anchors, and client-supplied entries
  */
 export async function assembleContext(
   _userId: string,
   capability: string,
   options: ContextOptions = {}
 ): Promise<JouspaceContext> {
-  const { maxEntries = 5, anchorEntryId, anchorInsight } = options;
+  const { maxEntries = 5, anchorEntryId, anchorInsight, entries } = options;
 
-  // Retrieve entries (future: DB query scoped to _userId)
-  const entries = SEED_ENTRIES.slice(0, maxEntries);
+  // Use the client's real entries when provided; otherwise fall back to seed.
+  const source = entries && entries.length > 0 ? entries : SEED_ENTRIES;
+  const recent = source.slice(0, maxEntries);
 
   const context: JouspaceContext = {
     userName: SEED_USER.userName,
     topThemes: SEED_USER.topThemes,
-    recentEntries: entries,
+    recentEntries: recent,
   };
 
   // Reflection capability adds an anchor
@@ -112,7 +124,7 @@ export async function assembleContext(
       context.anchorInsight = anchorInsight;
     }
     if (anchorEntryId) {
-      context.anchorEntry = SEED_ENTRIES.find((e) => e.id === anchorEntryId);
+      context.anchorEntry = source.find((e) => e.id === anchorEntryId);
     }
   }
 

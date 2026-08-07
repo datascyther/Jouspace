@@ -43,7 +43,7 @@ export const EntryDetailScreen: React.FC<EntryDetailScreenProps> = ({
           <button
             type="button"
             aria-label="Delete entry"
-            className="w-[38px] h-[38px] rounded-full bg-surface border border-border flex items-center justify-center text-[#C53030] hover:bg-[#FDECEC] transition-colors focus:outline-none focus:ring-2 focus:ring-[#C53030]/20 cursor-pointer"
+            className="w-[38px] h-[38px] rounded-full bg-surface border border-border flex items-center justify-center text-error hover:bg-errorBg transition-colors focus:outline-none focus:ring-2 focus:ring-error/20 cursor-pointer"
           >
             <Trash2 className="w-4 h-4 stroke-[1.8]" />
           </button>
