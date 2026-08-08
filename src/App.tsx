@@ -379,6 +379,7 @@ export function App() {
             <MemoryScreenContent
               activeTab="memory"
               onTabChange={handleTabChange}
+              userInitials={userInitials}
               entries={journal.entries}
               isNoMemories={isEmpty}
               onEntryClick={handleEntryClick}

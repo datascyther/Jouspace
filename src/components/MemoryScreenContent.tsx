@@ -22,6 +22,8 @@ interface MemoryScreenContentProps {
   onReflectWithAi?: () => void;
   onOpenSearch?: () => void;
   onAvatarClick?: () => void;
+  /** Display initials for the header avatar (e.g. "N" from the profile name). */
+  userInitials?: string;
 }
 
 /**
@@ -58,6 +60,7 @@ export const MemoryScreenContent: React.FC<MemoryScreenContentProps> = ({
   onReflectWithAi,
   onOpenSearch,
   onAvatarClick = () => {},
+  userInitials,
 }) => {
   // Only computed on mount (when the Memory tab is opened), so a user's manual
   // chip selection is never overridden while they're on the screen.
@@ -102,6 +105,7 @@ export const MemoryScreenContent: React.FC<MemoryScreenContentProps> = ({
       <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-4 pt-2 pb-4">
         <div className="flex flex-col gap-7 w-full">
           <MemoryHeader
+            userInitials={userInitials}
             onSearchClick={onOpenSearch}
             onAvatarClick={onAvatarClick}
           />
