@@ -22,7 +22,7 @@ export const MemoryInsightCard: React.FC<MemoryInsightCardProps> = ({
 }) => {
   return (
     <div
-      className={`relative bg-surface rounded-[24px] border border-border p-6 text-primaryText overflow-hidden flex flex-col gap-4 shadow-2xs ${className}`}
+      className={`relative bg-surface rounded-3xl border border-border p-6 text-primaryText overflow-hidden flex flex-col gap-4 shadow-2xs ${className}`}
     >
       {/* Decorative Abstract Memory Artwork (subtle, low opacity, clipped inside card) */}
       <div className="absolute right-[-10px] top-[-10px] w-44 h-44 pointer-events-none select-none opacity-40">

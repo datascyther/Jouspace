@@ -1,17 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { AIHeader } from './AIHeader';
 import { MemoryContextCard } from './MemoryContextCard';
 import { SuggestionRow } from './SuggestionRow';
-import {
-  UserMessageBubble,
-  AssistantMessageBubble,
-} from './MessageBubbles';
+import { UserMessageBubble, AssistantMessageBubble } from './MessageBubbles';
 import { Composer } from './Composer';
 import { BottomNavigation, NavTab } from './BottomNavigation';
+import { EntryPickerSheet } from './EntryPickerSheet';
 import {
   useJouspaceIntelligence,
-  type IntelligenceMessage,
+  RUNTIME_UNAVAILABLE_MESSAGE,
+  loadChatMessages,
 } from '../hooks/useJouspaceIntelligence';
+import { journalStore } from '../store';
+import type { Entry } from './EntryRow';
 
 export interface AIMessage {
   id: string;
@@ -22,100 +23,76 @@ export interface AIMessage {
   citationDates?: string[];
 }
 
+/** Neutral prompts shown when the conversation is empty. */
 export const DEFAULT_SUGGESTIONS: string[] = [
   'Why do I keep returning to clarity?',
   'Show me what changed this month.',
   'Help me continue my last entry.',
 ];
 
-export const DEFAULT_CONVERSATION: AIMessage[] = [
-  {
-    id: 'msg-user-1',
-    role: 'user',
-    text: 'What am I circling around lately?',
-    timestamp: '9:41 AM',
-  },
-  {
-    id: 'msg-assistant-1',
-    role: 'assistant',
-    text: 'You seem to be circling around consistency. It appears most often when you write after a gap.',
-    citationCount: 3,
-    citationDates: ['Aug 1', 'Jul 29', 'Jul 24'],
-  },
-];
-
 interface AIScreenContentProps {
   activeTab: NavTab;
   onTabChange: (tab: NavTab) => void;
   userInitials?: string;
-  isLoading?: boolean;
-  isThinking?: boolean;
-  isStreaming?: boolean;
   isNoMemoryContext?: boolean;
-  isNoConversation?: boolean;
-  isComposerFocused?: boolean;
-  onToast?: (msg: string) => void;
+  /** User-chosen AI context label (from the context picker). */
+  contextLabel?: string | null;
+  /** Journal entries, used by attach + citation lookups. */
+  entries?: Entry[];
+  onAvatarClick?: () => void;
+  onOpenHistory?: () => void;
+  onOpenContextPicker?: () => void;
+  onOpenEntry?: (id: string) => void;
 }
 
-function toAIMessage(m: IntelligenceMessage): AIMessage {
-  return {
-    id: m.id,
-    role: m.role,
-    text: m.text,
-    timestamp: m.timestamp,
-    citationCount: m.citationCount,
-    citationDates: m.citationDates,
+/** Real themes present in the journal, used as AI memory context. */
+function realContextThreads(): string[] {
+  const set = new Set<string>();
+  for (const e of journalStore.list()) set.add(e.theme);
+  return Array.from(set);
+}
+
+/** Web Speech API constructor if available on this browser. */
+function getSpeechRecognitionCtor(): any {
+  if (typeof window === 'undefined') return null;
+  const w = window as unknown as {
+    SpeechRecognition?: any;
+    webkitSpeechRecognition?: any;
   };
+  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
 }
 
 export const AIScreenContent: React.FC<AIScreenContentProps> = ({
   activeTab,
   onTabChange,
-  userInitials = 'VU',
-  isLoading = false,
-  isThinking: qaThinking = false,
-  isStreaming: qaStreaming = false,
+  userInitials = 'J',
   isNoMemoryContext = false,
-  isNoConversation = false,
-  isComposerFocused = false,
-  onToast,
+  contextLabel = null,
+  entries = [],
+  onAvatarClick = () => {},
+  onOpenHistory,
+  onOpenContextPicker,
+  onOpenEntry,
 }) => {
   const [composerValue, setComposerValue] = useState('');
-  const [focused, setFocused] = useState(isComposerFocused);
+  const [isAttachOpen, setIsAttachOpen] = useState(false);
 
-  const ai = useJouspaceIntelligence('chat');
+  // Restore persisted chat history on mount so navigation doesn't lose it.
+  const [initialMessages] = useState(() => loadChatMessages());
+  const ai = useJouspaceIntelligence('chat', initialMessages);
 
-  const streamTimer = useRef<number | null>(null);
-  const [qaStreamedText, setQaStreamedText] = useState<string | null>(null);
+  // Voice input (Web Speech API; gracefully disabled when unavailable).
+  const recognitionCtor = getSpeechRecognitionCtor();
+  const micSupported = recognitionCtor !== null;
+  const recognitionRef = useRef<any>(null);
+  const baseRef = useRef('');
 
   useEffect(() => {
-    if (!qaStreaming) {
-      setQaStreamedText(null);
-      return;
-    }
-    const full = DEFAULT_CONVERSATION[1].text;
-    let i = 0;
-    setQaStreamedText('');
-    streamTimer.current = window.setInterval(() => {
-      i += 2;
-      setQaStreamedText(full.slice(0, i));
-      if (i >= full.length && streamTimer.current) {
-        window.clearInterval(streamTimer.current);
-      }
-    }, 40);
     return () => {
-      if (streamTimer.current) window.clearInterval(streamTimer.current);
+      recognitionRef.current?.stop();
+      recognitionRef.current = null;
     };
-  }, [qaStreaming]);
-
-  const useQaDemoConversation = qaThinking || qaStreaming || !isNoConversation && ai.messages.length === 0;
-  const displayMessages: AIMessage[] = useQaDemoConversation
-    ? isNoConversation
-      ? []
-      : DEFAULT_CONVERSATION
-    : ai.messages.map(toAIMessage);
-
-  const showThinking = ai.isThinking || qaThinking;
+  }, []);
 
   const handleSend = (overrideText?: string) => {
     const text = (overrideText ?? composerValue).trim();
@@ -126,6 +103,54 @@ export const AIScreenContent: React.FC<AIScreenContentProps> = ({
 
   const handleSuggestion = (question: string) => handleSend(question);
 
+  const handleMic = () => {
+    if (!micSupported) return;
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+      return;
+    }
+    const rec = new recognitionCtor();
+    rec.lang = 'en-US';
+    rec.interimResults = true;
+    rec.continuous = false;
+    baseRef.current = composerValue; // text present before dictation starts
+    rec.onresult = (event: any) => {
+      const full = Array.from(event.results)
+        .map((r: any) => r[0].transcript)
+        .join('');
+      const sep = baseRef.current ? ' ' : '';
+      setComposerValue(baseRef.current + sep + full); // replace, never append
+    };
+    rec.onend = () => {
+      recognitionRef.current = null;
+    };
+    rec.onerror = () => {
+      recognitionRef.current = null;
+    };
+    recognitionRef.current = rec;
+    try {
+      rec.start();
+    } catch {
+      recognitionRef.current = null;
+    }
+  };
+
+  // Map citation dates → journal entries, then open the detail drawer.
+  const handleCitation = (msg: AIMessage) => {
+    if (!msg.citationDates || msg.citationDates.length === 0) return;
+    const list = entries.length > 0 ? entries : journalStore.list();
+    if (list.length === 0) return;
+    const match =
+      list.find((e) => msg.citationDates!.includes(e.date)) ?? list[0];
+    onOpenEntry?.(match.id);
+  };
+
+  const handleAttachSelect = (entry: Entry) => {
+    setComposerValue((prev) => (prev ? `${prev}\n` : '') + `Re: ${entry.title}`);
+    setIsAttachOpen(false);
+  };
+
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* Scrollable content */}
@@ -133,79 +158,50 @@ export const AIScreenContent: React.FC<AIScreenContentProps> = ({
         <div className="flex flex-col gap-7 w-full">
           <AIHeader
             userInitials={userInitials}
-            onHistoryClick={() => onToast?.('Reflection history')}
-            onAvatarClick={() => onToast?.('User Profile & Settings')}
+            onHistoryClick={onOpenHistory}
+            onAvatarClick={onAvatarClick}
           />
 
           <section>
-            {isLoading ? (
-              <div className="bg-surface rounded-[24px] border border-border p-6 animate-pulse space-y-3">
-                <div className="h-4 bg-border rounded w-1/3" />
-                <div className="h-6 bg-border rounded w-3/4" />
-                <div className="h-4 bg-border rounded w-1/4" />
-              </div>
-            ) : (
-              <MemoryContextCard
-                label="Using your memory"
-                threads={['clarity', 'discipline', 'starting again']}
-                actionText="Change context"
-                isEmptyContext={isNoMemoryContext}
-                onChangeContext={() => onToast?.('Change memory context')}
-              />
-            )}
+            <MemoryContextCard
+              label="Using your memory"
+              threads={isNoMemoryContext ? [] : realContextThreads()}
+              actionText="Change context"
+              isEmptyContext={isNoMemoryContext}
+              contextLabel={contextLabel}
+              onChangeContext={onOpenContextPicker}
+            />
           </section>
 
           <section className="flex flex-col gap-3 text-left">
-            {isLoading ? (
-              <div className="animate-pulse space-y-3">
-                <div className="h-10 bg-border rounded w-4/5" />
-                <div className="h-10 bg-border rounded w-3/5" />
-                <div className="h-4 bg-border rounded w-2/3" />
-              </div>
-            ) : (
-              <>
-                <h2 className="font-serif text-[28px] text-primaryText font-normal leading-[1.18] tracking-tight">
-                  What should we look
-                  <br />
-                  at together?
-                </h2>
-                <p className="font-sans text-[14.5px] text-muted font-normal leading-[1.6]">
-                  Ask about a pattern, revisit an entry,
-                  <br />
-                  or reflect on what keeps showing up.
-                </p>
-              </>
-            )}
+            <h2 className="font-serif text-[28px] text-primaryText font-normal leading-[1.18] tracking-tight">
+              What should we look
+              <br />
+              at together?
+            </h2>
+            <p className="font-sans text-[14.5px] text-muted font-normal leading-[1.6]">
+              Ask about a pattern, revisit an entry,
+              <br />
+              or reflect on what keeps showing up.
+            </p>
           </section>
 
           <section className="flex flex-col gap-3">
-            {isLoading
-              ? [0, 1, 2].map((i) => (
-                  <div
-                    key={i}
-                    className="h-[56px] bg-border rounded-[18px] animate-pulse"
-                  />
-                ))
-              : DEFAULT_SUGGESTIONS.map((q) => (
-                  <SuggestionRow key={q} question={q} onClick={handleSuggestion} />
-                ))}
+            {DEFAULT_SUGGESTIONS.map((q) => (
+              <SuggestionRow key={q} question={q} onClick={handleSuggestion} />
+            ))}
           </section>
 
           <div className="w-full border-t border-divider" />
 
           <section className="flex flex-col gap-4">
-            {isLoading ? (
-              <div className="space-y-4 animate-pulse">
-                <div className="h-12 bg-border rounded-[20px] w-2/3 ml-auto" />
-                <div className="h-24 bg-border rounded-[20px] w-4/5" />
-              </div>
-            ) : displayMessages.length === 0 && !showThinking ? (
+            {ai.messages.length === 0 && !ai.isThinking ? (
               <p className="font-sans text-[14px] text-muted py-2 text-left">
                 Your reflections with Jouspace will appear here.
               </p>
             ) : (
               <>
-                {displayMessages.map((msg) =>
+                {ai.messages.map((msg) =>
                   msg.role === 'user' ? (
                     <UserMessageBubble
                       key={msg.id}
@@ -215,33 +211,21 @@ export const AIScreenContent: React.FC<AIScreenContentProps> = ({
                   ) : (
                     <AssistantMessageBubble
                       key={msg.id}
-                      text={
-                        qaStreaming && qaStreamedText !== null && msg.id === 'msg-assistant-1'
-                          ? qaStreamedText
-                          : msg.text
-                      }
-                      citationCount={
-                        qaStreaming && msg.id === 'msg-assistant-1'
-                          ? undefined
-                          : msg.citationCount
-                      }
-                      citationDates={
-                        qaStreaming && msg.id === 'msg-assistant-1'
-                          ? undefined
-                          : msg.citationDates
-                      }
-                      onCitationClick={() =>
-                        onToast?.('Opening the 3 entries behind this reflection')
-                      }
+                      text={msg.text}
+                      citationCount={msg.citationCount}
+                      citationDates={msg.citationDates}
+                      onCitationClick={() => handleCitation(msg)}
                     />
                   )
                 )}
 
-                {showThinking && <AssistantMessageBubble text="" isThinking />}
+                {ai.isThinking && <AssistantMessageBubble text="" isThinking />}
 
                 {ai.error && (
                   <p className="font-sans text-[13px] text-muted py-1">
-                    {ai.error}
+                    {ai.error === RUNTIME_UNAVAILABLE_MESSAGE
+                      ? RUNTIME_UNAVAILABLE_MESSAGE
+                      : 'Jouspace Intelligence is unavailable. Please try again.'}
                   </p>
                 )}
               </>
@@ -256,17 +240,23 @@ export const AIScreenContent: React.FC<AIScreenContentProps> = ({
           value={composerValue}
           onChange={setComposerValue}
           onSend={() => handleSend()}
-          onAttach={() => onToast?.('Attach an entry or note')}
-          onMic={() => onToast?.('Voice reflection')}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
-          isFocused={focused || isComposerFocused}
+          onAttach={() => setIsAttachOpen(true)}
+          onMic={handleMic}
+          micDisabled={!micSupported}
           disabled={ai.isThinking || ai.isStreaming}
         />
       </div>
 
+      {/* Entry picker for attach */}
+      <EntryPickerSheet
+        isOpen={isAttachOpen}
+        onClose={() => setIsAttachOpen(false)}
+        entries={entries}
+        onSelect={handleAttachSelect}
+      />
+
       {/* Pinned BottomNavigation */}
-      <div className="shrink-0 mx-2 pb-2 pb-safe">
+      <div className="shrink-0">
         <BottomNavigation activeTab={activeTab} onTabChange={onTabChange} />
       </div>
     </div>

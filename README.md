@@ -119,3 +119,22 @@ cd android && ./gradlew assembleDebug
   never appears in the SSE output.
 - The global error handler returns generic `{ error: "Intelligence unavailable" }`
   responses; stack traces never leave the server.
+
+## Privacy
+
+Jouspace v1 is **local-first and account-free**. Your journal is stored entirely
+on your device (in the browser's `localStorage` inside the app's WebView). There
+is no account, no cloud sync, and no server that can read your journal.
+
+- **No telemetry, no analytics, no remote logging** of your entries.
+- **AI is opt-in.** The AI tab does nothing until you set a runtime URL in
+  Settings. When you do, the entries you send are shared with *that* runtime to
+  generate reflections — choose a runtime you trust. The default build has no
+  runtime configured.
+- **Export / import** is available in Settings (JSON) so you control your data.
+- **Loss risk.** Because data is device-local, uninstalling the app or clearing
+  site data erases your journal. Export regularly.
+
+## License
+
+Released under the [MIT License](./LICENSE).

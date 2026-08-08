@@ -14,16 +14,18 @@ export const AppScreen: React.FC<AppScreenProps> = ({
   isOffline = false,
 }) => {
   return (
-    <div className="min-h-screen bg-background text-primaryText font-sans antialiased flex flex-col items-center justify-start py-0 md:py-6 selection:bg-accent/15">
+    <div className="w-full flex flex-col items-center selection:bg-accent/15">
       {isOffline && (
-        <div className="w-full bg-primaryText text-white text-[12px] font-sans py-1.5 px-4 text-center tracking-wide flex items-center justify-center gap-2 transition-all">
+        <div className="w-full max-w-[430px] bg-primaryText text-background text-[12px] font-sans py-1.5 px-4 text-center tracking-wide flex items-center justify-center gap-2 transition-all">
           <span className="w-2 h-2 rounded-full bg-muted animate-pulse" />
           <span>Offline mode — your journal entries are saved locally</span>
         </div>
       )}
 
+      {/* Mobile Prison — single centered column, max 430px.
+          Fills the viewport on mobile; floats as a phone on desktop. */}
       <div
-        className={`w-full bg-background h-[100dvh] md:h-[880px] md:my-4 md:rounded-[40px] md:border md:border-border md:shadow-2xl flex flex-col overflow-hidden ${className}`}
+        className={`relative w-full max-w-[430px] mx-auto min-h-screen bg-background flex flex-col overflow-hidden md:h-[880px] md:rounded-[40px] md:border md:border-black/10 md:shadow-2xl ${className}`}
       >
         {showStatusBar && (
           <div className="flex items-center justify-between px-7 pt-safe pt-3 pb-1 text-[13px] font-semibold text-primaryText select-none tracking-tight shrink-0">
@@ -40,7 +42,7 @@ export const AppScreen: React.FC<AppScreenProps> = ({
                 <path d="M4.67157 6.67157C6.23367 5.10948 8.76633 5.10948 10.3284 6.67157L11.7426 5.25736C9.39949 2.91421 5.60051 2.91421 3.25736 5.25736L4.67157 6.67157Z" />
                 <path d="M1.84315 3.84315C4.96734 0.718953 10.0327 0.718953 13.1569 3.84315L14.5711 2.42893C10.6658 -1.47631 4.33418 -1.47631 0.428932 2.42893L1.84315 3.84315Z" />
               </svg>
-              <div className="w-5 h-2.5 border border-primaryText rounded-[3px] p-[1px] flex items-center">
+              <div className="w-5 h-2.5 border border-primaryText rounded-[3px] p-px flex items-center">
                 <div className="w-3.5 h-full bg-primaryText rounded-[1px]" />
               </div>
             </div>

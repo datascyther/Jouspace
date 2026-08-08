@@ -1,546 +1,574 @@
-import { useState, useEffect } from 'react';
+import React from 'react';
+import { useState, useEffect, useId, useRef, type ReactNode } from 'react';
+import { Shield, LifeBuoy, MessageCircle, Info as InfoIcon } from 'lucide-react';
 import { AppScreen } from './components/AppScreen';
 import { JouspaceHeader } from './components/JouspaceHeader';
 import { MemoryLabel } from './components/MemoryLabel';
 import { PrimaryCard } from './components/PrimaryCard';
 import { PrimaryButton } from './components/PrimaryButton';
-import { TextAction } from './components/TextAction';
 import { AIInsightCard } from './components/AIInsightCard';
-import { EntryRow, Entry } from './components/EntryRow';
-import { BottomNavigation, NavTab } from './components/BottomNavigation';
-import { StateSelector, AppStateMode, ScreenView } from './components/StateSelector';
+import { EntryRow, type Entry } from './components/EntryRow';
+import { BottomNavigation, type NavTab } from './components/BottomNavigation';
 import { JournalScreenContent } from './components/JournalScreenContent';
 import { MemoryScreenContent } from './components/MemoryScreenContent';
 import { AIScreenContent } from './components/AIScreenContent';
-import { ProfileScreenContent } from './components/ProfileScreenContent';
-import { AutosaveStatus } from './components/JournalMetadata';
+import { ProfileScreenContent, type InfoSheetKind } from './components/ProfileScreenContent';
 import { SplashScreen } from './components/SplashScreen';
-import { WelcomeScreen } from './components/WelcomeScreen';
-import { SignInScreen } from './components/SignInScreen';
-import { CreateAccountScreen } from './components/CreateAccountScreen';
-import { ForgotPasswordScreen } from './components/ForgotPasswordScreen';
-import { EmailVerificationScreen } from './components/EmailVerificationScreen';
 import { SearchScreen } from './components/SearchScreen';
 import { NotificationScreen } from './components/NotificationScreen';
-import { EntryDetailScreen } from './components/EntryDetailScreen';
 import { MemoryThreadScreen } from './components/MemoryThreadScreen';
 import { SettingsSubpage } from './components/SettingsSubpage';
-import { AIContextPicker } from './components/AIContextPicker';
-import {
-  WriteDrawer,
-  AIReflectDrawer,
-  EntryDetailDrawer,
-} from './components/InteractiveDrawers';
-import {
-  DEFAULT_USER,
-  DEFAULT_CONTINUE_PROMPT,
-  DEFAULT_AI_INSIGHT,
-  DEFAULT_PROFILE,
-} from './mockData';
+import { AIContextPicker, CONTEXT_ITEMS } from './components/AIContextPicker';
+import { themeLabel } from './components/ThemeChipGroup';
+import { ThemeSheet } from './components/ThemeSheet';
+import { InfoSheet } from './components/InfoSheet';
+import { AIHistorySheet } from './components/AIHistorySheet';
+import { AIReflectDrawer, EntryDetailDrawer } from './components/InteractiveDrawers';
 import { useJournalStore } from './hooks/useJournalStore';
-import { dateLabel } from './store';
+import { useOnlineStatus } from './hooks/useOnlineStatus';
+import { isRuntimeConfigured } from './hooks/useJouspaceIntelligence';
+import { useFocusTrap } from './hooks/useFocusTrap';
+import { useProfile, deriveInitials } from './hooks/useProfile';
+import { useTheme } from './hooks/useTheme';
+import {
+  journalStore,
+  loadDemoData,
+  downloadJournalExport,
+  dateLabel,
+} from './store';
+import type { StoredEntry } from './store/types';
 
-type OnboardingScreen = 'splash' | 'welcome' | 'complete';
+type Screen = 'home' | 'journal' | 'memory' | 'ai' | 'profile';
+type Overlay = 'search' | 'settings' | 'memory-thread' | 'notifications' | null;
+
+const DAY_MS = 86_400_000;
+
+/** Static content for the Profile info sheets (Privacy / Help / Feedback / About). */
+const infoContent: Record<
+  InfoSheetKind,
+  { title: string; icon: ReactNode; body: ReactNode }
+> = {
+  privacy: {
+    title: 'Privacy',
+    icon: <Shield className="w-5 h-5 stroke-[1.8]" />,
+    body: (
+      <div className="flex flex-col gap-2">
+        <p>
+          Your journal is stored entirely on this device (in your browser's local
+          storage). Nothing is uploaded unless you configure an AI runtime URL —
+          in which case the entries you send are shared with that runtime to
+          generate reflections.
+        </p>
+        <p>
+          There is no account, no cloud sync, and no server that can read your
+          journal. Uninstalling the app or clearing site data removes everything.
+        </p>
+      </div>
+    ),
+  },
+  help: {
+    title: 'Help Center',
+    icon: <LifeBuoy className="w-5 h-5 stroke-[1.8]" />,
+    body: (
+      <div className="flex flex-col gap-2">
+        <p>
+          Write a new entry from the Home screen, explore patterns in Memory, and
+          reflect with the AI tab. Change your display name from your Profile, and
+          set a runtime URL in Settings to enable AI reflections.
+        </p>
+        <p>If something looks off, try reloading the app.</p>
+      </div>
+    ),
+  },
+  feedback: {
+    title: 'Send Feedback',
+    icon: <MessageCircle className="w-5 h-5 stroke-[1.8]" />,
+    body: (
+      <p>
+        We'd love to hear how Jouspace is working for you. This is a local-first
+        preview, so there's no live inbox yet — your thoughts help shape what comes
+        next. Thanks for trying it out.
+      </p>
+    ),
+  },
+  about: {
+    title: 'About Jouspace',
+    icon: <InfoIcon className="w-5 h-5 stroke-[1.8]" />,
+    body: (
+      <div className="flex flex-col gap-2">
+        <p>
+          Jouspace is a quiet, local-first journal that gently builds context from
+          your writing over time.
+        </p>
+        <p>Version 1.0 (local preview).</p>
+      </div>
+    ),
+  },
+};
 
 export function App() {
-  // Onboarding state: splash → welcome → complete
-  const [onboardingScreen, setOnboardingScreen] = useState<OnboardingScreen>('splash');
+  // Onboarding: splash auto-advances straight into the app (no auth in v1).
+  const [onboardingScreen, setOnboardingScreen] = useState<'splash' | 'complete'>(
+    'splash'
+  );
 
-  const [currentScreen, setCurrentScreen] = useState<ScreenView>('home');
-  const [stateMode, setStateMode] = useState<AppStateMode>('returning_user');
-  const [isQaBarOpen, setIsQaBarOpen] = useState<boolean>(false);
+  const [currentScreen, setCurrentScreen] = useState<Screen>('home');
   const [activeTab, setActiveTab] = useState<NavTab>('home');
 
-  // Interactive drawers state
-  const [isWriteOpen, setIsWriteOpen] = useState(false);
-  const [writeInitialTitle] = useState('');
-  const [writeInitialContent] = useState('');
+  // Entry editing / detail state
+  const [selectedEntry, setSelectedEntry] = useState<StoredEntry | null>(null);
+  const [editingEntry, setEditingEntry] = useState<StoredEntry | null>(null);
+  const [threadTheme, setThreadTheme] = useState<string | null>(null);
+
+  // Overlay screen state
+  const [overlayScreen, setOverlayScreen] = useState<Overlay>(null);
+  const [overlayClosing, setOverlayClosing] = useState(false);
+  const [dragY, setDragY] = useState<number | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const dragStartY = useRef(0);
+  const dragStartT = useRef(0);
+  const sheetElRef = useRef<HTMLDivElement>(null);
+  const [isContextPickerOpen, setIsContextPickerOpen] = useState(false);
   const [isAiReflectOpen, setIsAiReflectOpen] = useState(false);
-  const [selectedEntry, setSelectedEntry] = useState<Entry | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Overlay screen state (auth, search, notifications, etc.)
-  const [overlayScreen, setOverlayScreen] = useState<string | null>(null);
-  const [isContextPickerOpen, setIsContextPickerOpen] = useState(false);
-  const [authError, setAuthError] = useState<string | null>(null);
-  const [isAuthLoading, setIsAuthLoading] = useState(false);
+  // Profile + theme (persisted to localStorage)
+  const { profile, setDisplayName } = useProfile();
+  const { theme, setTheme } = useTheme();
+  const userInitials = deriveInitials(profile.displayName);
 
-  // Live, persisted journal entries (local-first; cloud sync later)
+  // Profile-sheet state (Appearance / info sheets)
+  const [isThemeSheetOpen, setIsThemeSheetOpen] = useState(false);
+  const [isInfoSheetOpen, setIsInfoSheetOpen] = useState(false);
+  const [infoKind, setInfoKind] = useState<InfoSheetKind>('about');
+  const [isAiHistoryOpen, setIsAiHistoryOpen] = useState(false);
+
+  // Persisted AI context selection (from the context picker).
+  const [aiContext, setAiContext] = useState<{ id: string; label: string } | null>(
+    () => {
+      try {
+        const raw = localStorage.getItem('jouspace:ai:context');
+        if (raw) return JSON.parse(raw) as { id: string; label: string };
+      } catch {
+        /* ignore */
+      }
+      return null;
+    }
+  );
+
   const journal = useJournalStore();
+  const online = useOnlineStatus();
+  const runtimeConfigured = isRuntimeConfigured();
+  const isEmpty = journal.entries.length === 0;
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 2500);
   };
 
-  // Splash screen: auto-advance after 1.5 seconds
+  // Surface storage failures (quota exceeded, etc.) as a toast.
+  useEffect(
+    () =>
+      journalStore.subscribeError((err) => showToast(err.message)),
+    []
+  );
+
+  // Splash screen: auto-advance after 1.5 seconds → straight to the app.
   useEffect(() => {
-    if (onboardingScreen === 'splash') {
-      const timer = setTimeout(() => {
-        setOnboardingScreen('welcome');
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
+    if (onboardingScreen !== 'splash') return;
+    const timer = setTimeout(() => setOnboardingScreen('complete'), 1500);
+    return () => clearTimeout(timer);
   }, [onboardingScreen]);
 
-  const handleContinueWriting = () => {
-    setCurrentScreen('journal');
-    setActiveTab('journal');
-  };
-
-  const handleNewEntry = () => {
-    setCurrentScreen('journal');
-    setActiveTab('journal');
-  };
-
-  // Persist a newly written entry to the on-device journal store.
-  const handleSaveEntry = (input: { title: string; body: string }) => {
+  const handleSaveEntry = (input: {
+    id?: string;
+    title: string;
+    body: string;
+    theme: string;
+  }) => {
     const title = input.title.trim();
     const body = input.body.trim();
     if (!title && !body) return;
+    const base = editingEntry ?? undefined;
     journal.save({
-      date: dateLabel(),
+      id: input.id,
+      date: base?.date ?? dateLabel(),
       title: title || 'Untitled entry',
-      theme: 'thought',
+      theme: input.theme,
       content: body,
     });
+    // Clear edit mode so reopening Journal starts fresh (not stuck on the
+    // just-edited entry).
+    setEditingEntry(null);
   };
 
-  const handleReflectWithAI = () => {
-    setIsAiReflectOpen(true);
+  const handleEditEntry = (entry: StoredEntry) => {
+    setSelectedEntry(null);
+    setEditingEntry(entry);
+    setCurrentScreen('journal');
+    setActiveTab('journal');
   };
 
-  const handleEntryClick = (entry: Entry) => {
-    setSelectedEntry(entry);
+  const handleDeleteEntry = (entry: StoredEntry) => {
+    if (window.confirm('Delete this entry?')) {
+      journal.remove(entry.id);
+      showToast('Entry deleted');
+    }
+  };
+
+  const handleEntryClick = (entry: Entry) => setSelectedEntry(entry as StoredEntry);
+
+  const handleBackToHome = () => {
+    setCurrentScreen('home');
+    setActiveTab('home');
+    setEditingEntry(null);
   };
 
   const handleTabChange = (tab: NavTab) => {
+    // Close any open overlay before switching tabs (prevents stacked/orphaned).
+    setOverlayScreen(null);
     setActiveTab(tab);
-    if (tab === 'home') {
-      setCurrentScreen('home');
-    } else if (tab === 'journal' || tab === 'write') {
+    if (tab === 'home') setCurrentScreen('home');
+    else if (tab === 'journal' || tab === 'write') {
+      // "New entry" / center write button always opens a blank composer.
+      setEditingEntry(tab === 'write' ? null : editingEntry);
       setCurrentScreen('journal');
-    } else if (tab === 'memory') {
-      setCurrentScreen('memory');
-    } else if (tab === 'ai') {
-      setCurrentScreen('ai');
-    }
+    } else if (tab === 'memory') setCurrentScreen('memory');
+    else if (tab === 'ai') setCurrentScreen('ai');
   };
 
   const handleOpenProfile = () => {
     setCurrentScreen('profile');
   };
 
-  // Welcome screen "Start writing" → Create Account
-
-  const handleAlreadyHaveAccount = () => {
-    setOverlayScreen('auth-signin');
-    setAuthError(null);
+  const handleOpenInfo = (kind: InfoSheetKind) => {
+    setInfoKind(kind);
+    setIsInfoSheetOpen(true);
   };
 
-  // Welcome screen "Start writing" → Create Account
-  const handleStartWritingWelcome = () => {
-    setOverlayScreen('auth-create');
-    setAuthError(null);
+  const handleSelectContext = (id: string) => {
+    const item = CONTEXT_ITEMS.find((c) => c.id === id);
+    if (!item) return;
+    const next = { id: item.id, label: item.label };
+    setAiContext(next);
+    try {
+      localStorage.setItem('jouspace:ai:context', JSON.stringify(next));
+    } catch {
+      /* ignore storage failure */
+    }
+    setIsContextPickerOpen(false);
   };
 
-  // Guest mode: bypass auth and go directly to journal
-  const handleContinueAsGuest = () => {
-    setOnboardingScreen('complete');
-    setCurrentScreen('journal');
-    setActiveTab('journal');
+  const handleReflectWithAI = () => setIsAiReflectOpen(true);
+
+  const handleExploreThread = (themeId: string) => {
+    setThreadTheme(themeId);
+    setOverlayScreen('memory-thread');
   };
 
-  // Overlay screen handlers
+  const handleCloseOverlay = () => {
+    if (overlayClosing) return;
+    setOverlayClosing(true); // sheet switches to animate-slideDown
+  };
 
-  const handleOpenSignIn = () => { setOverlayScreen('auth-signin'); setAuthError(null); };
-  const handleOpenCreateAccount = () => { setOverlayScreen('auth-create'); setAuthError(null); };
-  const handleOpenForgotPassword = () => { setOverlayScreen('auth-forgot'); setAuthError(null); };
-
-  const handleCloseOverlay = () => { setOverlayScreen(null); setAuthError(null); };
-  const handleContextPickerClose = () => setIsContextPickerOpen(false);
-
-  // Auth handlers (simulated)
-  const handleSignIn = () => {
-    setIsAuthLoading(true);
-    setTimeout(() => {
-      setIsAuthLoading(false);
+  const handleOverlayExited = (e: React.AnimationEvent<HTMLDivElement>) => {
+    if (e.target !== e.currentTarget) return; // ignore child animations
+    if (e.animationName !== 'slideDown') return; // only act on close
+    if (overlayClosing) {
       setOverlayScreen(null);
-      setOnboardingScreen('complete');
-      setCurrentScreen('home');
-      setActiveTab('home');
-    }, 1500);
+      setOverlayClosing(false);
+    }
   };
 
-  const handleCreateAccount = () => {
-    setIsAuthLoading(true);
-    setTimeout(() => {
-      setIsAuthLoading(false);
-      setOverlayScreen('auth-verify');
-    }, 1500);
+  // Drag-to-dismiss: grabber-only, 1:1 finger tracking, flick/threshold to close.
+  const onGrabPointerDown = (e: React.PointerEvent) => {
+    if (overlayClosing) return;
+    dragStartY.current = e.clientY;
+    dragStartT.current = Date.now();
+    setDragging(true);
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  };
+  const onGrabPointerMove = (e: React.PointerEvent) => {
+    if (!dragging) return;
+    setDragY(Math.max(0, e.clientY - dragStartY.current)); // downward only
+  };
+  const onGrabPointerUp = () => {
+    if (!dragging) return;
+    setDragging(false);
+    const dy = dragY ?? 0;
+    const dt = Math.max(1, Date.now() - dragStartT.current);
+    const velocity = dy / dt; // px/ms
+    if (dy > 120 || velocity > 0.6) {
+      setDragY(null);
+      setOverlayClosing(true); // release past threshold -> slide down & close
+    } else {
+      setDragY(null); // release early -> transition snaps back to 0
+    }
   };
 
-  const handleResetPassword = () => {
-    setIsAuthLoading(true);
-    setTimeout(() => {
-      setIsAuthLoading(false);
-      showToast('Reset link sent to your email');
+  const goToEntry = (id: string) => {
+    const entry = journal.get(id);
+    if (entry) {
+      setSelectedEntry(entry);
       setOverlayScreen(null);
-    }, 1500);
+    }
   };
 
-  // Derive state mode flags
-  const isLoading = stateMode === 'loading';
-  const isEmptyJournal = stateMode === 'empty_journal';
-  const isNoAiInsight = stateMode === 'no_ai_insight';
-  const isNoRecentEntries = stateMode === 'no_recent_entries' || isEmptyJournal;
-  const isNoMemories = stateMode === 'no_memories';
-  const isNoConnectedEntries = stateMode === 'no_connected_entries';
-  const isSearchActive = stateMode === 'search_active';
-  const isOffline = stateMode === 'offline';
-  // NOTE: isKeyboardOpen is a QA demo toggle (StateSelector), not real device
-  // keyboard detection. Real keyboard-aware layout is a future task — see HIGH-07.
-  const isKeyboardOpen = stateMode === 'keyboard_open';
-  const isEmptyEntry = stateMode === 'empty_entry';
-  const isThinking = stateMode === 'thinking';
-  const isStreaming = stateMode === 'streaming';
-  const isNoMemoryContext = stateMode === 'no_memory_context';
-  const isNoConversation = stateMode === 'no_conversation';
-  const isComposerFocused = stateMode === 'composer_focused';
+  // ── Focus trap + Escape for the single App-level overlay modal ──────────────
+  const overlayId = useId();
+  const overlayRef = useRef<HTMLDivElement>(null);
+  useFocusTrap({
+    id: overlayId,
+    active: overlayScreen !== null,
+    onClose: handleCloseOverlay,
+    containerRef: overlayRef,
+  });
 
-  // Profile screen state flags
-  const isNoAvatar = stateMode === 'no_avatar';
-  const isEmptyJournalProfile = stateMode === 'empty_journal_profile';
-  const isSignedOut = stateMode === 'signed_out';
+  // First-run days-since-last-entry (real data), newest entry first.
+  const lastWroteDays = isEmpty
+    ? null
+    : Math.floor((Date.now() - journal.entries[0].updatedAt) / DAY_MS);
 
-  const getSaveStatus = (): AutosaveStatus => {
-    if (stateMode === 'autosaving') return 'autosaving';
-    if (stateMode === 'saved') return 'saved';
-    if (stateMode === 'save_failed') return 'failed';
-    if (stateMode === 'editing') return 'editing';
-    return 'autosaved';
-  };
+  const threadEntries = (
+    threadTheme
+      ? journal.entries.filter((e) => e.theme === threadTheme)
+      : journal.entries
+  ).map((e) => ({
+    id: e.id,
+    date: e.date,
+    excerpt: e.content || e.title,
+  }));
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-start md:pt-3 md:pb-8">
-      {/* QA Screen & State Switcher Toolbar */}
-      <StateSelector
-        currentScreen={currentScreen}
-        onSelectScreen={(scr) => {
-          // Handle overlay screens
-          if (scr === 'search') { setOverlayScreen('search'); return; }
-          if (scr === 'notifications') { setOverlayScreen('notifications'); return; }
-          if (scr === 'entry-detail') { setOverlayScreen('entry-detail'); return; }
-          if (scr === 'memory-thread') { setOverlayScreen('memory-thread'); return; }
-          if (scr === 'settings') { setOverlayScreen('settings'); return; }
-          if (scr === 'signin') { setOverlayScreen('auth-signin'); return; }
-          if (scr === 'create-account') { setOverlayScreen('auth-create'); return; }
-          if (scr === 'forgot-password') { setOverlayScreen('auth-forgot'); return; }
-          if (scr === 'email-verification') { setOverlayScreen('auth-verify'); return; }
-          setOverlayScreen(null);
-          setCurrentScreen(scr);
-          // Profile is not a NavTab, so only set activeTab for navigation tabs
-          if (scr !== 'profile') {
-            setActiveTab(scr);
-          }
-        }}
-        currentMode={stateMode}
-        onSelectMode={setStateMode}
-        isOpen={isQaBarOpen}
-        onToggleOpen={() => setIsQaBarOpen(!isQaBarOpen)}
-      />
-
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-4 z-50 bg-primaryText text-white text-xs font-sans px-4 py-2 rounded-full shadow-lg transition-all animate-fadeIn">
+        <div className="fixed top-4 z-[60] bg-primaryText text-background text-xs font-sans px-4 py-2 rounded-full shadow-lg transition-all animate-fadeIn">
           {toastMessage}
         </div>
       )}
 
-      {/* Onboarding Screens: Splash → Welcome → Main App */}
+      {/* Onboarding: Splash → App */}
       {onboardingScreen === 'splash' ? (
         <SplashScreen />
-      ) : onboardingScreen === 'welcome' ? (
-        <WelcomeScreen
-          onStartWriting={handleStartWritingWelcome}
-          onAlreadyHaveAccount={handleAlreadyHaveAccount}
-          onContinueAsGuest={handleContinueAsGuest}
-        />
       ) : (
-        /* Main App Screen Layout */
-        <AppScreen
-          isOffline={isOffline}
-        >
+        <AppScreen isOffline={!online}>
           {currentScreen === 'ai' ? (
-          /* AI SCREEN VIEW */
-          <AIScreenContent
-            activeTab="ai"
-            onTabChange={handleTabChange}
-            userInitials={DEFAULT_USER.initials}
-            isLoading={isLoading}
-            isThinking={isThinking}
-            isStreaming={isStreaming}
-            isNoMemoryContext={isNoMemoryContext}
-            isNoConversation={isNoConversation}
-            isComposerFocused={isComposerFocused}
-            onToast={showToast}
-          />
-        ) : currentScreen === 'memory' ? (
-          /* MEMORY SCREEN VIEW */
-          <MemoryScreenContent
-            activeTab="memory"
-            onTabChange={handleTabChange}
-            userInitials={DEFAULT_USER.initials}
-            isLoading={isLoading}
-            isNoMemories={isNoMemories}
-            isNoConnectedEntries={isNoConnectedEntries}
-            isSearchActive={isSearchActive}
-            onEntryClick={handleEntryClick}
-            onExploreThread={() => showToast('Exploring memory thread details')}
-            onReflectWithAi={handleReflectWithAI}
-            onToast={showToast}
-          />
-        ) : currentScreen === 'journal' ? (
-          /* JOURNAL SCREEN VIEW */
-          <JournalScreenContent
-            onBackToHome={() => {
-              setCurrentScreen('home');
-              setActiveTab('home');
-            }}
-            activeTab={activeTab === 'write' ? 'journal' : activeTab}
-            onTabChange={handleTabChange}
-            saveStatus={getSaveStatus()}
-            isLoading={isLoading}
-            isEmptyEntry={isEmptyEntry}
-            isKeyboardOpen={isKeyboardOpen}
-            onToast={showToast}
-            onSaveEntry={handleSaveEntry}
-          />
-        ) : currentScreen === 'profile' ? (
-          /* PROFILE SCREEN VIEW */
-          <ProfileScreenContent
-            activeTab={activeTab}
-            onTabChange={handleTabChange}
-            userInitials={DEFAULT_PROFILE.initials}
-            displayName={DEFAULT_PROFILE.displayName}
-            email={DEFAULT_PROFILE.email}
-            joinedDate={DEFAULT_PROFILE.joinedDate}
-            avatarUrl={DEFAULT_PROFILE.avatarUrl}
-            entryCount={journal.entries.length}
-            topThemes={DEFAULT_PROFILE.topThemes}
-            isLoading={isLoading}
-            isNoAvatar={isNoAvatar}
-            isOffline={isOffline}
-            isEmptyJournal={isEmptyJournalProfile}
-            isSignedOut={isSignedOut}
-            onToast={showToast}
-          />
-        ) : (
-          /* HOME SCREEN VIEW */
-          <div className="flex flex-col flex-1 min-h-0">
-            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-4 pt-2 pb-4">
-              <div className="flex flex-col gap-7 w-full">
-                <JouspaceHeader
-                  userInitials={DEFAULT_USER.initials}
-                  hasNotifications={false}
-                  onNotificationClick={() => showToast('Notifications (Quiet Mode)')}
-                  onAvatarClick={handleOpenProfile}
-                />
+            <AIScreenContent
+              activeTab="ai"
+              onTabChange={handleTabChange}
+              isNoMemoryContext={!runtimeConfigured}
+              userInitials={userInitials}
+              contextLabel={aiContext?.label ?? null}
+              entries={journal.entries}
+              onAvatarClick={handleOpenProfile}
+              onOpenHistory={() => setIsAiHistoryOpen(true)}
+              onOpenContextPicker={() => setIsContextPickerOpen(true)}
+              onOpenEntry={goToEntry}
+            />
+          ) : currentScreen === 'memory' ? (
+            <MemoryScreenContent
+              activeTab="memory"
+              onTabChange={handleTabChange}
+              entries={journal.entries}
+              isNoMemories={isEmpty}
+              onEntryClick={handleEntryClick}
+              onExploreThread={handleExploreThread}
+              onReflectWithAi={handleReflectWithAI}
+              onOpenSearch={() => setOverlayScreen('search')}
+              onAvatarClick={handleOpenProfile}
+            />
+          ) : currentScreen === 'journal' ? (
+            <JournalScreenContent
+              key={editingEntry?.id ?? 'new'}
+              editingEntry={editingEntry}
+              onBackToHome={handleBackToHome}
+              activeTab={activeTab === 'write' ? 'journal' : activeTab}
+              onTabChange={handleTabChange}
+              onToast={showToast}
+              onSaveEntry={handleSaveEntry}
+            />
+          ) : currentScreen === 'profile' ? (
+            <ProfileScreenContent
+              activeTab={activeTab}
+              onTabChange={handleTabChange}
+              userInitials={userInitials}
+              displayName={profile.displayName}
+              email=""
+              joinedDate={profile.joinedDate}
+              entryCount={journal.entries.length}
+              isEmptyJournal={isEmpty}
+              isOffline={!online}
+              onSave={setDisplayName}
+              onOpenNotifications={() => setOverlayScreen('notifications')}
+              onOpenAppearance={() => setIsThemeSheetOpen(true)}
+              onOpenInfo={handleOpenInfo}
+              onExport={downloadJournalExport}
+            />
+          ) : (
+            /* HOME SCREEN VIEW */
+            <div className="flex flex-col flex-1 min-h-0">
+              <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-4 pt-2 pb-4">
+                <div className="flex flex-col gap-7 w-full">
+                  <JouspaceHeader
+                    userInitials={userInitials}
+                    hasNotifications={false}
+                    onNotificationClick={() => setOverlayScreen('notifications')}
+                    onAvatarClick={handleOpenProfile}
+                    onSettingsClick={() => setOverlayScreen('settings')}
+                  />
 
-                <section className="flex flex-col gap-1 text-left mt-2 mb-1">
-                  {isLoading ? (
-                    <div className="animate-pulse space-y-2">
-                      <div className="h-8 bg-border rounded-md w-3/4" />
-                      <div className="h-4 bg-border rounded-md w-1/3" />
-                    </div>
-                  ) : (
-                    <>
-                      <h1 className="font-serif text-[30px] text-primaryText font-normal leading-tight tracking-tight">
-                        {isEmptyJournal
-                          ? `Welcome, ${DEFAULT_USER.name}`
-                          : `Good afternoon, ${DEFAULT_USER.name}`}
-                      </h1>
-                      <p className="font-sans text-[14px] text-muted font-normal tracking-normal">
-                        {isEmptyJournal
-                          ? 'No entries recorded yet.'
-                          : `Last wrote ${DEFAULT_USER.lastWroteDaysAgo} days ago.`}
-                      </p>
-                    </>
-                  )}
-                </section>
+                  <section className="flex flex-col gap-1 text-left mt-2 mb-1">
+                    <h1 className="font-serif text-[30px] text-primaryText font-normal leading-tight tracking-tight">
+                      {isEmpty ? 'Welcome to Jouspace' : 'Good to see you'}
+                    </h1>
+                    <p className="font-sans text-[14px] text-muted font-normal tracking-normal">
+                      {isEmpty
+                        ? 'No entries recorded yet.'
+                        : lastWroteDays !== null
+                          ? lastWroteDays <= 0
+                            ? 'You wrote earlier today.'
+                            : `Last wrote ${lastWroteDays} day${lastWroteDays === 1 ? '' : 's'} ago.`
+                          : 'Keep your journal going.'}
+                    </p>
+                  </section>
 
-                <section>
-                  {isLoading ? (
-                    <div className="bg-surface rounded-3xl border border-border p-6 animate-pulse space-y-4">
-                      <div className="h-4 bg-border rounded w-1/3" />
-                      <div className="h-6 bg-border rounded w-2/3" />
-                      <div className="h-12 bg-border rounded w-full" />
-                      <div className="h-10 bg-border rounded w-1/2" />
-                    </div>
-                  ) : isEmptyJournal ? (
+                  <section>
                     <PrimaryCard className="flex flex-col gap-4">
                       <MemoryLabel text="Memory-guided" />
                       <h2 className="font-serif text-[22px] text-primaryText font-normal leading-snug">
-                        Begin your journal
+                        {isEmpty ? 'Begin your journal' : 'Continue your journal'}
                       </h2>
                       <p className="font-sans text-[14.5px] leading-[1.55] text-secondaryText font-normal">
-                        Write down what is on your mind today. Your journal quietly
-                        builds context over time.
+                        {isEmpty
+                          ? 'Write down what is on your mind today. Your journal quietly builds context over time.'
+                          : 'Pick up where you left off, or start something new whenever the moment arrives.'}
                       </p>
                       <div className="pt-2">
-                        <PrimaryButton onClick={handleNewEntry}>
+                        <PrimaryButton onClick={() => handleTabChange('write')}>
                           New entry
                         </PrimaryButton>
                       </div>
                     </PrimaryCard>
-                  ) : (
-                    <PrimaryCard className="flex flex-col gap-4">
-                      <MemoryLabel text="Memory-guided" />
-                      <h2 className="font-serif text-[22px] text-primaryText font-normal leading-snug tracking-tight">
-                        Continue your journal
-                      </h2>
-                      <p className="font-sans text-[14.5px] leading-[1.55] text-secondaryText font-normal">
-                        {DEFAULT_CONTINUE_PROMPT.topicSummaryLines[0]}
-                        <br />
-                        {DEFAULT_CONTINUE_PROMPT.topicSummaryLines[1]}
-                        <br />
-                        {DEFAULT_CONTINUE_PROMPT.topicSummaryLines[2]}
+                  </section>
+
+                  <section>
+                    {runtimeConfigured ? (
+                      <AIInsightCard
+                        insightText="Your reflections are ready when you are — open the AI tab to look back together."
+                        label="Jouspace noticed"
+                        onReflect={handleReflectWithAI}
+                      />
+                    ) : (
+                      <PrimaryCard className="flex flex-col gap-3">
+                        <MemoryLabel text="Jouspace noticed" />
+                        <p className="font-serif text-[17px] leading-relaxed text-secondaryText">
+                          Set a runtime URL in Settings to enable AI reflections.
+                        </p>
+                      </PrimaryCard>
+                    )}
+                  </section>
+
+                  <section className="flex flex-col gap-3 mt-1">
+                    <h3 className="font-serif text-[19px] text-primaryText font-normal tracking-tight">
+                      Recent entries
+                    </h3>
+                    {isEmpty ? (
+                      <p className="font-sans text-[14px] text-muted py-4">
+                        Your written entries will appear here.
                       </p>
-                      <div className="flex items-center gap-6 pt-2">
-                        <PrimaryButton onClick={handleContinueWriting}>
-                          Continue writing
-                        </PrimaryButton>
-                        <TextAction onClick={handleNewEntry}>New entry</TextAction>
+                    ) : (
+                      <div className="flex flex-col divide-y divide-divider">
+                        {journal.entries.map((entry, idx) => (
+                          <EntryRow
+                            key={entry.id}
+                            entry={entry as Entry}
+                            isLast={idx === journal.entries.length - 1}
+                            onClick={handleEntryClick}
+                          />
+                        ))}
                       </div>
-                    </PrimaryCard>
-                  )}
-                </section>
+                    )}
+                  </section>
+                </div>
+              </div>
 
-                <section>
-                  {isLoading ? (
-                    <div className="bg-surface rounded-3xl border border-border p-6 animate-pulse space-y-3">
-                      <div className="h-4 bg-border rounded w-1/4" />
-                      <div className="h-10 bg-border rounded w-full" />
-                      <div className="h-4 bg-border rounded w-1/3 ml-auto" />
-                    </div>
-                  ) : isNoAiInsight ? (
-                    <PrimaryCard className="flex flex-col gap-3">
-                      <MemoryLabel text="Jouspace noticed" />
-                      <p className="font-serif text-[17px] leading-relaxed text-secondaryText">
-                        Reflections will appear after you write your next entry.
-                      </p>
-                    </PrimaryCard>
-                  ) : (
-                    <AIInsightCard
-                      insightText={DEFAULT_AI_INSIGHT.insightText}
-                      label="Jouspace noticed"
-                      onReflect={handleReflectWithAI}
-                    />
-                  )}
-                </section>
-
-                <section className="flex flex-col gap-3 mt-1">
-                  <h3 className="font-serif text-[19px] text-primaryText font-normal tracking-tight">
-                    Recent entries
-                  </h3>
-                  {isLoading ? (
-                    <div className="space-y-3 animate-pulse">
-                      <div className="h-12 bg-border rounded-xl" />
-                      <div className="h-12 bg-border rounded-xl" />
-                      <div className="h-12 bg-border rounded-xl" />
-                    </div>
-                  ) : isNoRecentEntries ? (
-                    <p className="font-sans text-[14px] text-muted py-4">
-                      Your written entries will appear here.
-                    </p>
-                  ) : (
-                    <div className="flex flex-col divide-y divide-divider">
-                      {journal.entries.map((entry, idx) => (
-                        <EntryRow
-                          key={entry.id}
-                          entry={entry}
-                          isLast={idx === journal.entries.length - 1}
-                          onClick={handleEntryClick}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </section>
+              <div className="shrink-0">
+                <BottomNavigation
+                  activeTab={activeTab}
+                  onTabChange={handleTabChange}
+                />
               </div>
             </div>
-
-            <div className="shrink-0 mx-2 pb-2 pb-safe">
-              <BottomNavigation
-                activeTab={activeTab}
-                onTabChange={handleTabChange}
-              />
-            </div>
-          </div>
-        )}
-      </AppScreen>
+          )}
+        </AppScreen>
       )}
 
-      {/* Overlay Screens (rendered as fixed-position modals when active) */}
+      {/* Overlay Screens — bottom-anchored sheets that slide up from the bottom */}
       {overlayScreen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          {/* Backdrop */}
+        <div
+          ref={overlayRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label={String(overlayScreen)}
+          className="fixed inset-0 z-50 flex items-end justify-center"
+        >
+          {/* Backdrop — fades in on open, fades out on close */}
           <div
-            className="absolute inset-0 bg-primaryText/40 animate-fadeIn"
+            className={`absolute inset-0 bg-primaryText/40 transition-opacity duration-300 ${
+              overlayClosing ? 'opacity-0' : 'animate-fadeIn'
+            }`}
             onClick={handleCloseOverlay}
           />
-          {/* Overlay Content */}
-          <div className="relative z-10 w-full max-w-[430px] mx-auto animate-slideUp">
-            {overlayScreen === 'auth-signin' && (
-              <SignInScreen
-                onSignIn={handleSignIn}
-                onCreateAccount={handleOpenCreateAccount}
-                onForgotPassword={handleOpenForgotPassword}
-                isLoading={isAuthLoading}
-                error={authError}
-                onClose={handleCloseOverlay}
-              />
-            )}
-            {overlayScreen === 'auth-create' && (
-              <CreateAccountScreen
-                onCreateAccount={handleCreateAccount}
-                onSignIn={handleOpenSignIn}
-                isLoading={isAuthLoading}
-                error={authError}
-                onClose={handleCloseOverlay}
-              />
-            )}
-            {overlayScreen === 'auth-forgot' && (
-              <ForgotPasswordScreen
-                onResetPassword={handleResetPassword}
-                onBackToSignIn={handleOpenSignIn}
-                isLoading={isAuthLoading}
-                error={authError}
-                onClose={handleCloseOverlay}
-              />
-            )}
-            {overlayScreen === 'auth-verify' && (
-              <EmailVerificationScreen
-                onResendEmail={handleResetPassword}
-                onBackToSignIn={handleOpenSignIn}
-                email="user@example.com"
-                isLoading={isAuthLoading}
-                onClose={handleCloseOverlay}
-              />
-            )}
+
+          {/* Sheet — full height, bottom-anchored, slides from bottom.
+              Drag transform (inline style) overrides during drag for 1:1 tracking. */}
+          <div
+            ref={sheetElRef}
+            onAnimationEnd={handleOverlayExited}
+            className={`relative z-10 flex flex-col w-full max-w-[430px] h-full bg-background will-change-transform ${
+              overlayClosing ? 'animate-slideDown' : 'animate-slideUp'
+            } ${dragging ? 'transition-none' : 'transition-transform duration-200 ease-out'}`}
+            style={dragY != null ? { transform: `translateY(${dragY}px)` } : undefined}
+          >
+            {/* Grabber handle — the ONLY drag target (keeps list scroll intact) */}
+            <div
+              className="flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing touch-none select-none"
+              onPointerDown={onGrabPointerDown}
+              onPointerMove={onGrabPointerMove}
+              onPointerUp={onGrabPointerUp}
+              aria-hidden="true"
+            >
+              <span className="w-9 h-1 rounded-full bg-border" />
+            </div>
+
             {overlayScreen === 'search' && (
-              <SearchScreen onBack={handleCloseOverlay} />
+              <SearchScreen
+                entries={journal.entries}
+                onBack={handleCloseOverlay}
+                onResultClick={goToEntry}
+              />
             )}
             {overlayScreen === 'notifications' && (
               <NotificationScreen onBack={handleCloseOverlay} />
             )}
-            {overlayScreen === 'entry-detail' && (
-              <EntryDetailScreen onBack={handleCloseOverlay} />
-            )}
             {overlayScreen === 'memory-thread' && (
-              <MemoryThreadScreen onBack={handleCloseOverlay} onReflectWithAI={handleReflectWithAI} />
+              <MemoryThreadScreen
+                title={threadTheme ? themeLabel(threadTheme) : 'Your memories'}
+                entries={threadEntries}
+                onBack={handleCloseOverlay}
+                onReflectWithAI={handleReflectWithAI}
+              />
             )}
             {overlayScreen === 'settings' && (
-              <SettingsSubpage onBack={handleCloseOverlay} />
+              <SettingsSubpage
+                onBack={handleCloseOverlay}
+                onExport={downloadJournalExport}
+                onLoadDemo={() => {
+                  loadDemoData();
+                  showToast('Sample data loaded');
+                }}
+              />
             )}
           </div>
         </div>
@@ -549,25 +577,51 @@ export function App() {
       {/* AI Context Picker Modal */}
       <AIContextPicker
         isOpen={isContextPickerOpen}
-        onClose={handleContextPickerClose}
+        onClose={() => setIsContextPickerOpen(false)}
+        onSelectContext={handleSelectContext}
+        activeId={aiContext?.id ?? null}
+      />
+
+      {/* Profile: Appearance (theme) sheet */}
+      <ThemeSheet
+        isOpen={isThemeSheetOpen}
+        onClose={() => setIsThemeSheetOpen(false)}
+        theme={theme}
+        onSelect={(t) => {
+          setTheme(t);
+          setIsThemeSheetOpen(false);
+        }}
+      />
+
+      {/* Profile: info sheets (Privacy / Help / Feedback / About) */}
+      <InfoSheet
+        isOpen={isInfoSheetOpen}
+        onClose={() => setIsInfoSheetOpen(false)}
+        title={infoContent[infoKind].title}
+        icon={infoContent[infoKind].icon}
+      >
+        {infoContent[infoKind].body}
+      </InfoSheet>
+
+      {/* AI: reflection history sheet */}
+      <AIHistorySheet
+        isOpen={isAiHistoryOpen}
+        onClose={() => setIsAiHistoryOpen(false)}
       />
 
       {/* Interactive Overlay Drawers */}
-      <WriteDrawer
-        isOpen={isWriteOpen}
-        onClose={() => setIsWriteOpen(false)}
-        initialTitle={writeInitialTitle}
-        initialContent={writeInitialContent}
-      />
-
       <AIReflectDrawer
         isOpen={isAiReflectOpen}
         onClose={() => setIsAiReflectOpen(false)}
       />
 
       <EntryDetailDrawer
-        entry={selectedEntry}
+        entry={selectedEntry as Entry | null}
         onClose={() => setSelectedEntry(null)}
+        onEdit={selectedEntry ? () => handleEditEntry(selectedEntry) : undefined}
+        onDelete={
+          selectedEntry ? () => handleDeleteEntry(selectedEntry) : undefined
+        }
       />
     </div>
   );

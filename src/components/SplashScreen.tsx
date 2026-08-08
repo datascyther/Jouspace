@@ -1,4 +1,5 @@
 import React from 'react';
+import logoSrc from '../assets/Jouspace logo.png';
 
 interface SplashScreenProps {
   className?: string;
@@ -7,14 +8,10 @@ interface SplashScreenProps {
 export const SplashScreen: React.FC<SplashScreenProps> = ({ className = '' }) => {
   return (
     <div
-      className={`min-h-screen bg-background flex flex-col items-center justify-center animate-fadeIn ${className}`}
+      className={`min-h-full w-full bg-background flex flex-col items-center justify-center animate-fadeIn ${className}`}
     >
-      {/* Circular Logo with Serif 'J' */}
-      <div className="w-16 h-16 rounded-full bg-accent flex items-center justify-center mb-5 shadow-sm">
-        <span className="font-serif font-medium text-[36px] leading-none text-white select-none pl-px">
-          J
-        </span>
-      </div>
+      {/* Logo Mark */}
+      <img src={logoSrc} alt="Jouspace" className="w-16 h-16 rounded-full mb-5 shadow-sm object-cover" />
 
       {/* Editorial Wordmark */}
       <span className="font-serif font-medium text-[28px] text-primaryText tracking-tight select-none">

@@ -11,6 +11,7 @@ interface ComposerProps {
   onBlur?: () => void;
   isFocused?: boolean;
   disabled?: boolean;
+  micDisabled?: boolean;
   className?: string;
 }
 
@@ -24,6 +25,7 @@ export const Composer: React.FC<ComposerProps> = ({
   onBlur,
   isFocused = false,
   disabled = false,
+  micDisabled = false,
   className = '',
 }) => {
   return (
@@ -61,8 +63,14 @@ export const Composer: React.FC<ComposerProps> = ({
       <button
         type="button"
         onClick={onMic}
+        disabled={micDisabled}
         aria-label="Voice input"
-        className="p-1.5 shrink-0 text-secondaryText hover:text-accent transition-colors cursor-pointer focus:outline-none"
+        title={micDisabled ? 'Voice input unavailable on this device' : undefined}
+        className={`p-1.5 shrink-0 transition-colors focus:outline-none ${
+          micDisabled
+            ? 'text-muted/60 cursor-not-allowed'
+            : 'text-secondaryText hover:text-accent cursor-pointer'
+        }`}
       >
         <Mic className="w-[19px] h-[19px] stroke-[1.6]" />
       </button>
@@ -75,7 +83,7 @@ export const Composer: React.FC<ComposerProps> = ({
         aria-label="Send message"
         className="w-[38px] h-[38px] shrink-0 rounded-full bg-accent hover:bg-accentHover disabled:opacity-50 flex items-center justify-center text-white transition-colors cursor-pointer focus:outline-none"
       >
-        <ArrowUp className="w-[19px] h-[19px] stroke-[2]" />
+        <ArrowUp className="w-[19px] h-[19px] stroke-2" />
       </button>
     </div>
   );

@@ -1,0 +1,63 @@
+/* ============================================================
+   Jouspace Design Tokens — Source of Truth
+   These variables are the exact specs for the design system.
+   Do not introduce additional colors or arbitrary values.
+   ============================================================ */
+
+:root {
+  /* Surfaces */
+  --bg-canvas: #F7F6F3; /* refined neutral-warm paper canvas */
+  --bg-card: #FFFFFF; /* cards, surfaces, sheets */
+
+  /* Accent */
+  --accent-purple: #6C4DCA; /* primary brand purple */
+  --accent-purple-light: #F1ECFB; /* active-tab pill / soft tint */
+
+  /* Text */
+  --text-primary: #1A1A1A;
+  --text-secondary: #6B6B6B;
+  --text-muted: #9B9B9B;
+
+  /* Typography */
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Inter', -apple-system, sans-serif;
+
+  /* Radii */
+  --radius-card: 16px;
+  --radius-button: 12px;
+  --radius-pill: 9999px;
+}
+
+/* ============================================================
+   Dark theme — overrides BOTH token sources (theme.css raw vars
+   and Tailwind v4 @theme --color-* vars emitted at :root). Uses
+   html[data-theme="dark"] (specificity 0,1,1) so it beats :root
+   regardless of source order. Do not introduce new color literals.
+   ============================================================ */
+html[data-theme="dark"] {
+  /* Surfaces */
+  --bg-canvas: #15151A;
+  --bg-card: #1E1E24;
+  --color-background: #15151A;
+  --color-surface: #1E1E24;
+
+  /* Text */
+  --text-primary: #F2F2F0;
+  --text-secondary: #C2C2C8;
+  --text-muted: #8A8A92;
+  --color-primaryText: #F2F2F0;
+  --color-secondaryText: #C2C2C8;
+  --color-muted: #8A8A92;
+
+  /* Lines */
+  --color-border: #2C2C33;
+  --color-divider: #2C2C33;
+
+  /* Soft surfaces (avatar / input / accent tints) */
+  --color-avatarBg: #2A2A33;
+  --color-inputBg: #26262D;
+  --color-accentSoft: #26263A;
+
+  /* Accent + error tokens are kept from the light token set (they read
+     fine on dark) and are not redeclared here. */
+}

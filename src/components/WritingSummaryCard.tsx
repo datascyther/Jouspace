@@ -22,7 +22,7 @@ export const WritingSummaryCard: React.FC<WritingSummaryCardProps> = ({
 
   return (
     <div
-      className={`bg-surface rounded-[24px] border border-border p-6 flex flex-col gap-4 ${className}`}
+      className={`bg-surface rounded-3xl border border-border p-6 flex flex-col gap-4 ${className}`}
     >
       {/* Top Label */}
       <span className="font-sans text-[12.5px] font-medium text-muted tracking-wide uppercase select-none">
@@ -37,7 +37,7 @@ export const WritingSummaryCard: React.FC<WritingSummaryCardProps> = ({
       {/* Bottom Action */}
       <TextAction onClick={onExploreMemories} className="mt-1">
         <span>Explore memories</span>
-        <ArrowRight className="w-[16px] h-[16px] ml-1 stroke-[1.8]" />
+        <ArrowRight className="w-4 h-4 ml-1 stroke-[1.8]" />
       </TextAction>
     </div>
   );

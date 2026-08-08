@@ -1,5 +1,6 @@
 import React from 'react';
-import { Bell } from 'lucide-react';
+import { Bell, Settings } from 'lucide-react';
+import logoSrc from '../assets/Jouspace logo.png';
 import { IconButton } from './IconButton';
 
 interface JouspaceHeaderProps {
@@ -8,6 +9,7 @@ interface JouspaceHeaderProps {
   hasNotifications?: boolean;
   onNotificationClick?: () => void;
   onAvatarClick?: () => void;
+  onSettingsClick?: () => void;
   className?: string;
 }
 
@@ -16,6 +18,7 @@ export const JouspaceHeader: React.FC<JouspaceHeaderProps> = ({
   hasNotifications = false,
   onNotificationClick,
   onAvatarClick,
+  onSettingsClick,
   className = '',
 }) => {
   return (
@@ -24,12 +27,8 @@ export const JouspaceHeader: React.FC<JouspaceHeaderProps> = ({
     >
       {/* Brand: Logo + Wordmark */}
       <div className="flex items-center gap-3">
-        {/* Circular Purple Logo with Serif 'J' */}
-        <div className="w-[38px] h-[38px] rounded-full bg-accent flex items-center justify-center text-white shrink-0 shadow-sm">
-          <span className="font-serif font-medium text-[22px] leading-none select-none pl-[1px]">
-            J
-          </span>
-        </div>
+        {/* Logo Mark */}
+        <img src={logoSrc} alt="Jouspace" className="w-[38px] h-[38px] rounded-full shrink-0 shadow-sm object-cover" />
 
         {/* Editorial Wordmark */}
         <span className="font-serif font-medium text-[22px] text-primaryText tracking-tight select-none">
@@ -37,8 +36,16 @@ export const JouspaceHeader: React.FC<JouspaceHeaderProps> = ({
         </span>
       </div>
 
-      {/* Right Controls: Bell Icon + Circular Avatar */}
+      {/* Right Controls: Settings + Bell Icon + Circular Avatar */}
       <div className="flex items-center gap-2">
+        {onSettingsClick && (
+          <IconButton
+            icon={<Settings className="w-[20px] h-[20px] text-primaryText stroke-[1.75]" />}
+            onClick={onSettingsClick}
+            ariaLabel="Settings"
+          />
+        )}
+
         <IconButton
           icon={<Bell className="w-[21px] h-[21px] text-primaryText stroke-[1.75]" />}
           onClick={onNotificationClick}

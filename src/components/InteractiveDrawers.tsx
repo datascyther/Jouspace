@@ -1,103 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useId, useRef } from 'react';
 import { Entry } from './EntryRow';
-import { X, Sparkles, Send, Check } from 'lucide-react';
+import { X, Sparkles, Send, Pencil, Trash2 } from 'lucide-react';
 import { useJouspaceIntelligence } from '../hooks/useJouspaceIntelligence';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 
-// ── The insight that anchors the reflection drawer ────────────────────────────
-// This is surfaced from the Home screen AIInsightCard.
-// In the future this will be passed as a prop from the triggering surface.
-const DEFAULT_REFLECT_INSIGHT =
-  'You often return to consistency when you write after a gap.';
-
-// ─────────────────────────────────────────────────────────────────────────────
-// WriteDrawer — unchanged
-// ─────────────────────────────────────────────────────────────────────────────
-
-interface WriteDrawerProps {
-  isOpen: boolean;
-  onClose: () => void;
-  initialTitle?: string;
-  initialContent?: string;
-}
-
-export const WriteDrawer: React.FC<WriteDrawerProps> = ({
-  isOpen,
-  onClose,
-  initialTitle = '',
-  initialContent = '',
-}) => {
-  const [title, setTitle] = useState(initialTitle);
-  const [content, setContent] = useState(initialContent);
-  const [saved, setSaved] = useState(false);
-
-  if (!isOpen) return null;
-
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => {
-      setSaved(false);
-      onClose();
-    }, 1200);
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/30 backdrop-blur-xs p-0 md:p-4 animate-fadeIn">
-      <div className="w-full max-w-lg bg-surface rounded-t-[28px] md:rounded-[28px] border border-border shadow-2xl p-6 flex flex-col gap-5 max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-divider">
-          <span className="font-serif text-lg text-primaryText">
-            {initialTitle ? 'Continue writing' : 'New journal entry'}
-          </span>
-          <button
-            onClick={onClose}
-            className="p-1.5 text-muted hover:text-primaryText rounded-full transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Form fields */}
-        <div className="flex flex-col gap-4">
-          <input
-            type="text"
-            placeholder="Title (optional)"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full font-serif text-xl text-primaryText bg-transparent border-b border-divider pb-2 focus:outline-none focus:border-accent placeholder:text-muted/60 placeholder:font-serif"
-          />
-          <textarea
-            rows={8}
-            placeholder="Write your thoughts quietly..."
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            className="w-full font-sans text-[15px] leading-relaxed text-primaryText bg-transparent resize-none focus:outline-none placeholder:text-muted/60"
-          />
-        </div>
-
-        {/* Footer actions */}
-        <div className="flex items-center justify-between pt-3 border-t border-divider">
-          <span className="text-xs text-muted font-sans">
-            ✦ Auto-saved to private memory
-          </span>
-          <button
-            onClick={handleSave}
-            disabled={saved}
-            className="inline-flex items-center gap-2 bg-accent hover:bg-accentHover text-white font-sans text-sm font-medium px-5 py-2.5 rounded-[14px] transition-all cursor-pointer"
-          >
-            {saved ? (
-              <>
-                <Check className="w-4 h-4" />
-                Saved
-              </>
-            ) : (
-              'Save Entry'
-            )}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
+// Neutral anchor for the reflection drawer (no fabricated insight in v1).
+const DEFAULT_REFLECT_PROMPT = 'Reflect on your recent writing.';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AIReflectDrawer — wired to useJouspaceIntelligence('reflect')
@@ -106,19 +14,28 @@ export const WriteDrawer: React.FC<WriteDrawerProps> = ({
 interface AIReflectDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  /** The insight being reflected on — defaults to the home screen insight */
+  /** The insight being reflected on — defaults to a neutral prompt. */
   insight?: string;
 }
 
 export const AIReflectDrawer: React.FC<AIReflectDrawerProps> = ({
   isOpen,
   onClose,
-  insight = DEFAULT_REFLECT_INSIGHT,
+  insight = DEFAULT_REFLECT_PROMPT,
 }) => {
   const [inputValue, setInputValue] = useState('');
   const responsesEndRef = useRef<HTMLDivElement>(null);
 
   const ai = useJouspaceIntelligence('reflect');
+
+  const drawerId = useId();
+  const drawerRef = useRef<HTMLDivElement>(null);
+  useFocusTrap({
+    id: drawerId,
+    active: isOpen,
+    onClose,
+    containerRef: drawerRef,
+  });
 
   // Auto-scroll to newest response as tokens stream in
   useEffect(() => {
@@ -138,7 +55,7 @@ export const AIReflectDrawer: React.FC<AIReflectDrawerProps> = ({
       hasOpenedRef.current = false;
       ai.reset();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   const handleSend = () => {
@@ -151,13 +68,18 @@ export const AIReflectDrawer: React.FC<AIReflectDrawerProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/30 backdrop-blur-xs p-0 md:p-4 animate-fadeIn">
+    <div
+      ref={drawerRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label="AI reflection"
+      className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/30 backdrop-blur-xs p-0 md:p-4 animate-fadeIn"
+    >
       <div className="w-full max-w-lg bg-surface rounded-t-[28px] md:rounded-[28px] border border-border shadow-2xl p-6 flex flex-col gap-5 max-h-[85vh] overflow-y-auto">
-
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-divider">
           <div className="flex items-center gap-2 text-accent">
-            <Sparkles className="w-4 h-4 stroke-[2]" />
+            <Sparkles className="w-4 h-4 stroke-2" />
             <span className="font-serif text-lg text-primaryText">AI Reflection</span>
           </div>
           <button
@@ -170,15 +92,14 @@ export const AIReflectDrawer: React.FC<AIReflectDrawerProps> = ({
         </div>
 
         {/* Anchor insight quote */}
-        <div className="p-4 bg-accentSoft/60 rounded-[16px] border border-border/50 text-sm text-primaryText font-serif leading-relaxed">
+        <div className="p-4 bg-accentSoft/60 rounded-2xl border border-border/50 text-sm text-primaryText font-serif leading-relaxed">
           "{insight}"
         </div>
 
         {/* Streamed responses */}
         <div className="flex flex-col gap-3 my-2">
-          {/* Thinking indicator — shown while waiting for first token */}
           {ai.isThinking && (
-            <div className="p-4 bg-background rounded-[16px] border border-divider">
+            <div className="p-4 bg-background rounded-2xl border border-divider">
               <div className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-muted animate-bounce [animation-delay:-0.3s]" />
                 <span className="w-1.5 h-1.5 rounded-full bg-muted animate-bounce [animation-delay:-0.15s]" />
@@ -187,16 +108,14 @@ export const AIReflectDrawer: React.FC<AIReflectDrawerProps> = ({
             </div>
           )}
 
-          {/* Assistant messages (excludes the empty user seed message) */}
           {ai.messages
             .filter((m) => m.role === 'assistant')
             .map((m) => (
               <div
                 key={m.id}
-                className="p-4 bg-background rounded-[16px] border border-divider text-[14.5px] text-primaryText font-sans leading-relaxed whitespace-pre-line"
+                className="p-4 bg-background rounded-2xl border border-divider text-[14.5px] text-primaryText font-sans leading-relaxed whitespace-pre-line"
               >
                 {m.text}
-                {/* Streaming cursor — blink while this is the last streaming message */}
                 {ai.isStreaming &&
                   m.id === ai.messages[ai.messages.length - 1]?.id && (
                     <span className="inline-block w-0.5 h-[1em] bg-accent ml-0.5 animate-pulse align-middle" />
@@ -204,19 +123,17 @@ export const AIReflectDrawer: React.FC<AIReflectDrawerProps> = ({
               </div>
             ))}
 
-          {/* User follow-up messages */}
           {ai.messages
             .filter((m) => m.role === 'user' && m.text.trim())
             .map((m) => (
               <div
                 key={m.id}
-                className="self-end max-w-[85%] px-4 py-3 bg-accentSoft rounded-[16px] text-[14px] text-primaryText font-sans leading-relaxed"
+                className="self-end max-w-[85%] px-4 py-3 bg-accentSoft rounded-2xl text-[14px] text-primaryText font-sans leading-relaxed"
               >
                 {m.text}
               </div>
             ))}
 
-          {/* Error state */}
           {ai.error && (
             <p className="text-[13px] text-muted font-sans text-center py-1">
               {ai.error}
@@ -252,31 +169,71 @@ export const AIReflectDrawer: React.FC<AIReflectDrawerProps> = ({
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// EntryDetailDrawer — unchanged
+// EntryDetailDrawer — view / edit / delete a single entry
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface EntryDetailDrawerProps {
   entry: Entry | null;
   onClose: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }
 
 export const EntryDetailDrawer: React.FC<EntryDetailDrawerProps> = ({
   entry,
   onClose,
+  onEdit,
+  onDelete,
 }) => {
+  const drawerId = useId();
+  const drawerRef = useRef<HTMLDivElement>(null);
+  useFocusTrap({
+    id: drawerId,
+    active: entry !== null,
+    onClose,
+    containerRef: drawerRef,
+  });
+
   if (!entry) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/30 backdrop-blur-xs p-0 md:p-4 animate-fadeIn">
+    <div
+      ref={drawerRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Entry details"
+      className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/30 backdrop-blur-xs p-0 md:p-4 animate-fadeIn"
+    >
       <div className="w-full max-w-lg bg-surface rounded-t-[28px] md:rounded-[28px] border border-border shadow-2xl p-6 flex flex-col gap-4 max-h-[85vh] overflow-y-auto">
         <div className="flex items-center justify-between pb-2 border-b border-divider">
           <span className="text-xs text-muted font-sans">{entry.date}</span>
-          <button
-            onClick={onClose}
-            className="p-1.5 text-muted hover:text-primaryText rounded-full transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-1">
+            {onEdit && (
+              <button
+                onClick={onEdit}
+                aria-label="Edit entry"
+                className="p-1.5 text-muted hover:text-primaryText rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-accent/20 cursor-pointer"
+              >
+                <Pencil className="w-4 h-4" />
+              </button>
+            )}
+            {onDelete && (
+              <button
+                onClick={onDelete}
+                aria-label="Delete entry"
+                className="p-1.5 text-error hover:bg-errorBg rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-error/20 cursor-pointer"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              aria-label="Close"
+              className="p-1.5 text-muted hover:text-primaryText rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-accent/20 cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         <h3 className="font-serif text-xl text-primaryText font-medium leading-snug">

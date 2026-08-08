@@ -1,4 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
-  <rect width="512" height="512" rx="112" fill="#6D4FD7"/>
-  <text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle" font-family="Georgia, 'Lora', serif" font-size="320" font-weight="500" fill="#FFFFFF">J</text>
+  <defs>
+    <linearGradient id="bg" x1="64" y1="64" x2="448" y2="448" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#8B6AE8"/>
+      <stop offset="100%" stop-color="#6C4DCA"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <path d="M296 132c24 0 42 18 42 42v128c0 32-26 58-58 58-18 0-34-9-42-23l23-14c6 9 13 14 22 14 14 0 25-11 25-25V174c0-12-11-23-25-23s-25 11-25 23h-28c0-38 30-66 66-66z" fill="#fff"/>
+  <ellipse cx="266" cy="310" rx="32" ry="28" fill="url(#bg)"/>
+  <circle cx="300" cy="104" r="26" fill="#F0A050"/>
 </svg>

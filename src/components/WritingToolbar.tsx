@@ -8,9 +8,8 @@ interface WritingToolbarProps {
   onAiSparkleClick?: () => void;
   onDoneClick?: () => void;
   className?: string;
-  // NOTE: isKeyboardOpen is a QA demo state, not runtime detection.
-  // Used for visual styling only (shadow/border). Keyboard repositioning is not implemented.
-  isKeyboardOpen?: boolean;
+  /** Disable the media/AI extras (unavailable in the local-first v1). */
+  extrasDisabled?: boolean;
 }
 
 export const WritingToolbar: React.FC<WritingToolbarProps> = ({
@@ -20,13 +19,11 @@ export const WritingToolbar: React.FC<WritingToolbarProps> = ({
   onAiSparkleClick,
   onDoneClick,
   className = '',
-  isKeyboardOpen = false,
+  extrasDisabled = false,
 }) => {
   return (
     <div
-      className={`w-full bg-surface border-t border-divider min-h-[64px] py-2 px-4 flex items-center justify-between transition-all duration-200 ${
-        isKeyboardOpen ? 'shadow-md border-b border-border' : ''
-      } ${className}`}
+      className={`w-full bg-surface border-t border-divider min-h-16 py-2 px-4 flex items-center justify-between transition-all duration-200 ${className}`}
     >
       {/* Icon Group */}
       <div className="flex items-center gap-5 text-muted">
@@ -35,9 +32,10 @@ export const WritingToolbar: React.FC<WritingToolbarProps> = ({
           type="button"
           onClick={onMicClick}
           aria-label="Voice memo"
-          className="p-1.5 hover:text-accent transition-colors rounded-full focus:outline-none cursor-pointer"
+          disabled={extrasDisabled}
+          className="p-1.5 hover:text-accent transition-colors rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:text-muted"
         >
-          <Mic className="w-[20px] h-[20px] stroke-[1.6]" />
+          <Mic className="w-5 h-5 stroke-[1.6]" />
         </button>
 
         {/* 2. Image */}
@@ -45,9 +43,10 @@ export const WritingToolbar: React.FC<WritingToolbarProps> = ({
           type="button"
           onClick={onImageClick}
           aria-label="Insert image"
-          className="p-1.5 hover:text-accent transition-colors rounded-full focus:outline-none cursor-pointer"
+          disabled={extrasDisabled}
+          className="p-1.5 hover:text-accent transition-colors rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:text-muted"
         >
-          <Image className="w-[20px] h-[20px] stroke-[1.6]" />
+          <Image className="w-5 h-5 stroke-[1.6]" />
         </button>
 
         {/* 3. Tag */}
@@ -55,9 +54,10 @@ export const WritingToolbar: React.FC<WritingToolbarProps> = ({
           type="button"
           onClick={onTagClick}
           aria-label="Add tag"
-          className="p-1.5 hover:text-accent transition-colors rounded-full focus:outline-none cursor-pointer"
+          disabled={extrasDisabled}
+          className="p-1.5 hover:text-accent transition-colors rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:text-muted"
         >
-          <Tag className="w-[20px] h-[20px] stroke-[1.6]" />
+          <Tag className="w-5 h-5 stroke-[1.6]" />
         </button>
 
         {/* 4. Sparkle */}
@@ -65,9 +65,10 @@ export const WritingToolbar: React.FC<WritingToolbarProps> = ({
           type="button"
           onClick={onAiSparkleClick}
           aria-label="AI memory assist"
-          className="p-1.5 hover:text-accent transition-colors rounded-full focus:outline-none cursor-pointer"
+          disabled={extrasDisabled}
+          className="p-1.5 hover:text-accent transition-colors rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:text-muted"
         >
-          <Sparkles className="w-[20px] h-[20px] stroke-[1.6]" />
+          <Sparkles className="w-5 h-5 stroke-[1.6]" />
         </button>
       </div>
 

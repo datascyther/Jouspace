@@ -1,5 +1,6 @@
 import React from 'react';
 import { ThemeChip } from './ThemeChip';
+import { themeLabel } from './ThemeChipGroup';
 import { ChevronRight } from 'lucide-react';
 
 export interface Entry {
@@ -24,27 +25,29 @@ export const EntryRow: React.FC<EntryRowProps> = ({
   className = '',
 }) => {
   return (
-    <div
+    <button
+      type="button"
       onClick={() => onClick?.(entry)}
-      className={`group flex items-center justify-between min-h-[60px] py-3.5 px-1 cursor-pointer transition-colors duration-150 ${
+      aria-label={`Open entry from ${entry.date}: ${entry.title || 'untitled'}`}
+      className={`group flex items-center justify-between min-h-[60px] py-3.5 px-1 cursor-pointer text-left w-full transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 ${
         !isLast ? 'border-b border-divider' : ''
       } ${className}`}
     >
       {/* Left + Middle: Date + Entry Title */}
-      <div className="flex items-center gap-5 min-w-0 pr-3 flex-1">
-        <span className="font-sans text-[13.5px] text-muted shrink-0 w-[48px]">
+      <span className="flex items-center gap-5 min-w-0 pr-3 flex-1">
+        <span className="font-sans text-[13.5px] text-muted shrink-0 w-12">
           {entry.date}
         </span>
         <span className="font-sans text-[14.5px] text-primaryText font-normal truncate group-hover:text-accent transition-colors">
           {entry.title}
         </span>
-      </div>
+      </span>
 
       {/* Right: Theme Chip + Chevron */}
-      <div className="flex items-center gap-3 shrink-0">
-        <ThemeChip label={entry.theme} />
+      <span className="flex items-center gap-3 shrink-0">
+        <ThemeChip label={themeLabel(entry.theme)} />
         <ChevronRight className="w-4 h-4 text-muted group-hover:text-accent transition-colors stroke-[1.8]" />
-      </div>
-    </div>
+      </span>
+    </button>
   );
 };

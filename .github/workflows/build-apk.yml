@@ -1,13 +1,20 @@
-# Build Android APK — cloud build with zero local Android tooling.
+# Build a SIGNED release Android APK — cloud build with zero local Android tooling.
 #
-# Trigger this workflow (Actions tab → "Build Android APK" → Run workflow), or
-# push a tag like v1.0.0, to produce a debug APK you can install on a phone.
-# The runner has Java + Android SDK preinstalled, so no setup on your Mac is
-# required.
+# Trigger: Actions tab → "Build Android APK" → Run workflow, or push a tag
+# like v1.0.0.
 #
-# The built artifact downloads from the workflow run's "Artifacts" section.
-# For a signed release build, add a keystore + signing config and a
-# "Signing" job (see Android docs) — this file produces a debug-signed APK.
+# For a SIGNED release build, add these GitHub Actions *secrets* to the repo
+# (Settings → Secrets and variables → Actions):
+#   ANDROID_KEYSTORE_BASE64  base64 of your upload-keystore.jks
+#   ANDROID_KEY_ALIAS        key alias (e.g. upload)
+#   ANDROID_KEYSTORE_PASSWORD
+#   ANDROID_KEY_PASSWORD
+# If the keystore secret is absent the workflow falls back to a debug APK so
+# the build still runs.
+#
+# ⚠️ KEYSTORE BACKUP: losing upload-keystore.jks means you can NEVER update an
+# app installed from a previous release (users must uninstall first). Store the
+# keystore + passwords somewhere safe (password manager, not just this repo).
 
 name: Build Android APK
 
@@ -46,19 +53,91 @@ jobs:
       - name: Sync web assets into native shell
         run: npx cap sync android
 
+      - name: Decode signing keystore (if provided)
+        if: ${{ env.KEYSTORE != '' }}
+        env:
+          KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          echo "$KEYSTORE" | base64 -d > android/app/upload-keystore.jks
+
+      - name: Inject release signing config
+        if: ${{ env.KEYSTORE != '' }}
+        env:
+          KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        working-directory: android/app
+        run: |
+          python3 - <<'PY'
+          import os
+          gradle = 'build.gradle'
+          src = open(gradle).read()
+          signing = '''
+          android {
+              signingConfigs {
+                  release {
+                      storeFile file('upload-keystore.jks')
+                      storePassword System.getenv('KEYSTORE_PASSWORD')
+                      keyAlias System.getenv('KEY_ALIAS')
+                      keyPassword System.getenv('KEY_PASSWORD')
+                  }
+              }
+              buildTypes {
+                  release {
+                      signingConfig signingConfigs.release
+                      minifyEnabled false
+                  }
+              }
+          }
+          '''
+          # Replace the existing default `android { ... buildTypes { debug ... } }` block.
+          import re
+          src = re.sub(r'\nandroid \{.*?\n\}', signing, src, count=1, flags=re.S)
+          open(gradle, 'w').write(src)
+          print(src)
+          PY
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - name: Build debug APK
+      - name: Build release APK
+        if: ${{ env.KEYSTORE != '' }}
+        env:
+          KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        working-directory: android
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleRelease
+
+      - name: Build debug APK (no keystore secret)
+        if: ${{ env.KEYSTORE == '' }}
+        env:
+          KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         working-directory: android
         run: |
           chmod +x ./gradlew
           ./gradlew assembleDebug
 
-      - name: Upload APK
+      - name: Upload release APK
+        if: ${{ env.KEYSTORE != '' }}
+        env:
+          KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: jouspace-release
+          path: android/app/build/outputs/apk/release/app-release.apk
+
+      - name: Upload debug APK
+        if: ${{ env.KEYSTORE == '' }}
+        env:
+          KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         uses: actions/upload-artifact@v4
         with:
           name: jouspace-debug

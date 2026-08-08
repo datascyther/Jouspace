@@ -20,7 +20,7 @@ export const ReflectionPromptCard: React.FC<ReflectionPromptCardProps> = ({
 }) => {
   return (
     <div
-      className={`relative bg-surface rounded-[24px] border border-border p-6 text-primaryText overflow-hidden flex flex-col gap-4 shadow-2xs ${className}`}
+      className={`relative bg-surface rounded-3xl border border-border p-6 text-primaryText overflow-hidden flex flex-col gap-4 shadow-2xs ${className}`}
     >
       {/* Subtle Minimal Pencil Illustration Artwork in Bottom Right */}
       <div className="absolute right-3 bottom-2 w-32 h-24 pointer-events-none select-none opacity-30">

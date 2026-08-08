@@ -15,17 +15,62 @@
  * It only sees: messages, send(), isThinking, isStreaming, abort(), error.
  */
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { journalStore } from '../store';
 
 // ── Runtime endpoint ──────────────────────────────────────────────────────────
-// The Intelligence Runtime base URL. In dev it is empty (same-origin; the Vite
-// proxy forwards /api → localhost:3001). For a deployed APK/PWA, set
-// VITE_API_BASE_URL=https://your-runtime-host during the build so requests go
-// to a real remote backend instead of the device's own origin.
-const API_BASE_URL: string =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined)
-    ?.replace(/\/+$/, '') ?? '';
+// The Intelligence Runtime base URL is read LAZILY on every request so the
+// user-supplied Settings value (localStorage 'jouspace:runtimeUrl') takes
+// effect immediately, overriding the build-time VITE_API_BASE_URL.
+// In dev, with no URL set and no build var, the Vite proxy forwards
+// /api → localhost:3001. For a deployed APK/PWA, the user sets their runtime
+// URL in Settings, or the build is configured with VITE_API_BASE_URL.
+export const RUNTIME_URL_STORAGE_KEY = 'jouspace:runtimeUrl';
+
+export function getApiBaseUrl(): string {
+  const stored = localStorage.getItem(RUNTIME_URL_STORAGE_KEY)?.trim();
+  if (stored) return stored.replace(/\/+$/, '');
+  const build = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim();
+  if (build) return build.replace(/\/+$/, '');
+  return '';
+}
+
+/** True when a runtime URL is configured (Settings field or build var). */
+export function isRuntimeConfigured(): boolean {
+  return getApiBaseUrl() !== '';
+}
+
+export const RUNTIME_UNAVAILABLE_MESSAGE =
+  'AI unavailable — set a runtime URL in Settings to enable reflections.';
+
+// ── Chat history persistence (localStorage) ──────────────────────────────────
+// The 'chat' conversation survives tab navigation by being persisted here.
+// 'reflect' stays ephemeral (reset on close). A partial/aborted assistant
+// message is never stored because the hook only persists when idle.
+
+export const CHAT_STORAGE_KEY = 'jouspace:ai:chat:messages';
+
+export function loadChatMessages(): IntelligenceMessage[] {
+  try {
+    const raw = localStorage.getItem(CHAT_STORAGE_KEY);
+    if (raw) return JSON.parse(raw) as IntelligenceMessage[];
+  } catch {
+    /* corrupt JSON → start clean */
+  }
+  return [];
+}
+
+function saveChatMessages(messages: IntelligenceMessage[]): void {
+  try {
+    localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
+  } catch {
+    /* storage failure → non-fatal */
+  }
+}
+
+function clearChatMessages(): void {
+  localStorage.removeItem(CHAT_STORAGE_KEY);
+}
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -132,9 +177,10 @@ export function useJouspaceIntelligence(
 
   const reset = useCallback(() => {
     abort();
+    if (capability === 'chat') clearChatMessages();
     setMessages(initialMessages);
     setError(null);
-  }, [abort, initialMessages]);
+  }, [abort, capability, initialMessages]);
 
   const send = useCallback(
     (userText: string, options?: SendOptions) => {
@@ -160,6 +206,15 @@ export function useJouspaceIntelligence(
       setIsThinking(true);
       setIsStreaming(false);
       setError(null);
+
+      // No runtime configured (and no build-time URL) → degrade gracefully
+      // instead of firing a doomed request.
+      const base = getApiBaseUrl();
+      if (!base) {
+        setIsThinking(false);
+        setError(RUNTIME_UNAVAILABLE_MESSAGE);
+        return;
+      }
 
       // Build request body based on capability.
       // Both branches include the client's real journal entries so the runtime
@@ -190,7 +245,7 @@ export function useJouspaceIntelligence(
 
       (async () => {
         try {
-          const response = await fetch(`${API_BASE_URL}/api/ai/${capability}`, {
+          const response = await fetch(`${base}/api/ai/${capability}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body),
@@ -277,5 +332,21 @@ export function useJouspaceIntelligence(
     [capability, messages]
   );
 
-  return { messages, isThinking, isStreaming, error, send, abort, reset };
+  // Persist the 'chat' conversation whenever it is idle (never mid-stream),
+  // so a partial/aborted assistant message is never written to storage.
+  useEffect(() => {
+    if (capability !== 'chat') return;
+    if (isThinking || isStreaming) return;
+    saveChatMessages(messages);
+  }, [capability, messages, isThinking, isStreaming]);
+
+  return {
+    messages,
+    isThinking,
+    isStreaming,
+    error,
+    send,
+    abort,
+    reset,
+  };
 }

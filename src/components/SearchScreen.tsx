@@ -1,42 +1,37 @@
-import React, { useState } from 'react';
-import { Search, X, Clock } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { Search, X } from 'lucide-react';
+import type { Entry } from './EntryRow';
 
 interface SearchScreenProps {
+  entries: Entry[];
   onBack?: () => void;
   onResultClick?: (id: string) => void;
   className?: string;
 }
 
-const RECENT_SEARCHES = ['morning reflections', 'creative work', 'gratitude'];
-
-const SEARCH_RESULTS = [
-  { id: '1', title: 'Morning reflections', snippet: 'I keep returning to the same thought about quiet spaces…', date: 'Aug 4, 2026' },
-  { id: '2', title: 'Creative work and flow', snippet: 'The best ideas come when I stop trying to force them…', date: 'Jul 28, 2026' },
-  { id: '3', title: 'Gratitude practice', snippet: 'Today I noticed how the light came through the window…', date: 'Jul 21, 2026' },
-];
-
 export const SearchScreen: React.FC<SearchScreenProps> = ({
+  entries,
   onBack,
   onResultClick,
   className = '',
 }) => {
   const [query, setQuery] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
 
-  const handleSearch = (value: string) => {
-    setQuery(value);
-    setIsSearching(value.length > 0);
-  };
-
-  const clearSearch = () => {
-    setQuery('');
-    setIsSearching(false);
-  };
+  const results = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return [];
+    return entries.filter(
+      (e) =>
+        e.title.toLowerCase().includes(q) ||
+        e.theme.toLowerCase().includes(q) ||
+        (e.content ?? '').toLowerCase().includes(q)
+    );
+  }, [query, entries]);
 
   return (
-    <div className={`flex flex-col w-full pt-4 px-6 animate-fadeIn ${className}`}>
+    <div className={`flex flex-col w-full h-full ${className}`}>
       {/* Header */}
-      <div className="flex items-center gap-3 mb-5">
+      <div className="flex items-center gap-3 px-6 pt-4 pb-3 shrink-0 border-b border-divider">
         <button
           type="button"
           onClick={onBack}
@@ -55,13 +50,14 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({
             type="text"
             placeholder="Search entries, themes, memories…"
             value={query}
-            onChange={(e) => handleSearch(e.target.value)}
+            onChange={(e) => setQuery(e.target.value)}
+            autoFocus
             className="w-full bg-surface border border-border rounded-[14px] pl-10 pr-10 py-3 font-sans text-[14px] text-primaryText placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all"
           />
           {query && (
             <button
               type="button"
-              onClick={clearSearch}
+              onClick={() => setQuery('')}
               aria-label="Clear search"
               className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-border flex items-center justify-center text-secondaryText hover:bg-muted hover:text-white transition-colors cursor-pointer"
             >
@@ -72,52 +68,43 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({
       </div>
 
       {/* Content */}
-      {!isSearching ? (
-        /* Recent Searches */
-        <div className="flex flex-col gap-3">
-          <h3 className="font-sans text-[13px] font-medium text-muted uppercase tracking-wider">
-            Recent searches
-          </h3>
-          {RECENT_SEARCHES.map((term) => (
-            <button
-              key={term}
-              type="button"
-              onClick={() => handleSearch(term)}
-              className="flex items-center gap-3 w-full text-left py-2 focus:outline-none cursor-pointer group"
-            >
-              <Clock className="w-4 h-4 text-muted stroke-[1.6] group-hover:text-accent transition-colors" />
-              <span className="font-sans text-[14px] text-primaryText group-hover:text-accent transition-colors">
-                {term}
-              </span>
-            </button>
-          ))}
-        </div>
-      ) : (
-        /* Search Results */
-        <div className="flex flex-col gap-2">
-          <p className="font-sans text-[12px] text-muted mb-2">
-            {SEARCH_RESULTS.length} result{SEARCH_RESULTS.length !== 1 ? 's' : ''} for "{query}"
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-6 py-4">
+        {!query.trim() ? (
+          <p className="font-sans text-[13px] text-muted mt-2">
+            Search your entries by title, theme, or content.
           </p>
-          {SEARCH_RESULTS.map((result) => (
-            <button
-              key={result.id}
-              type="button"
-              onClick={() => onResultClick?.(result.id)}
-              className="w-full text-left bg-surface border border-border rounded-[14px] px-4 py-3.5 hover:border-accent/30 transition-colors focus:outline-none focus:ring-2 focus:ring-accent/20 cursor-pointer"
-            >
-              <h4 className="font-sans text-[14px] font-medium text-primaryText mb-1">
-                {result.title}
-              </h4>
-              <p className="font-sans text-[13px] text-secondaryText leading-relaxed line-clamp-2">
-                {result.snippet}
-              </p>
-              <span className="font-sans text-[11px] text-muted mt-1.5 block">
-                {result.date}
-              </span>
-            </button>
-          ))}
-        </div>
-      )}
+        ) : results.length === 0 ? (
+          <p className="font-sans text-[14px] text-muted mt-2">
+            No entries match “{query}”.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-2">
+            <p className="font-sans text-[12px] text-muted mb-2">
+              {results.length} result{results.length !== 1 ? 's' : ''} for “{query}”
+            </p>
+            {results.map((result) => (
+              <button
+                key={result.id}
+                type="button"
+                onClick={() => onResultClick?.(result.id)}
+                className="w-full text-left bg-surface border border-border rounded-[14px] px-4 py-3.5 hover:border-accent/30 transition-colors focus:outline-none focus:ring-2 focus:ring-accent/20 cursor-pointer"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <h4 className="font-sans text-[14px] font-medium text-primaryText mb-1 truncate">
+                    {result.title}
+                  </h4>
+                  <span className="font-sans text-[11px] text-muted shrink-0">
+                    {result.date}
+                  </span>
+                </div>
+                <p className="font-sans text-[13px] text-secondaryText leading-relaxed line-clamp-2">
+                  {result.content || result.theme}
+                </p>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

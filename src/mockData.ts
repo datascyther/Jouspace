@@ -1,44 +1,10 @@
 import { Entry } from './components/EntryRow';
 
-export interface UserProfile {
-  name: string;
-  initials: string;
-  lastWroteDaysAgo: number;
-}
-
-export interface ContinueJournalPrompt {
-  id: string;
-  topicSummaryLines: [string, string, string];
-}
-
-export interface AIInsight {
-  id: string;
-  insightText: string;
-  actionText: string;
-}
-
-// Default production mock data matching the reference image 100%
-export const DEFAULT_USER: UserProfile = {
-  name: 'VU',
-  initials: 'VU',
-  lastWroteDaysAgo: 4,
-};
-
-export const DEFAULT_CONTINUE_PROMPT: ContinueJournalPrompt = {
-  id: 'prompt-1',
-  topicSummaryLines: [
-    'You were writing about discipline,',
-    'pressure,',
-    'and starting again.',
-  ],
-};
-
-export const DEFAULT_AI_INSIGHT: AIInsight = {
-  id: 'insight-1',
-  insightText: 'You often return to consistency when you write after a gap.',
-  actionText: 'Reflect with AI →',
-};
-
+/**
+ * Bundled sample entries, used ONLY by Settings → "Load sample data"
+ * (see `loadDemoData()` in src/store/index.ts). The app never seeds these
+ * automatically — a fresh install starts with an empty journal.
+ */
 export const DEFAULT_RECENT_ENTRIES: Entry[] = [
   {
     id: 'entry-1',
@@ -62,25 +28,3 @@ export const DEFAULT_RECENT_ENTRIES: Entry[] = [
     content: 'Unpacking the noise from the week and returning to core priorities.',
   },
 ];
-
-// ── Profile Screen Data ──
-
-export interface ProfileData {
-  initials: string;
-  displayName: string;
-  email: string;
-  joinedDate: string;
-  avatarUrl: string | null;
-  entryCount: number;
-  topThemes: string[];
-}
-
-export const DEFAULT_PROFILE: ProfileData = {
-  initials: 'VU',
-  displayName: 'VU',
-  email: 'vu@example.com',
-  joinedDate: 'July 2026',
-  avatarUrl: null,
-  entryCount: 24,
-  topThemes: ['clarity', 'discipline', 'purpose'],
-};

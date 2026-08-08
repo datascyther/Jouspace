@@ -15,7 +15,7 @@ export const CenterWriteButton: React.FC<CenterWriteButtonProps> = ({
       type="button"
       onClick={onClick}
       aria-label="Write new journal entry"
-      className={`relative -top-4 flex items-center justify-center w-[52px] h-[52px] bg-accent hover:bg-accentHover active:scale-95 text-white rounded-full shadow-md shadow-accent/25 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-accent/20 cursor-pointer ${className}`}
+      className={`relative -top-5 flex items-center justify-center w-14 h-14 bg-gradient-to-br from-accent to-accentHover hover:bg-accentHover active:scale-95 text-white rounded-full shadow-xl shadow-accent/30 ring-4 ring-accent/15 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-accent/20 cursor-pointer ${className}`}
     >
       <Pencil className="w-5 h-5 stroke-[1.8]" />
     </button>

@@ -16,7 +16,7 @@ export const SuggestionRow: React.FC<SuggestionRowProps> = ({
     <button
       type="button"
       onClick={() => onClick?.(question)}
-      className={`group w-full flex items-center justify-between bg-surface border border-border rounded-[18px] px-5 py-4 min-h-[56px] text-left transition-colors duration-150 hover:border-accent/40 cursor-pointer focus:outline-none ${className}`}
+      className={`group w-full flex items-center justify-between bg-surface border border-border rounded-[18px] px-5 py-4 min-h-14 text-left transition-colors duration-150 hover:border-accent/40 cursor-pointer focus:outline-none ${className}`}
     >
       <span className="font-sans text-[14.5px] text-primaryText font-normal leading-snug pr-3">
         {question}

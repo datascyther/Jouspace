@@ -1,26 +1,34 @@
+@import "./theme.css";
 @import "tailwindcss";
 
 @theme {
-  --font-serif: 'Lora', Georgia, serif;
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  /* Typography (matches --font-serif / --font-sans in theme.css) */
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Inter', -apple-system, sans-serif;
 
-  --color-background: #FBF9F5;
-  --color-surface: #FFFEFC;
-  --color-primaryText: #0D102B;
-  --color-secondaryText: #68677E;
-  --color-muted: #8B8998;
-  --color-accent: #6D4FD7;
-  --color-accentHover: #5C3EC5;
-  --color-accentActive: #5034B3;
-  --color-accentAlt: #5639BE;
-  --color-accentSoft: #F0ECFF;
-  --color-border: #E7E1EF;
-  --color-divider: #E9E4E0;
-  --color-avatarBg: #EFEBF5;
-  --color-inputBg: #F3F0EB;
+  /* Colors map 1:1 to the design tokens in theme.css */
+  --color-background: #F7F6F3; /* --bg-canvas */
+  --color-surface: #FFFFFF; /* --bg-card */
+  --color-primaryText: #1A1A1A; /* --text-primary */
+  --color-secondaryText: #6B6B6B; /* --text-secondary */
+  --color-muted: #9B9B9B; /* --text-muted */
+  --color-accent: #6C4DCA; /* --accent-purple */
+  --color-accentHover: #5A3EB0;
+  --color-accentActive: #4A318F;
+  --color-accentAlt: #5E40C0;
+  --color-accentSoft: #F1ECFB; /* --accent-purple-light */
+  --color-border: #ECEAE6;
+  --color-divider: #EFEDEA;
+  --color-avatarBg: #F1EFF8;
+  --color-inputBg: #F4F3F0;
   --color-error: #C53030;
   --color-errorBg: #FDECEC;
   --color-errorBorder: #F5C6C6;
+
+  /* Radii (matches --radius-* in theme.css) */
+  --radius-card: 16px;
+  --radius-button: 12px;
+  --radius-pill: 9999px;
 }
 
 @layer utilities {
@@ -30,6 +38,10 @@
 
   .animate-slideUp {
     animation: slideUp 300ms ease-out;
+  }
+
+  .animate-slideDown {
+    animation: slideDown 300ms ease-in;
   }
 
   .animate-slideInRight {
@@ -68,6 +80,15 @@
   }
   to {
     transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
   }
 }
 
@@ -161,11 +182,16 @@
 .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
 
 body {
-  background-color: var(--color-background);
-  color: var(--color-primaryText);
-  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  font-kerning: normal;
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
 }
 
 /* Custom scrollbar styling for desktop preview */

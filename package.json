@@ -1,14 +1,16 @@
 {
   "name": "react-vite-tailwind",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
     "server": "cd server && npm run dev",
-    "dev:all": "kill $(lsof -ti:3001) 2>/dev/null; concurrently --names \"vite,runtime\" --prefix-colors \"cyan,magenta\" \"npm run dev\" \"npm run server\""
+    "dev:all": "kill $(lsof -ti:3001) 2>/dev/null; concurrently --names \"vite,runtime\" --prefix-colors \"cyan,magenta\" \"npm run dev\" \"npm run server\"",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "clsx": "2.1.1",
@@ -20,14 +22,18 @@
   },
   "devDependencies": {
     "@tailwindcss/vite": "4.1.17",
+    "@testing-library/jest-dom": "6.6.3",
+    "@testing-library/react": "16.1.0",
     "@types/node": "22.19.17",
     "@types/react": "19.2.7",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "5.1.1",
     "concurrently": "9.1.2",
+    "jsdom": "25.0.1",
     "tailwindcss": "4.1.17",
     "typescript": "5.9.3",
     "vite": "7.3.2",
-    "vite-plugin-singlefile": "2.3.0"
+    "vite-plugin-singlefile": "2.3.0",
+    "vitest": "3.2.4"
   }
 }

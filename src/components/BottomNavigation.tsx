@@ -1,7 +1,8 @@
 import React from 'react';
 import { CenterWriteButton } from './CenterWriteButton';
-import { Home, BookOpen, Layers } from 'lucide-react';
+import { Home, BookOpen } from 'lucide-react';
 import { TbSparkle } from 'react-icons/tb';
+import { PiBrain } from 'react-icons/pi';
 
 export type NavTab = 'home' | 'journal' | 'write' | 'memory' | 'ai';
 
@@ -11,75 +12,85 @@ interface BottomNavigationProps {
   className?: string;
 }
 
+interface TabButtonProps {
+  label: string;
+  icon: React.ReactNode;
+  isActive: boolean;
+  onClick: () => void;
+}
+
+const TabButton: React.FC<TabButtonProps> = ({ label, icon, isActive, onClick }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    aria-label={label}
+    aria-current={isActive ? 'page' : undefined}
+    className="flex items-center justify-center w-full h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 rounded-full active:scale-95 transition-transform duration-150"
+  >
+    {/* Active tab: light purple pill (#F1ECFB) with purple icon/text */}
+    <span
+      className={`flex flex-col items-center justify-center gap-1 px-3 py-1.5 rounded-full transition-all duration-200 ${
+        isActive
+          ? 'bg-accentSoft text-accent font-semibold'
+          : 'text-muted hover:text-primaryText hover:bg-black/[0.03]'
+      }`}
+    >
+      {icon}
+      <span className="text-[10px] font-medium leading-none">{label}</span>
+    </span>
+  </button>
+);
+
 export const BottomNavigation: React.FC<BottomNavigationProps> = ({
   activeTab = 'home',
   onTabChange,
   className = '',
 }) => {
+  const tabs: { tab: NavTab; label: string; icon: React.ReactNode }[] = [
+    { tab: 'home', label: 'Home', icon: <Home className="w-[22px] h-[22px] stroke-[1.7]" /> },
+    { tab: 'journal', label: 'Journal', icon: <BookOpen className="w-[22px] h-[22px] stroke-[1.7]" /> },
+    { tab: 'memory', label: 'Memory', icon: <PiBrain className="w-[22px] h-[22px]" /> },
+    { tab: 'ai', label: 'AI', icon: <TbSparkle className="w-[22px] h-[22px]" /> },
+  ];
+
   return (
     <nav
       aria-label="Bottom Navigation"
-      className={`relative bg-surface rounded-full shadow-lg px-3 py-2 flex items-center justify-between min-h-[56px] ${className}`}
+      className={`relative z-30 w-full bg-surface/80 backdrop-blur-2xl pb-safe shadow-[0_-10px_30px_-12px_rgba(28,25,23,0.18)] ${className}`}
     >
-      <button
-        type="button"
-        onClick={() => onTabChange?.('home')}
-        aria-label="Home"
-        aria-current={activeTab === 'home' ? 'page' : undefined}
-        className={`relative flex flex-col items-center justify-center flex-1 py-2 min-h-11 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 rounded-2xl ${
-          activeTab === 'home' ? 'text-accent' : 'text-muted hover:text-primaryText'
-        }`}
-      >
-        <span className={`absolute inset-0 rounded-2xl bg-accent/10 transition-opacity duration-200 ${activeTab === 'home' ? 'opacity-100' : 'opacity-0'}`} />
-        <Home className={`w-5 h-5 ${activeTab === 'home' ? 'stroke-2' : 'stroke-[1.6]'}`} />
-        <span className="text-[10.5px] font-sans mt-1 font-medium leading-none">Home</span>
-      </button>
+      {/* Refined top hairline (gradient fade) — replaces the flat border-t */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
 
-      <button
-        type="button"
-        onClick={() => onTabChange?.('journal')}
-        aria-label="Journal"
-        aria-current={activeTab === 'journal' ? 'page' : undefined}
-        className={`relative flex flex-col items-center justify-center flex-1 py-2 min-h-11 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 rounded-2xl ${
-          activeTab === 'journal' ? 'text-accent' : 'text-muted hover:text-primaryText'
-        }`}
-      >
-        <span className={`absolute inset-0 rounded-2xl bg-accent/10 transition-opacity duration-200 ${activeTab === 'journal' ? 'opacity-100' : 'opacity-0'}`} />
-        <BookOpen className={`w-5 h-5 ${activeTab === 'journal' ? 'stroke-2' : 'stroke-[1.6]'}`} />
-        <span className="text-[10.5px] font-sans mt-1 font-medium leading-none">Journal</span>
-      </button>
+      <div className="relative grid grid-cols-5 items-center h-[80px] px-1">
+        {tabs.slice(0, 2).map((t) => (
+          <TabButton
+            key={t.tab}
+            label={t.label}
+            icon={t.icon}
+            isActive={activeTab === t.tab}
+            onClick={() => onTabChange?.(t.tab)}
+          />
+        ))}
 
-      <div className="flex-1 flex justify-center items-center relative">
-        <CenterWriteButton onClick={() => onTabChange?.('write')} />
+        {/* Center write button — a purple circle that overlaps upward.
+            It is NOT a standard tab. */}
+        <div className="relative flex items-center justify-center">
+          <CenterWriteButton
+            onClick={() => onTabChange?.('write')}
+            className="absolute -top-5"
+          />
+        </div>
+
+        {tabs.slice(2).map((t) => (
+          <TabButton
+            key={t.tab}
+            label={t.label}
+            icon={t.icon}
+            isActive={activeTab === t.tab}
+            onClick={() => onTabChange?.(t.tab)}
+          />
+        ))}
       </div>
-
-      <button
-        type="button"
-        onClick={() => onTabChange?.('memory')}
-        aria-label="Memory"
-        aria-current={activeTab === 'memory' ? 'page' : undefined}
-        className={`relative flex flex-col items-center justify-center flex-1 py-2 min-h-11 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 rounded-2xl ${
-          activeTab === 'memory' ? 'text-accent' : 'text-muted hover:text-primaryText'
-        }`}
-      >
-        <span className={`absolute inset-0 rounded-2xl bg-accent/10 transition-opacity duration-200 ${activeTab === 'memory' ? 'opacity-100' : 'opacity-0'}`} />
-        <Layers className={`w-5 h-5 ${activeTab === 'memory' ? 'stroke-2' : 'stroke-[1.6]'}`} />
-        <span className="text-[10.5px] font-sans mt-1 font-medium leading-none">Memory</span>
-      </button>
-
-      <button
-        type="button"
-        onClick={() => onTabChange?.('ai')}
-        aria-label="AI"
-        aria-current={activeTab === 'ai' ? 'page' : undefined}
-        className={`relative flex flex-col items-center justify-center flex-1 py-2 min-h-11 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 rounded-2xl ${
-          activeTab === 'ai' ? 'text-accent' : 'text-muted hover:text-primaryText'
-        }`}
-      >
-        <span className={`absolute inset-0 rounded-2xl bg-accent/10 transition-opacity duration-200 ${activeTab === 'ai' ? 'opacity-100' : 'opacity-0'}`} />
-        <TbSparkle className={`w-5 h-5 ${activeTab === 'ai' ? 'stroke-2' : 'stroke-[1.6]'}`} />
-        <span className="text-[10.5px] font-sans mt-1 font-medium leading-none">AI</span>
-      </button>
     </nav>
   );
 };
