@@ -8,7 +8,7 @@ import { PrimaryCard } from './components/PrimaryCard';
 import { PrimaryButton } from './components/PrimaryButton';
 import { AIInsightCard } from './components/AIInsightCard';
 import { EntryRow, type Entry } from './components/EntryRow';
-import { BottomNavigation, type NavTab } from './components/BottomNavigation';
+import { BottomNavigation } from './components/BottomNavigation';
 import { JournalScreenContent } from './components/JournalScreenContent';
 import { MemoryScreenContent } from './components/MemoryScreenContent';
 import { AIScreenContent } from './components/AIScreenContent';
@@ -37,8 +37,8 @@ import {
   dateLabel,
 } from './store';
 import type { StoredEntry } from './store/types';
+import { type Screen, type NavTab, readStoredNav, writeStoredNav } from './utils/nav';
 
-type Screen = 'home' | 'journal' | 'memory' | 'ai' | 'profile';
 type Overlay = 'search' | 'settings' | 'memory-thread' | 'notifications' | null;
 
 const DAY_MS = 86_400_000;
@@ -112,8 +112,12 @@ export function App() {
     'splash'
   );
 
-  const [currentScreen, setCurrentScreen] = useState<Screen>('home');
-  const [activeTab, setActiveTab] = useState<NavTab>('home');
+  // Restore the last-viewed screen/tab so a reload/relaunch returns where the
+  // user left off (falls back to Home on first run or if the value is invalid).
+  const [currentScreen, setCurrentScreen] = useState<Screen>(
+    () => readStoredNav().screen
+  );
+  const [activeTab, setActiveTab] = useState<NavTab>(() => readStoredNav().tab);
 
   // Entry editing / detail state
   const [selectedEntry, setSelectedEntry] = useState<StoredEntry | null>(null);
@@ -179,6 +183,11 @@ export function App() {
     const timer = setTimeout(() => setOnboardingScreen('complete'), 1500);
     return () => clearTimeout(timer);
   }, [onboardingScreen]);
+
+  // Persist the active screen/tab so a reload/relaunch returns where you left off.
+  useEffect(() => {
+    writeStoredNav({ screen: currentScreen, tab: activeTab });
+  }, [currentScreen, activeTab]);
 
   const handleSaveEntry = (input: {
     id?: string;

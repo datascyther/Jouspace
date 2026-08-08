@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { JournalHeader } from './JournalHeader';
 import { JournalMetadata, AutosaveStatus } from './JournalMetadata';
 import { JournalEditor } from './JournalEditor';
 import { WritingToolbar } from './WritingToolbar';
 import { BottomNavigation, NavTab } from './BottomNavigation';
 import { ThemeChipGroup, DEFAULT_THEMES, normalizeTheme } from './ThemeChipGroup';
+import { readDraft, writeDraft, clearDraft } from '../utils/draft';
 import type { StoredEntry } from '../store/types';
 
 interface JournalScreenContentProps {
@@ -35,11 +36,30 @@ export const JournalScreenContent: React.FC<JournalScreenContentProps> = ({
 }) => {
   const initialTheme = normalizeTheme(editingEntry?.theme ?? '') || DEFAULT_THEMES[0].id;
 
-  const [title, setTitle] = useState(editingEntry?.title ?? '');
-  const [body, setBody] = useState(editingEntry?.content ?? '');
-  const [theme, setTheme] = useState(initialTheme);
+  // The persisted draft is restored only for brand-new entries — editing an
+  // existing entry always starts from that entry's own content.
+  const [title, setTitle] = useState(() =>
+    editingEntry ? editingEntry.title : (readDraft()?.title ?? '')
+  );
+  const [body, setBody] = useState(() =>
+    editingEntry ? editingEntry.content : (readDraft()?.body ?? '')
+  );
+  const [theme, setTheme] = useState(() =>
+    editingEntry ? initialTheme : (readDraft()?.theme ?? initialTheme)
+  );
   const [currentSaveStatus, setCurrentSaveStatus] =
     useState<AutosaveStatus>(saveStatus);
+
+  // Persist the in-progress draft for new entries so a reload/relaunch never
+  // loses an unsaved thought. Cleared on save or when the composer is emptied.
+  useEffect(() => {
+    if (editingEntry) return;
+    if (!title.trim() && !body.trim()) {
+      clearDraft();
+      return;
+    }
+    writeDraft({ title, body, theme, savedAt: Date.now() });
+  }, [title, body, theme, editingEntry]);
 
   const handleTitleChange = (newTitle: string) => {
     setTitle(newTitle);
@@ -66,6 +86,7 @@ export const JournalScreenContent: React.FC<JournalScreenContentProps> = ({
       body,
       theme,
     });
+    clearDraft();
     setCurrentSaveStatus('autosaving');
     setTimeout(() => {
       setCurrentSaveStatus('saved');

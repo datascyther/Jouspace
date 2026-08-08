@@ -3,8 +3,9 @@ import { CenterWriteButton } from './CenterWriteButton';
 import { Home, BookOpen } from 'lucide-react';
 import { TbSparkle } from 'react-icons/tb';
 import { PiBrain } from 'react-icons/pi';
+import type { NavTab } from '../utils/nav';
 
-export type NavTab = 'home' | 'journal' | 'write' | 'memory' | 'ai';
+export type { NavTab } from '../utils/nav';
 
 interface BottomNavigationProps {
   activeTab?: NavTab;
