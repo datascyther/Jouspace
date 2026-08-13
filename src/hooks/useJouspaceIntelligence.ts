@@ -31,6 +31,11 @@ import {
 // In dev, with no URL set and no build var, the Vite proxy forwards
 // /api → localhost:3001. For a deployed APK/PWA, the user sets their runtime
 // URL in Profile, or the build is configured with VITE_API_BASE_URL.
+// Deployed Jouspace Intelligence Runtime (Cloudflare Worker). Used as the
+// production default so the AI chat works out-of-the-box without the user
+// manually setting a runtime URL in Profile.
+export const DEFAULT_RUNTIME_URL = 'https://jouspace-runtime.jouspace.workers.dev';
+
 export const RUNTIME_URL_STORAGE_KEY = 'jouspace:runtimeUrl';
 
 export function getApiBaseUrl(): string {
@@ -40,9 +45,10 @@ export function getApiBaseUrl(): string {
   if (build) return build.replace(/\/+$/, '');
   // In dev, with no explicit URL, default to relative so requests hit /api/...
   // and the Vite proxy forwards them to the local runtime (localhost:3001).
-  // In production the UI keeps showing the "set a runtime URL" prompt.
   if (import.meta.env.DEV) return '';
-  return '';
+  // Production: fall back to the deployed Runtime so the AI chat works without
+  // manual configuration (CSP + fetch paths both resolve to the worker).
+  return DEFAULT_RUNTIME_URL;
 }
 
 /** True when a runtime URL is configured (Profile field or build var), or dev. */

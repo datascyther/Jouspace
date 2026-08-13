@@ -10,16 +10,16 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20240821.1",
+    "@cloudflare/workers-types": "^5.20260813.1",
     "typescript": "^5.5.4",
-    "wrangler": "^3.78.0"
+    "wrangler": "^4.123.0"
   },
   "dependencies": {
     "zod": "^3.23.8"
   },
   "allowScripts": {
-    "esbuild@0.17.19": true,
-    "workerd@1.20250718.0": true,
+    "esbuild@0.28.1": true,
+    "workerd@1.20260811.1": true,
     "sharp@0.33.5": true,
     "fsevents@2.3.3": true
   }
