@@ -10,7 +10,14 @@ import { assembleContext } from '../../server/context/ContextAssembler.js';
 import { buildSystemPrompt, buildMessages } from '../../server/prompt/PromptAssembler.js';
 import { deriveReasoningProfile, floorProfile } from '../../server/reasoning.js';
 import { anyOffDomain } from '../../server/guard.js';
-import { EntrySchema, ProfileSchema, MessageSchema } from '../../server/schemas.js';
+import * as Schemas from '../../server/schemas.js';
+// Server schemas are large ZodObject types. Treating them as opaque ZodTypeAny
+// here keeps the capability schemas shallow and avoids TS2589 (excessively deep
+// type instantiation) when this Worker is type-checked alongside the full server
+// graph. The runtime zod values are unchanged.
+const EntrySchema = (Schemas as any).EntrySchema as ZodTypeAny;
+const ProfileSchema = (Schemas as any).ProfileSchema as ZodTypeAny;
+const MessageSchema = (Schemas as any).MessageSchema as ZodTypeAny;
 import { z, type ZodTypeAny } from 'zod';
 import type { ModelMessage } from '../../server/types.js';
 import { NvidiaGateway } from './nvidia.js';

@@ -6,9 +6,9 @@
     "lib": ["ES2022", "DOM"],
     "types": [],
     "strict": true,
-    "noEmit": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
+    "noEmit": true,
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true
