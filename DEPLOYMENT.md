@@ -87,12 +87,32 @@ Set the GitHub secret `RUNTIME_URL` = `https://jouspace-runtime.fly.dev`
 3. Start command: `cd server && npm install && npm start` (or a root script).
 4. Railway gives you a `https://*.up.railway.app` URL — use it as `VITE_API_BASE_URL`.
 
-### 1.5 Deploy to Render
+### 1.5 Deploy to Render (free tier — requires a card on file)
 
-1. New **Web Service** → connect repo.
-2. Root directory: `server`, Build command: `npm install`, Start command: `npm start`.
-3. Add env vars (`NVIDIA_API_KEY`, `CORS_ORIGINS`, `PORT=3001`).
-4. Use the generated `https://*.onrender.com` URL as `VITE_API_BASE_URL`.
+Render's free web-service tier is $0, but it requires a credit/debit card for
+verification (a $1 hold, refunded). It runs the `server/` Node app directly
+(TypeScript via `tsx`, no build step).
+
+**Fastest (Blueprint):** the repo includes `render.yaml`. In Render → *New* →
+*Blueprint* → connect this repo → it creates the `jouspace-runtime` web service
+(Node, free, health check on `/api/health`).
+
+**Manual:** New **Web Service** → connect repo, then:
+- Root directory: `server`
+- Build command: `npm install`  ·  Start command: `npm start`
+- Plan: **Free**
+
+Set these environment variables (the Blueprint sets the first three):
+- `NODE_ENV=production`
+- `GATEWAY_PROVIDER=nvidia`
+- `CORS_ORIGINS=https://jouspace-runtime.onrender.com`
+- **`NVIDIA_API_KEY`** — set as a secret (your `nvapi-…` key). Required for real AI.
+
+Use the generated `https://jouspace-runtime.onrender.com` URL as `RUNTIME_URL`
+(no trailing slash). Set it as the GitHub secret before building the APK (§2).
+
+> **Trade-off:** the free tier spins down after ~15 min idle; the first request
+> after that takes ~30–60 s to wake. The APK already retries on transient errors.
 
 ### 1.6 Verify the deployment
 
