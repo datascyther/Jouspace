@@ -21,7 +21,36 @@ sends its own journal entries with each request, so **no database is required**.
 | `NVIDIA_API_KEY` | Required. NVIDIA NIM API key |
 | `CORS_ORIGINS` | Comma-separated extra origins to allow (e.g. your app's origin). Dev + `capacitor://localhost` + `https://localhost` are always allowed |
 
-### 1.2 Deploy to Fly.io (recommended)
+### 1.2 Self-host + free tunnel (free, no card, no account)
+
+If you don't want to add a payment method to a cloud host, run the runtime on
+your own machine and expose it through a **free tunnel** — no credit card, no
+Hugging Face or Fly account required. (Services like UptimeRobot only *monitor*
+an existing URL — they don't host anything — so they can't replace this step.
+You can point UptimeRobot at the tunnel URL afterwards for downtime alerts.)
+
+1. Start the runtime (reads `NVIDIA_API_KEY` from your environment):
+   ```bash
+   cd server && npm install --omit=dev && PORT=3001 npm start
+   ```
+   Check locally: `curl http://localhost:3001/api/health`
+
+2. Expose it with a free tunnel (pick one):
+   - **Cloudflare quick tunnel** (no account): `brew install cloudflared && cloudflared tunnel --url http://localhost:3001`
+   - **localhost.run** (no install, uses `ssh`): `ssh -R 80:localhost:3001 localhost.run`
+
+   Both print a public `https://….` URL — set it as `RUNTIME_URL` in the app
+   (and in Supabase `site_url` / `additional_redirect_urls` if you enable Google
+sign-in).
+
+A convenience script does both steps: `bash scripts/serve.sh`.
+
+> **Caveat:** the runtime is reachable only while this machine is on and the
+tunnel is running. Fine for personal use / testing. Use Fly (§1.3) or Hugging
+Face Spaces (free, no card, but requires a real API token — not your account
+password) for a 24/7 hosted URL.
+
+### 1.3 Deploy to Fly.io (needs a payment method)
 
 Fly.io runs the existing `server/Dockerfile` as a container with a stable
 `https://<app>.fly.dev` URL — this matches the `https://jouspace.fly.dev`
@@ -51,21 +80,21 @@ Set the GitHub secret `RUNTIME_URL` = `https://jouspace-runtime.fly.dev`
 > handles this with a "thinking" state and one retry on transient errors. Set
 > `min_machines_running = 1` in `fly.toml` if you want it always warm (billed).
 
-### 1.3 Deploy to Railway
+### 1.4 Deploy to Railway
 
 1. Create a new project in Railway, connect this repo.
 2. Set `PORT=3001`, `NVIDIA_API_KEY=…`, `CORS_ORIGINS=…` in the service's variables.
 3. Start command: `cd server && npm install && npm start` (or a root script).
 4. Railway gives you a `https://*.up.railway.app` URL — use it as `VITE_API_BASE_URL`.
 
-### 1.4 Deploy to Render
+### 1.5 Deploy to Render
 
 1. New **Web Service** → connect repo.
 2. Root directory: `server`, Build command: `npm install`, Start command: `npm start`.
 3. Add env vars (`NVIDIA_API_KEY`, `CORS_ORIGINS`, `PORT=3001`).
 4. Use the generated `https://*.onrender.com` URL as `VITE_API_BASE_URL`.
 
-### 1.5 Verify the deployment
+### 1.6 Verify the deployment
 
 ```bash
 curl https://your-runtime-host/api/health
