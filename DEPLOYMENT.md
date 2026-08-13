@@ -21,51 +21,35 @@ sends its own journal entries with each request, so **no database is required**.
 | `NVIDIA_API_KEY` | Required. NVIDIA NIM API key |
 | `CORS_ORIGINS` | Comma-separated extra origins to allow (e.g. your app's origin). Dev + `capacitor://localhost` + `https://localhost` are always allowed |
 
-### 1.2 Deploy to Hugging Face Spaces (free, recommended)
+### 1.2 Deploy to Fly.io (recommended)
 
-Hugging Face Spaces (free CPU tier, **Public**) is the zero-cost 24/7 host used by
-this project. It builds `server/Dockerfile` and exposes the runtime on
-`https://<hf-username>-<space-name>.hf.space`.
+Fly.io runs the existing `server/Dockerfile` as a container with a stable
+`https://<app>.fly.dev` URL — this matches the `https://jouspace.fly.dev`
+production origin already configured in Supabase. Free tier, scales to zero when
+idle.
 
-**Manual + script deploy (preferred):**
-
-1. Create a free HF account and a write token at huggingface.co/settings/tokens.
-2. Get a free NVIDIA API key at build.nvidia.com.
-3. Install the deploy dependency and run the upload script:
+**One-time setup (in your own terminal — the VS Code terminal is network-sandboxed):**
 
 ```bash
-npm install                       # adds @huggingface/hub devDependency
-HF_TOKEN=your_hf_token HF_USERNAME=your_hf_user HF_SPACE_NAME=jouspace-runtime \
-  node scripts/deploy-hf-space.mjs
+brew install flyctl
+fly auth login
+fly apps create jouspace-runtime          # or just: fly launch
+fly secrets set NVIDIA_API_KEY=sk-...     # required for real AI
 ```
 
-The script creates the Space (Docker SDK) and uploads `server/` plus a Space
-`README.md` (with `sdk: docker` + `app_port: 7860`).
+The repo already contains `fly.toml` (builds `server/Dockerfile`, listens on
+`7860`, sets `NODE_ENV=production`, `GATEWAY_PROVIDER=nvidia`). After the
+one-time setup, **every push to `main` deploys automatically** via
+`.github/workflows/deploy-fly.yml` — just add `FLY_API_TOKEN` (Fly → Account →
+Tokens → full access) as a repo **Actions secret**.
 
-> **No local terminal?** A GitHub Action (`.github/workflows/deploy-hf-space.yml`)
-> runs this exact script on GitHub's own runners. Just add `HF_TOKEN` as a repo
-> secret (Settings → Secrets → Actions) and trigger **Deploy HF Space** from the
-> Actions tab — no local install or token handling required.
+Set the GitHub secret `RUNTIME_URL` = `https://jouspace-runtime.fly.dev`
+(no trailing slash; the client strips it anyway) before building the APK (see §2).
 
-4. In the Space **Settings → Variables & secrets**, add:
-   - `NVIDIA_API_KEY` (secret) — required for real AI.
-   - `PORT` = `7860`
-   - `NODE_ENV` = `production`
-   - `GATEWAY_PROVIDER` = `nvidia`
-5. Wait for the build, then verify:
-
-```bash
-curl https://your-hf-user-jouspace-runtime.hf.space/api/health
-# → {"status":"ok","apiKeyConfigured":true,...}
-```
-
-> **Trade-off:** the free tier sleeps after ~15 min of inactivity; the first
-> request after sleep takes ~10–30 s to wake. The APK handles this with a
-> "thinking" state and one retry on transient errors.
-
-Then build the APK pointing at it (see §2) by setting the GitHub secret
-`RUNTIME_URL` = `https://<hf-username>-jouspace-runtime.hf.space`
-(no trailing slash; the client strips it anyway).
+> **Trade-off:** with `min_machines_running = 0` the free tier sleeps after
+> inactivity; the first request after sleep takes ~10–30 s to wake. The APK
+> handles this with a "thinking" state and one retry on transient errors. Set
+> `min_machines_running = 1` in `fly.toml` if you want it always warm (billed).
 
 ### 1.3 Deploy to Railway
 

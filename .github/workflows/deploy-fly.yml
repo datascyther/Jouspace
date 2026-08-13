@@ -1,0 +1,27 @@
+name: Deploy to Fly.io
+
+# Builds server/Dockerfile on Fly's infrastructure and deploys on every push to main.
+# Requires one repo secret: FLY_API_TOKEN (Fly → Account → Tokens → create, full access).
+# On the very first run, create the app once (any terminal with network):
+#   fly apps create jouspace-runtime
+# after adding the FLY_API_TOKEN secret, this workflow will deploy automatically.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy runtime
+    runs-on: ubuntu-latest
+    concurrency: deploy-group
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy to Fly.io (remote build)
+        run: flyctl deploy --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
