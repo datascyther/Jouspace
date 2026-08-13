@@ -85,7 +85,7 @@ app.use(express.json({ limit: '256kb' }));
 
 // ── Structured request logger ──────────────────────────────────────────────────
 // Tiny JSON-to-stdout logger (no new dependency, no PII, no bodies). Records one
-// line per /api/ai/* call so abuse/spend spikes are visible in Fly logs.
+// line per /api/ai/* call so abuse/spend spikes are visible in the runtime logs.
 app.use((req, res, next) => {
   if (!req.path.startsWith('/api/ai')) return next();
   const start = Date.now();
@@ -192,7 +192,7 @@ process.on('unhandledRejection', (reason) => {
 });
 
 // ── Graceful shutdown ──────────────────────────────────────────────────────────
-// On SIGTERM (Fly/container stop) / SIGINT, stop accepting new connections, then
+// On SIGTERM (container stop) / SIGINT, stop accepting new connections, then
 // hard-exit after a ~10s grace so in-flight streams end (the 9-minute ceiling
 // or client disconnect aborts the upstream NVIDIA call). No data is lost because
 // the runtime is stateless.

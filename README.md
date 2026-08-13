@@ -85,12 +85,12 @@ cd android && ./gradlew assembleDebug
 ### Production notes
 
 - **Deployment:** see [`DEPLOYMENT.md`](./DEPLOYMENT.md) for step-by-step
-  hosting (Hugging Face Spaces / Railway / Render), runtime env vars, APK release signing
+  hosting (Cloudflare Workers), runtime env vars, APK release signing
   (keystore → `assembleRelease`), and the current auth status.
-- **Backend:** deploy the runtime to an HTTPS host and build with
-  `VITE_API_BASE_URL=https://your-runtime-host`. The server is intentionally
-  simple: `npm install && npm start` (set `PORT`, `NVIDIA_API_KEY`,
-  `CORS_ORIGINS`). It is **stateless** — no database required.
+- **Backend:** deploy the runtime to **Cloudflare Workers** (see
+  [`DEPLOYMENT.md`](./DEPLOYMENT.md)) and build the app with
+  `VITE_API_BASE_URL=https://jouspace-runtime.<subdomain>.workers.dev`.
+  The runtime is intentionally simple and **stateless** — no database required.
 - **Data (local-first hybrid):** the frontend persists journal entries in
   `localStorage` (`src/store/`) and sends the most recent ones to the runtime
   with every AI request. The server falls back to seed data only when the

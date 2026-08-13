@@ -13,7 +13,7 @@
  *  - Only active in production (NODE_ENV === 'production'). RATE_LIMIT_DISABLED=1
  *    forces it off (e.g. local dev via `npm run dev`).
  *
- * Note: in-memory counters are per-process. During a Fly zero-downtime deploy
+ * Note: in-memory counters are per-process. During a zero-downtime deploy
  * (two instances briefly live) or if scaled > 1, caps effectively double and
  * don't aggregate. Keep min_machines_running=1; move to Redis when scaling out.
  */

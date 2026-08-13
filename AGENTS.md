@@ -94,4 +94,4 @@ Pipeline per request: **Zod validation → ContextAssembler → PromptAssembler 
 - `StoredEntry` (store) is structurally compatible with the UI `Entry` type but adds `createdAt`/`updatedAt`; entries sort by `updatedAt` desc.
 - Draft persistence (`jouspace:journal:draft`) applies only to **new** entries, never edits of existing ones.
 - Auth/sign-in screens are intentional mock UI — do not "fix" them into real auth without instruction.
-- `DEPLOYMENT.md` documents hosting (Hugging Face Spaces / Railway / Render) and APK signing; `README.md` and `server/README.md` have deeper architecture detail — keep them in sync when changing those areas.
+- `DEPLOYMENT.md` documents hosting (Cloudflare Workers) and APK signing; `README.md` and `server/README.md` have deeper architecture detail — keep them in sync when changing those areas.
