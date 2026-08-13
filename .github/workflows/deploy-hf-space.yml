@@ -1,0 +1,52 @@
+name: Deploy HF Space
+
+# Deploys the Jouspace Intelligence Runtime to a free Hugging Face Space via
+# scripts/deploy-hf-space.mjs. Runs on GitHub's infrastructure (not the local
+# sandbox) using the HF_TOKEN repo secret. Manual trigger only.
+on:
+  workflow_dispatch:
+    inputs:
+      space_name:
+        description: 'Hugging Face Space name (URL becomes <user>-<name>.hf.space)'
+        required: false
+        default: 'jouspace-runtime'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify required files are present
+        run: |
+          missing=0
+          for f in scripts/deploy-hf-space.mjs server/Dockerfile server/package.json; do
+            if [ ! -f "$f" ]; then
+              echo "::error::Missing required file: $f (not found in the repo checkout)"
+              missing=1
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then
+            echo "::error::Your local changes were never pushed to GitHub (or pushed to the wrong remote)."
+            echo "::error::On your Mac, run:"
+            echo "::error::  git remote set-url origin https://github.com/datascyther/Jouspace.git"
+            echo "::error::  git push -u origin main"
+            echo "::error::Then re-run this workflow."
+            exit 1
+          fi
+          echo "All required files present ✓"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install deploy dependency (isolated in scripts/)
+        run: npm install @huggingface/hub@^0.16.0 --prefix scripts --no-audit --no-fund
+
+      - name: Deploy to Hugging Face Spaces
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE_NAME: ${{ inputs.space_name }}
+        run: node scripts/deploy-hf-space.mjs

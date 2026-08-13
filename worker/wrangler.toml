@@ -1,0 +1,21 @@
+# Cloudflare Worker for the Jouspace Intelligence Runtime.
+# Free tier: no credit card required. Limits: 100k req/day, 10ms CPU time/req.
+# Long AI streams are mostly wall-clock (awaiting NVIDIA), so they usually fit,
+# but very long "deep" generations may hit the CPU ceiling — the worker fails
+# gracefully with a clean SSE error.
+
+name = "jouspace-runtime"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+# Native fetch + Web Crypto; no Node.js compat needed.
+
+# Secrets (set once via `wrangler secret put NVIDIA_API_KEY`):
+#   NVIDIA_API_KEY  — required for real AI.
+
+[vars]
+GATEWAY_PROVIDER = "nvidia"
+# Comma-separated origins allowed to call this worker (CORS).
+# Add your app's origin(s) here, e.g. "capacitor://localhost,https://your-app.com".
+CORS_ORIGINS = "capacitor://localhost,http://localhost:5173,http://localhost:4173,https://localhost"
+
+# Free tier keeps the worker awake-ish; no special config needed.

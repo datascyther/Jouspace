@@ -13,6 +13,11 @@ ios/
 
 # Local agent planning notes
 .kilo/
+memories/
+
+# Cloudflare Workers build artifacts
+worker/.wrangler/
+worker/dist/
 
 # Environment files
 .env
