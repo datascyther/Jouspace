@@ -4,6 +4,12 @@ A calm, private journaling app with on-device-feeling AI reflection. React +
 Vite + Tailwind frontend, backed by the **Jouspace Intelligence Runtime** (an
 Express server that orchestrates a hosted NVIDIA NIM model).
 
+## Project address
+
+- **Repository:** https://github.com/datascyther/Jouspace
+- **Live AI Runtime (Cloudflare Workers):** https://jouspace-runtime.jouspace.workers.dev
+- **Releases / APK downloads:** https://github.com/datascyther/Jouspace/releases
+
 ## Stack
 
 | Layer | Tech |
