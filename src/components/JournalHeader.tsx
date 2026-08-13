@@ -1,23 +1,18 @@
 import React from 'react';
 import { ArrowLeft } from 'lucide-react';
-import { AutosaveStatus } from './JournalMetadata';
 
 interface JournalHeaderProps {
   onBack?: () => void;
-  onSave?: () => void;
-  saveState?: AutosaveStatus;
   className?: string;
 }
 
 export const JournalHeader: React.FC<JournalHeaderProps> = ({
   onBack,
-  onSave,
-  saveState = 'autosaved',
   className = '',
 }) => {
   return (
     <header
-      className={`flex items-center justify-between w-full py-2 bg-transparent border-none shadow-none ${className}`}
+      className={`flex items-center justify-between w-full py-2 bg-base border-none shadow-none ${className}`}
     >
       {/* Back Button */}
       <button
@@ -34,14 +29,8 @@ export const JournalHeader: React.FC<JournalHeaderProps> = ({
         Journal
       </h1>
 
-      {/* Save Text Action Button */}
-      <button
-        type="button"
-        onClick={onSave}
-        className="font-sans font-medium text-[14.5px] text-accent hover:text-accentAlt transition-colors cursor-pointer focus:outline-none"
-      >
-        {saveState === 'autosaving' ? 'Saving...' : 'Save'}
-      </button>
+      {/* Spacer — keeps the title centered now that Save is removed */}
+      <span className="w-8" aria-hidden="true" />
     </header>
   );
 };

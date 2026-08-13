@@ -4,6 +4,7 @@ import { Home, BookOpen } from 'lucide-react';
 import { TbSparkle } from 'react-icons/tb';
 import { PiBrain } from 'react-icons/pi';
 import type { NavTab } from '../utils/nav';
+import { useKeyboard } from '../hooks/useAdaptiveKeyboard';
 
 export type { NavTab } from '../utils/nav';
 
@@ -11,6 +12,9 @@ interface BottomNavigationProps {
   activeTab?: NavTab;
   onTabChange?: (tab: NavTab) => void;
   className?: string;
+  /** When true, the bar collapses/hides while a software keyboard is open
+   *  (used on chat/editor "input" screens; omitted on static list screens). */
+  hideOnKeyboard?: boolean;
 }
 
 interface TabButtonProps {
@@ -28,12 +32,12 @@ const TabButton: React.FC<TabButtonProps> = ({ label, icon, isActive, onClick })
     aria-current={isActive ? 'page' : undefined}
     className="flex items-center justify-center w-full h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 rounded-full active:scale-95 transition-transform duration-150"
   >
-    {/* Active tab: light purple pill (#F1ECFB) with purple icon/text */}
+    {/* Active tab: accentSoft pill (bg-accentSoft) with accent icon/text */}
     <span
       className={`flex flex-col items-center justify-center gap-1 px-3 py-1.5 rounded-full transition-all duration-200 ${
         isActive
           ? 'bg-accentSoft text-accent font-semibold'
-          : 'text-muted hover:text-primaryText hover:bg-black/[0.03]'
+          : 'text-muted hover:text-primaryText hover:bg-borderSubtle'
       }`}
     >
       {icon}
@@ -46,7 +50,12 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
   activeTab = 'home',
   onTabChange,
   className = '',
+  hideOnKeyboard = false,
 }) => {
+  const { keyboardVisible } = useKeyboard();
+  // Only input screens opt in; even then, the bar stays put when no keyboard is up.
+  const hidden = hideOnKeyboard && keyboardVisible;
+
   const tabs: { tab: NavTab; label: string; icon: React.ReactNode }[] = [
     { tab: 'home', label: 'Home', icon: <Home className="w-[22px] h-[22px] stroke-[1.7]" /> },
     { tab: 'journal', label: 'Journal', icon: <BookOpen className="w-[22px] h-[22px] stroke-[1.7]" /> },
@@ -57,12 +66,16 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
   return (
     <nav
       aria-label="Bottom Navigation"
-      className={`relative z-30 w-full bg-surface/80 backdrop-blur-2xl pb-safe shadow-[0_-10px_30px_-12px_rgba(28,25,23,0.18)] ${className}`}
+      className={`relative z-30 w-full bg-surface pb-safe shadow-[0_-12px_24px_-16px_var(--color-borderSubtle)] transition-[max-height,opacity,transform] duration-200 ease-out will-change-[max-height,transform] ${
+        hidden
+          ? 'max-h-0 opacity-0 translate-y-20 pointer-events-none overflow-hidden'
+          : 'max-h-[120px] opacity-100 translate-y-0'
+      } ${className}`}
     >
       {/* Refined top hairline (gradient fade) — replaces the flat border-t */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-borderSubtle to-transparent" />
 
-      <div className="relative grid grid-cols-5 items-center h-[80px] px-1">
+      <div className="relative grid grid-cols-5 items-center h-20 px-1">
         {tabs.slice(0, 2).map((t) => (
           <TabButton
             key={t.tab}

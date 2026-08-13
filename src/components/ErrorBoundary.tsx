@@ -15,45 +15,37 @@ export class ErrorBoundary extends React.Component<
 > {
   state: ErrorBoundaryState = { error: null };
 
-  // Count consecutive failures so a persistently-broken subtree escalates to a
-  // full page reload instead of looping forever on the same error.
-  private failureCount = 0;
-
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     return { error };
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error('[ErrorBoundary]', error, info);
+    // TODO: surface the error to an error-monitoring service (e.g. Sentry)
+    // once one is wired up, instead of only logging to the console.
   }
 
-  handleReset = () => {
-    this.failureCount += 1;
-    if (this.failureCount >= 2) {
-      window.location.reload();
-      return;
-    }
-    this.setState({ error: null });
+  handleReload = () => {
+    window.location.reload();
   };
 
   render() {
     if (this.state.error) {
       return (
-        <div className="min-h-screen bg-background flex items-center justify-center px-6">
-          <div className="max-w-sm w-full bg-surface border border-border rounded-3xl p-6 flex flex-col gap-4 text-center">
+        <div className="min-h-screen bg-base flex items-center justify-center px-6">
+          <div className="max-w-sm w-full bg-surface border border-borderSubtle rounded-3xl p-6 flex flex-col gap-4 text-center">
             <h1 className="font-serif text-[22px] text-primaryText">
               Something went wrong
             </h1>
             <p className="font-sans text-[14px] text-secondaryText leading-relaxed">
-              Jouspace hit an unexpected error. Your journal is safe on this
-              device. Try again.
+              Please reload the app to continue.
             </p>
             <button
               type="button"
-              onClick={this.handleReset}
+              onClick={this.handleReload}
               className="bg-accent hover:bg-accentHover text-white font-sans text-sm font-medium px-5 py-2.5 rounded-[14px] transition-all cursor-pointer"
             >
-              Try again
+              Reload
             </button>
           </div>
         </div>

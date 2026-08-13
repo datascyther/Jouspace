@@ -22,12 +22,18 @@ export const MemoryInsightCard: React.FC<MemoryInsightCardProps> = ({
 }) => {
   return (
     <div
-      className={`relative bg-surface rounded-3xl border border-border p-6 text-primaryText overflow-hidden flex flex-col gap-4 shadow-2xs ${className}`}
+      className={`relative bg-surface rounded-3xl border border-borderSubtle p-6 text-primaryText overflow-hidden flex flex-col gap-4 shadow-2xs ${className}`}
     >
+      {/* Soft radial glow behind the artwork — full opacity so it reads as a glow */}
+      <div
+        aria-hidden="true"
+        className="absolute -right-2.5 -top-2.5 w-44 h-44 pointer-events-none select-none"
+      >
+        <div className="absolute inset-0 bg-radial from-accent/30 via-accentSoft/40 to-transparent rounded-full blur-xl" />
+      </div>
+
       {/* Decorative Abstract Memory Artwork (subtle, low opacity, clipped inside card) */}
-      <div className="absolute right-[-10px] top-[-10px] w-44 h-44 pointer-events-none select-none opacity-40">
-        {/* Soft Radial Glow */}
-        <div className="absolute inset-0 bg-radial from-accent/20 via-accentSoft/30 to-transparent rounded-full blur-xl" />
+      <div className="absolute -right-2.5 -top-2.5 w-44 h-44 pointer-events-none select-none opacity-40">
         {/* Abstract Infinity / Memory Star Vector */}
         <svg
           viewBox="0 0 160 160"
@@ -68,12 +74,12 @@ export const MemoryInsightCard: React.FC<MemoryInsightCardProps> = ({
         <MemoryLabel text={label} />
 
         {/* Hero Primary Statement */}
-        <h2 className="font-serif text-[24px] text-primaryText font-normal leading-[1.25] tracking-tight max-w-none">
+        <h2 className="font-serif text-[24px] text-primaryText font-normal leading-tight tracking-tight max-w-none">
           {statement}
         </h2>
 
-        {/* Supporting Copy */}
-        <p className="font-sans text-[14px] text-secondaryText font-normal leading-relaxed">
+        {/* Supporting Copy — wraps within a narrower column so it stays off the right edge. */}
+        <p className="font-sans text-[14px] text-secondaryText font-normal leading-relaxed max-w-[85%]">
           {supportingCopy}
         </p>
 

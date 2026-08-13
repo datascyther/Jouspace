@@ -21,41 +21,51 @@ sends its own journal entries with each request, so **no database is required**.
 | `NVIDIA_API_KEY` | Required. NVIDIA NIM API key |
 | `CORS_ORIGINS` | Comma-separated extra origins to allow (e.g. your app's origin). Dev + `capacitor://localhost` + `https://localhost` are always allowed |
 
-### 1.2 Deploy to Fly.io (recommended)
+### 1.2 Deploy to Hugging Face Spaces (free, recommended)
+
+Hugging Face Spaces (free CPU tier, **Public**) is the zero-cost 24/7 host used by
+this project. It builds `server/Dockerfile` and exposes the runtime on
+`https://<hf-username>-<space-name>.hf.space`.
+
+**Manual + script deploy (preferred):**
+
+1. Create a free HF account and a write token at huggingface.co/settings/tokens.
+2. Get a free NVIDIA API key at build.nvidia.com.
+3. Install the deploy dependency and run the upload script:
 
 ```bash
-# one-time
-fly launch --no-deploy --region iad
-# Fly will detect the Express app. Answer the prompts; it creates fly.toml.
-# Add secrets:
-fly secrets set NVIDIA_API_KEY=your_key CORS_ORIGINS=https://your-app-domain
-# Deploy:
-fly deploy
-# The runtime is now at https://your-app.fly.dev
+npm install                       # adds @huggingface/hub devDependency
+HF_TOKEN=your_hf_token HF_USERNAME=your_hf_user HF_SPACE_NAME=jouspace-runtime \
+  node scripts/deploy-hf-space.mjs
 ```
 
-Then build the web app pointing at it:
+The script creates the Space (Docker SDK) and uploads `server/` plus a Space
+`README.md` (with `sdk: docker` + `app_port: 7860`).
+
+> **No local terminal?** A GitHub Action (`.github/workflows/deploy-hf-space.yml`)
+> runs this exact script on GitHub's own runners. Just add `HF_TOKEN` as a repo
+> secret (Settings → Secrets → Actions) and trigger **Deploy HF Space** from the
+> Actions tab — no local install or token handling required.
+
+4. In the Space **Settings → Variables & secrets**, add:
+   - `NVIDIA_API_KEY` (secret) — required for real AI.
+   - `PORT` = `7860`
+   - `NODE_ENV` = `production`
+   - `GATEWAY_PROVIDER` = `nvidia`
+5. Wait for the build, then verify:
 
 ```bash
-VITE_API_BASE_URL=https://your-app.fly.dev npm run build
+curl https://your-hf-user-jouspace-runtime.hf.space/api/health
+# → {"status":"ok","apiKeyConfigured":true,...}
 ```
 
-The runtime needs a `start` script to run under Fly's default command. The
-`server/package.json` already has `"start": "tsx index.ts"`. If Fly needs a
-`Dockerfile`, the minimal one is:
+> **Trade-off:** the free tier sleeps after ~15 min of inactivity; the first
+> request after sleep takes ~10–30 s to wake. The APK handles this with a
+> "thinking" state and one retry on transient errors.
 
-```dockerfile
-FROM node:20-slim
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . .
-EXPOSE 3001
-CMD ["npm", "start"]
-```
-
-(Note: `tsx` is used as the runtime. For production you may prefer compiling
-to JS: `npx tsc` → `node dist/index.js`.)
+Then build the APK pointing at it (see §2) by setting the GitHub secret
+`RUNTIME_URL` = `https://<hf-username>-jouspace-runtime.hf.space`
+(no trailing slash; the client strips it anyway).
 
 ### 1.3 Deploy to Railway
 

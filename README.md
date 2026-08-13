@@ -7,7 +7,7 @@ Express server that orchestrates a hosted NVIDIA NIM model).
 ## Stack
 
 | Layer | Tech |
-|---|---|
+| --- | --- |
 | Frontend | React 19, TypeScript, Vite 7, Tailwind CSS 4 |
 | Build | `vite-plugin-singlefile` — the whole app inlines into one `dist/index.html` |
 | PWA | Manifest + icons + self-hosted fonts in `public/` (offline-safe) |
@@ -28,7 +28,7 @@ npm run dev:all      # Vite (http://localhost:5173) + Runtime (:3001) together
 
 ## Architecture
 
-```
+```text
 Frontend (React)
   ├── useJouspaceIntelligence(capability)  → POST {runtime}/api/ai/<capability>
   ├── AI chat, reflection drawer, insight cards, writing summary
@@ -85,7 +85,7 @@ cd android && ./gradlew assembleDebug
 ### Production notes
 
 - **Deployment:** see [`DEPLOYMENT.md`](./DEPLOYMENT.md) for step-by-step
-  hosting (Fly.io / Railway / Render), runtime env vars, APK release signing
+  hosting (Hugging Face Spaces / Railway / Render), runtime env vars, APK release signing
   (keystore → `assembleRelease`), and the current auth status.
 - **Backend:** deploy the runtime to an HTTPS host and build with
   `VITE_API_BASE_URL=https://your-runtime-host`. The server is intentionally
@@ -103,7 +103,7 @@ cd android && ./gradlew assembleDebug
 ## Scripts
 
 | Command | What it does |
-|---|---|
+| --- | --- |
 | `npm run dev` | Vite dev server (frontend only) |
 | `npm run build` | Production build → `dist/` (single file + public assets) |
 | `npm run server` | Intelligence Runtime (`server/`, tsx watch) |
@@ -128,10 +128,10 @@ is no account, no cloud sync, and no server that can read your journal.
 
 - **No telemetry, no analytics, no remote logging** of your entries.
 - **AI is opt-in.** The AI tab does nothing until you set a runtime URL in
-  Settings. When you do, the entries you send are shared with *that* runtime to
+  Profile. When you do, the entries you send are shared with *that* runtime to
   generate reflections — choose a runtime you trust. The default build has no
   runtime configured.
-- **Export / import** is available in Settings (JSON) so you control your data.
+- **Export / import** is available in Profile (JSON) so you control your data.
 - **Loss risk.** Because data is device-local, uninstalling the app or clearing
   site data erases your journal. Export regularly.
 

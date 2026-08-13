@@ -20,8 +20,16 @@ export const ReflectionPromptCard: React.FC<ReflectionPromptCardProps> = ({
 }) => {
   return (
     <div
-      className={`relative bg-surface rounded-3xl border border-border p-6 text-primaryText overflow-hidden flex flex-col gap-4 shadow-2xs ${className}`}
+      className={`relative bg-surface rounded-3xl border border-borderSubtle p-6 text-primaryText overflow-hidden flex flex-col gap-4 shadow-2xs ${className}`}
     >
+      {/* Soft radial glow behind the artwork — full opacity so it reads as a glow */}
+      <div
+        aria-hidden="true"
+        className="absolute right-0 bottom-0 w-40 h-32 pointer-events-none select-none"
+      >
+        <div className="absolute inset-0 bg-radial from-accent/30 via-accentSoft/40 to-transparent rounded-full blur-xl" />
+      </div>
+
       {/* Subtle Minimal Pencil Illustration Artwork in Bottom Right */}
       <div className="absolute right-3 bottom-2 w-32 h-24 pointer-events-none select-none opacity-30">
         <svg

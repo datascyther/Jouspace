@@ -1,7 +1,7 @@
 import { Entry } from './components/EntryRow';
 
 /**
- * Bundled sample entries, used ONLY by Settings → "Load sample data"
+ * Bundled sample entries, used ONLY by Profile → "Load sample data"
  * (see `loadDemoData()` in src/store/index.ts). The app never seeds these
  * automatically — a fresh install starts with an empty journal.
  */

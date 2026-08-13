@@ -1,5 +1,6 @@
 import React from 'react';
-import { ArrowLeft, Sparkles } from 'lucide-react';
+import { X } from 'lucide-react';
+import { TbSparkle } from 'react-icons/tb';
 
 interface MemoryThreadEntry {
   id: string;
@@ -25,24 +26,24 @@ export const MemoryThreadScreen: React.FC<MemoryThreadScreenProps> = ({
   return (
     <div className={`flex flex-col w-full h-full ${className}`}>
       {/* Header */}
-      <div className="flex items-center gap-3 px-6 pt-4 pb-3 shrink-0 border-b border-divider">
-        <button
-          type="button"
-          onClick={onBack}
-          aria-label="Go back"
-          className="w-[38px] h-[38px] rounded-full bg-surface border border-border flex items-center justify-center text-primaryText hover:bg-accentSoft transition-colors focus:outline-none focus:ring-2 focus:ring-accent/20 cursor-pointer"
-        >
-          <ArrowLeft className="w-[18px] h-[18px] stroke-[1.8]" />
-        </button>
+      <div className="flex items-center justify-between px-6 pt-4 pb-3 shrink-0 border-b border-borderSubtle">
         <h1 className="font-serif font-medium text-[22px] text-primaryText tracking-tight">
           Memory thread
         </h1>
+        <button
+          type="button"
+          onClick={onBack}
+          aria-label="Close"
+          className="w-8 h-8 rounded-full bg-base flex items-center justify-center text-secondaryText hover:bg-borderSubtle transition-all duration-150 active:scale-95 cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent/20"
+        >
+          <X className="w-4 h-4" />
+        </button>
       </div>
 
       {/* Scrollable content */}
       <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-6 pb-6">
         {/* Theme Title */}
-        <div className="bg-surface border border-border rounded-2xl px-5 py-4 mt-5 mb-6">
+        <div className="bg-surface border border-borderSubtle rounded-2xl px-5 py-4 mt-5 mb-6">
           <h2 className="font-serif font-medium text-[20px] text-primaryText mb-1 capitalize">
             {title}
           </h2>
@@ -64,7 +65,7 @@ export const MemoryThreadScreen: React.FC<MemoryThreadScreenProps> = ({
                 <div className="flex flex-col items-center">
                   <div className="w-2.5 h-2.5 rounded-full bg-accent shrink-0 mt-1.5" />
                   {index < entries.length - 1 && (
-                    <div className="w-0.5 flex-1 bg-border my-1" />
+                    <div className="w-0.5 flex-1 bg-borderSubtle my-1" />
                   )}
                 </div>
 
@@ -88,7 +89,7 @@ export const MemoryThreadScreen: React.FC<MemoryThreadScreenProps> = ({
           onClick={onReflectWithAI}
           className="w-full bg-accent hover:bg-accentHover active:bg-accentActive text-white font-sans font-medium text-[15px] py-4 rounded-[18px] transition-all duration-150 shadow-sm focus:outline-none focus:ring-2 focus:ring-accent/40 cursor-pointer flex items-center justify-center gap-2"
         >
-          <Sparkles className="w-[18px] h-[18px] stroke-[1.8]" />
+          <TbSparkle className="w-[18px] h-[18px] stroke-[1.8]" />
           Reflect with AI
         </button>
       </div>

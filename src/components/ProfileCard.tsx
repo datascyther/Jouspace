@@ -53,7 +53,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
 
   return (
     <div
-      className={`bg-surface rounded-3xl border border-border p-6 flex flex-col items-center gap-4 ${className}`}
+      className={`bg-surface rounded-3xl border border-borderSubtle p-6 flex flex-col items-center gap-4 ${className}`}
     >
       {/* Avatar */}
       {avatarUrl ? (
@@ -82,8 +82,8 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
               if (e.key === 'Escape') cancel();
             }}
             aria-label="Display name"
-            className={`w-full bg-background border rounded-[12px] px-3 py-2 font-sans text-[15px] text-primaryText text-center outline-none focus:border-accent transition-colors ${
-              error ? 'border-error' : 'border-border'
+            className={`w-full bg-base border rounded-[12px] px-3 py-2 font-sans text-[15px] text-primaryText text-center outline-none focus:border-accent transition-colors ${
+              error ? 'border-error' : 'border-borderSubtle'
             }`}
           />
           {error && (
@@ -102,7 +102,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
             <button
               type="button"
               onClick={cancel}
-              className="px-5 py-2 rounded-[14px] border border-border bg-transparent text-primaryText font-sans font-medium text-[14px] hover:border-accent/40 hover:text-accent transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent/20"
+              className="px-5 py-2 rounded-[14px] border border-borderSubtle bg-transparent text-primaryText font-sans font-medium text-[14px] hover:border-accent/40 hover:text-accent transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent/20"
             >
               Cancel
             </button>
@@ -129,7 +129,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
           <button
             type="button"
             onClick={startEditing}
-            className="mt-1 px-5 py-2.5 rounded-[14px] border border-border bg-transparent text-primaryText font-sans font-medium text-[14px] hover:border-accent/40 hover:text-accent transition-colors duration-150 cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent/20"
+            className="mt-1 px-5 py-2.5 rounded-[14px] border border-borderSubtle bg-transparent text-primaryText font-sans font-medium text-[14px] hover:border-accent/40 hover:text-accent transition-colors duration-150 cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent/20"
           >
             Edit profile
           </button>

@@ -8,6 +8,8 @@ export interface ThemeOption {
 
 interface ThemeChipGroupProps {
   themes?: ThemeOption[];
+  /** Additional theme chips appended after `themes` (e.g. an active custom theme). */
+  extraThemes?: ThemeOption[];
   selectedThemeId: string;
   onSelectTheme: (themeId: string) => void;
   className?: string;
@@ -51,10 +53,13 @@ export function normalizeTheme(value: string): string {
 
 export const ThemeChipGroup: React.FC<ThemeChipGroupProps> = ({
   themes = DEFAULT_THEMES,
+  extraThemes = [],
   selectedThemeId,
   onSelectTheme,
   className = '',
 }) => {
+  const allThemes = [...themes, ...extraThemes];
+
   return (
     <div className={`flex flex-col gap-3.5 w-full text-left ${className}`}>
       <h3 className="font-serif text-[19px] text-primaryText font-normal tracking-tight">
@@ -63,7 +68,7 @@ export const ThemeChipGroup: React.FC<ThemeChipGroupProps> = ({
 
       {/* Horizontal Chip Container with subtle scroll overflow for small screens */}
       <div className="flex items-center gap-2.5 overflow-x-auto overflow-y-hidden pb-1 no-scrollbar -mx-1 px-1">
-        {themes.map((theme) => {
+        {allThemes.map((theme) => {
           const isSelected = selectedThemeId === theme.id;
           return (
             <ThemeChip

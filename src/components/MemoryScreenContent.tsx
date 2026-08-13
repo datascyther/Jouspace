@@ -10,6 +10,9 @@ import {
 import { EntryRow, Entry } from './EntryRow';
 import { ReflectionPromptCard } from './ReflectionPromptCard';
 import { BottomNavigation, NavTab } from './BottomNavigation';
+import { Skeleton, useLoadGuard } from './Skeleton';
+import { ErrorState } from './ErrorState';
+import { useAiInsight } from '../hooks/useJouspaceIntelligence';
 
 interface MemoryScreenContentProps {
   activeTab: NavTab;
@@ -24,6 +27,10 @@ interface MemoryScreenContentProps {
   onAvatarClick?: () => void;
   /** Display initials for the header avatar (e.g. "N" from the profile name). */
   userInitials?: string;
+  /** When true, show the list skeleton while entries are "fetching". */
+  isLoading?: boolean;
+  /** Retry handler surfaced if the load guard times out. */
+  onRetry?: () => void;
 }
 
 /**
@@ -61,7 +68,12 @@ export const MemoryScreenContent: React.FC<MemoryScreenContentProps> = ({
   onOpenSearch,
   onAvatarClick = () => {},
   userInitials,
+  isLoading = false,
+  onRetry,
 }) => {
+  // Flip a hung skeleton into an error state after 8s so it never hangs forever.
+  const memoryTimedOut = useLoadGuard(isLoading, 8000);
+
   // Only computed on mount (when the Memory tab is opened), so a user's manual
   // chip selection is never overridden while they're on the screen.
   const [selectedThemeId, setSelectedThemeId] = useState<string>(() =>
@@ -88,6 +100,19 @@ export const MemoryScreenContent: React.FC<MemoryScreenContentProps> = ({
   const count = connectedEntries.length;
   const label = themeLabel(selectedThemeId);
 
+  // Live, theme-specific reflection prompt. Only streams when the journal has
+  // entries for the selected theme; passes those real entries as AI context.
+  const promptInsight = useAiInsight(
+    !isNoMemories && connectedEntries.length > 0,
+    connectedEntries.map((e) => ({
+      id: e.id,
+      date: e.date,
+      title: e.title,
+      theme: e.theme,
+      content: e.content ?? '',
+    }))
+  );
+
   const filteredEntries = connectedEntries.filter((e) =>
     searchQuery
       ? e.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -112,14 +137,14 @@ export const MemoryScreenContent: React.FC<MemoryScreenContentProps> = ({
 
           <section>
             {isNoMemories ? (
-              <div className="bg-surface rounded-3xl border border-border p-6 flex flex-col gap-3">
+              <div className="bg-surface rounded-3xl border border-borderSubtle p-6 flex flex-col gap-3">
                 <span className="text-accent font-sans text-xs font-medium">
                   ✦ Jouspace listening
                 </span>
                 <h2 className="font-serif text-[22px] text-primaryText">
                   Memory patterns are forming
                 </h2>
-                <p className="font-sans text-[14px] text-secondaryText">
+                <p className="font-sans text-[14px] text-secondaryText max-w-[85%]">
                   Write a few more entries to allow Jouspace to connect memory
                   threads across time.
                 </p>
@@ -152,14 +177,24 @@ export const MemoryScreenContent: React.FC<MemoryScreenContentProps> = ({
               Connected entries
             </h3>
 
-            {filteredEntries.length === 0 ? (
+            {isLoading ? (
+              memoryTimedOut ? (
+                <ErrorState
+                  title="Couldn't load"
+                  message="Your entries took too long to load."
+                  onRetry={onRetry}
+                />
+              ) : (
+                <Skeleton layout="list" count={5} className="animate-fadeIn200" />
+              )
+            ) : filteredEntries.length === 0 ? (
               <p className="font-sans text-[14px] text-muted py-3 text-left">
                 {searchQuery
                   ? 'No matching entries found for this theme.'
                   : 'No connected entries found for this theme.'}
               </p>
             ) : (
-              <div className="flex flex-col divide-y divide-divider">
+              <div className="flex flex-col divide-y divide-borderSubtle animate-fadeIn200">
                 {filteredEntries.map((entry, idx) => (
                   <EntryRow
                     key={entry.id}
@@ -176,7 +211,10 @@ export const MemoryScreenContent: React.FC<MemoryScreenContentProps> = ({
             <section>
               <ReflectionPromptCard
                 label="Reflection prompt"
-                promptText={`What does ${label} mean to you right now?`}
+                promptText={
+                  promptInsight.text ||
+                  `What does ${label} mean to you right now?`
+                }
                 actionText="Reflect with AI"
                 onReflect={onReflectWithAi}
               />

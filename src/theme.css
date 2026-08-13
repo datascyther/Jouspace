@@ -5,18 +5,50 @@
    ============================================================ */
 
 :root {
-  /* Surfaces */
-  --bg-canvas: #F7F6F3; /* refined neutral-warm paper canvas */
-  --bg-card: #FFFFFF; /* cards, surfaces, sheets */
+  /* Surfaces — bg-base / bg-surface / bg-elevated */
+  --bg-base: #F5F3EF; /* bg-base — app background, warm off-white cream — always flat */
+  --bg-base-tint: #EDEAE3; /* deeper sand, desktop matte behind the phone frame */
+  --bg-surface: #FFFFFF; /* bg-surface — cards, sheets, bottom nav, inputs */
+  --bg-elevated: #FFFFFF; /* bg-elevated — floating buttons, active states */
+
+  /* Tailwind v4 mirrors (same values, for @theme utilities) */
+  --color-base: #F5F3EF;
+  --color-baseTint: #EDEAE3;
+  --color-surface: #FFFFFF;
+  --color-elevated: #FFFFFF;
+  --color-borderSubtle: rgba(0, 0, 0, 0.06);
+
+  /* Legacy aliases (deprecated spellings) */
+  --color-background: #F5F3EF;
+  --color-canvasTint: #EDEAE3;
+  --color-primaryText: #1A1A1E;
+  --color-secondaryText: #6B6B6B;
+  --color-border: rgba(0, 0, 0, 0.06);
+  --color-divider: rgba(0, 0, 0, 0.06);
+
+  /* Paper grain — inline SVG turbulence (no fetch, survives single-file build) */
+  --grain-opacity: 0.022;
+  --grain-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23g)'/%3E%3C/svg%3E");
+
+  /* Border */
+  --border-subtle: rgba(0, 0, 0, 0.06); /* border-subtle — card borders, dividers */
 
   /* Accent */
   --accent-purple: #6C4DCA; /* primary brand purple */
   --accent-purple-light: #F1ECFB; /* active-tab pill / soft tint */
 
   /* Text */
-  --text-primary: #1A1A1A;
-  --text-secondary: #6B6B6B;
-  --text-muted: #9B9B9B;
+  --text-primary: #1A1A1E; /* text-primary */
+  --text-secondary: #6B6B6B; /* text-secondary */
+  --text-muted: #9B9B9B; /* text-muted */
+  --color-primary: #1A1A1E; /* text-primary */
+  --color-secondary: #6B6B6B; /* text-secondary */
+  --color-muted: #9B9B9B; /* text-muted */
+
+  /* Soft surfaces (avatar / input / accent tints) */
+  --color-avatarBg: #F1EFF8;
+  --color-inputBg: #F4F3F0;
+  --color-accentSoft: #F1ECFB;
 
   /* Typography */
   --font-serif: 'Playfair Display', Georgia, serif;
@@ -35,23 +67,39 @@
    regardless of source order. Do not introduce new color literals.
    ============================================================ */
 html[data-theme="dark"] {
-  /* Surfaces */
-  --bg-canvas: #15151A;
-  --bg-card: #1E1E24;
-  --color-background: #15151A;
-  --color-surface: #1E1E24;
+  /* Surfaces — bg-base / bg-surface / bg-elevated */
+  --bg-base: #1A1A1E;
+  --bg-base-tint: #141417;
+  --bg-surface: #252529;
+  --bg-elevated: #2E2E33;
+
+  /* Tailwind v4 mirrors (same values, for @theme utilities) */
+  --color-base: #1A1A1E;
+  --color-baseTint: #141417;
+  --color-surface: #252529;
+  --color-elevated: #2E2E33;
+  --color-borderSubtle: rgba(255, 255, 255, 0.08);
+
+  /* Legacy aliases (deprecated spellings) */
+  --color-background: #1A1A1E;
+  --color-canvasTint: #141417;
+  --color-primaryText: #F5F3EF;
+  --color-secondaryText: #A0A0A5;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-divider: rgba(255, 255, 255, 0.08);
+
+  /* Grain is disabled on dark. Near black, the same noise tile that is
+     invisible on cream (~1% speckle) reads as ~24% speckle — sensor grain,
+     not paper. The dark canvas is intentionally clean and flat. */
+  --grain-opacity: 0;
 
   /* Text */
-  --text-primary: #F2F2F0;
-  --text-secondary: #C2C2C8;
+  --text-primary: #F5F3EF;
+  --text-secondary: #A0A0A5;
   --text-muted: #8A8A92;
-  --color-primaryText: #F2F2F0;
-  --color-secondaryText: #C2C2C8;
+  --color-primary: #F5F3EF;
+  --color-secondary: #A0A0A5;
   --color-muted: #8A8A92;
-
-  /* Lines */
-  --color-border: #2C2C33;
-  --color-divider: #2C2C33;
 
   /* Soft surfaces (avatar / input / accent tints) */
   --color-avatarBg: #2A2A33;

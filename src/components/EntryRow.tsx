@@ -15,6 +15,9 @@ interface EntryRowProps {
   entry: Entry;
   isLast?: boolean;
   onClick?: (entry: Entry) => void;
+  /** Hide the per-row theme chip — used where the surrounding context already
+   *  names the theme (e.g. a list scoped to a single theme). */
+  showTheme?: boolean;
   className?: string;
 }
 
@@ -22,6 +25,7 @@ export const EntryRow: React.FC<EntryRowProps> = ({
   entry,
   isLast = false,
   onClick,
+  showTheme = true,
   className = '',
 }) => {
   return (
@@ -29,8 +33,8 @@ export const EntryRow: React.FC<EntryRowProps> = ({
       type="button"
       onClick={() => onClick?.(entry)}
       aria-label={`Open entry from ${entry.date}: ${entry.title || 'untitled'}`}
-      className={`group flex items-center justify-between min-h-[60px] py-3.5 px-1 cursor-pointer text-left w-full transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 ${
-        !isLast ? 'border-b border-divider' : ''
+      className={`group flex items-center justify-between min-h-[60px] py-3.5 px-1 cursor-pointer text-left w-full hover:bg-elevated rounded-lg transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 ${
+        !isLast ? 'border-b border-borderSubtle' : ''
       } ${className}`}
     >
       {/* Left + Middle: Date + Entry Title */}
@@ -45,7 +49,7 @@ export const EntryRow: React.FC<EntryRowProps> = ({
 
       {/* Right: Theme Chip + Chevron */}
       <span className="flex items-center gap-3 shrink-0">
-        <ThemeChip label={themeLabel(entry.theme)} />
+        {showTheme && <ThemeChip label={themeLabel(entry.theme)} />}
         <ChevronRight className="w-4 h-4 text-muted group-hover:text-accent transition-colors stroke-[1.8]" />
       </span>
     </button>

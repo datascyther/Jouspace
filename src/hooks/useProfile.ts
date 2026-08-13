@@ -1,45 +1,26 @@
 import { useState, useCallback } from 'react';
+import {
+  loadProfile as loadProfileCloud,
+  saveProfile as saveProfileCloud,
+  hydrateProfile as hydrateProfileCloud,
+  type Profile,
+  DEFAULT_DISPLAY_NAME,
+} from '../lib/supabaseProfile';
 
-export interface Profile {
-  displayName: string;
-  joinedDate: string;
-}
-
-const PROFILE_KEY = 'jouspace:profile';
-
-export const DEFAULT_DISPLAY_NAME = 'You';
-
-function defaultJoinedDate(): string {
-  return new Date().toLocaleDateString('en-US', {
-    month: 'long',
-    year: 'numeric',
-  });
-}
+export type { Profile };
+export { DEFAULT_DISPLAY_NAME };
 
 export function loadProfile(): Profile {
-  try {
-    const raw = localStorage.getItem(PROFILE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw) as Partial<Profile>;
-      return {
-        displayName:
-          typeof parsed.displayName === 'string' && parsed.displayName.trim()
-            ? parsed.displayName
-            : DEFAULT_DISPLAY_NAME,
-        joinedDate:
-          typeof parsed.joinedDate === 'string' && parsed.joinedDate.trim()
-            ? parsed.joinedDate
-            : defaultJoinedDate(),
-      };
-    }
-  } catch {
-    /* corrupt storage → fall back to defaults */
-  }
-  return { displayName: DEFAULT_DISPLAY_NAME, joinedDate: defaultJoinedDate() };
+  return loadProfileCloud();
 }
 
 export function saveProfile(profile: Profile): void {
-  localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+  saveProfileCloud(profile);
+}
+
+/** Cloud-hydrate the profile for the current user (called on sign-in). */
+export function hydrateProfile(): Promise<void> {
+  return hydrateProfileCloud();
 }
 
 /** Derive up-to-2-char initials from a display name. */

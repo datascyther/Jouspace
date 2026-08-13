@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, Settings } from 'lucide-react';
+import { Bell } from 'lucide-react';
 import logoSrc from '../assets/Jouspace logo.png';
 import { IconButton } from './IconButton';
 
@@ -9,7 +9,6 @@ interface JouspaceHeaderProps {
   hasNotifications?: boolean;
   onNotificationClick?: () => void;
   onAvatarClick?: () => void;
-  onSettingsClick?: () => void;
   className?: string;
 }
 
@@ -18,12 +17,11 @@ export const JouspaceHeader: React.FC<JouspaceHeaderProps> = ({
   hasNotifications = false,
   onNotificationClick,
   onAvatarClick,
-  onSettingsClick,
   className = '',
 }) => {
   return (
     <header
-      className={`flex items-center justify-between w-full py-2 bg-transparent border-none shadow-none ${className}`}
+      className={`flex items-center justify-between w-full py-2 bg-base border-none shadow-none ${className}`}
     >
       {/* Brand: Logo + Wordmark */}
       <div className="flex items-center gap-3">
@@ -36,16 +34,8 @@ export const JouspaceHeader: React.FC<JouspaceHeaderProps> = ({
         </span>
       </div>
 
-      {/* Right Controls: Settings + Bell Icon + Circular Avatar */}
+      {/* Right Controls: Bell Icon + Circular Avatar */}
       <div className="flex items-center gap-2">
-        {onSettingsClick && (
-          <IconButton
-            icon={<Settings className="w-[20px] h-[20px] text-primaryText stroke-[1.75]" />}
-            onClick={onSettingsClick}
-            ariaLabel="Settings"
-          />
-        )}
-
         <IconButton
           icon={<Bell className="w-[21px] h-[21px] text-primaryText stroke-[1.75]" />}
           onClick={onNotificationClick}
@@ -58,7 +48,7 @@ export const JouspaceHeader: React.FC<JouspaceHeaderProps> = ({
           type="button"
           onClick={onAvatarClick}
           aria-label="User Profile"
-          className="w-[38px] h-[38px] rounded-full bg-avatarBg hover:bg-border flex items-center justify-center text-primaryText font-sans font-medium text-[13px] tracking-wider transition-colors focus:outline-none focus:ring-2 focus:ring-accent/20 ml-1 cursor-pointer"
+          className="w-[38px] h-[38px] rounded-full bg-avatarBg hover:bg-borderSubtle flex items-center justify-center text-primaryText font-sans font-medium text-[13px] tracking-wider transition-colors focus:outline-none focus:ring-2 focus:ring-accent/20 ml-1 cursor-pointer"
         >
           {userInitials}
         </button>

@@ -17,7 +17,7 @@ export const MemoryHeader: React.FC<MemoryHeaderProps> = ({
 }) => {
   return (
     <header
-      className={`flex items-center justify-between w-full py-2 bg-transparent border-none shadow-none ${className}`}
+      className={`flex items-center justify-between w-full py-2 bg-base border-none shadow-none ${className}`}
     >
       {/* Left: Memory Title + Subtitle */}
       <div className="flex flex-col text-left">
@@ -45,7 +45,7 @@ export const MemoryHeader: React.FC<MemoryHeaderProps> = ({
           type="button"
           onClick={onAvatarClick}
           aria-label="User profile"
-          className="w-[38px] h-[38px] rounded-full bg-avatarBg hover:bg-border flex items-center justify-center text-primaryText font-sans font-medium text-[13px] tracking-wider transition-colors cursor-pointer focus:outline-none ml-1"
+          className="w-[38px] h-[38px] rounded-full bg-avatarBg hover:bg-borderSubtle flex items-center justify-center text-primaryText font-sans font-medium text-[13px] tracking-wider transition-colors cursor-pointer focus:outline-none ml-1"
         >
           {userInitials}
         </button>

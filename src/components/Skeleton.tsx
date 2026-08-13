@@ -1,39 +1,145 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import logoSrc from '../assets/Jouspace logo.png';
 
-interface SkeletonProps {
+/**
+ * One reusable skeleton component. Pick a `layout` preset, set `count` for the
+ * number of rows/items, and toggle `animate` to enable/disable the shimmer.
+ *
+ * The shimmer itself is the `.skeleton-shimmer` / `.skeleton-static` CSS classes
+ * (defined in src/index.css) — a GPU-only highlight sweep over a warm-grey base.
+ */
+
+export type SkeletonLayout = 'chat' | 'list' | 'card' | 'form';
+
+export interface SkeletonProps {
+  /** Which preset shape to draw. */
+  layout: SkeletonLayout;
+  /** How many rows/items to shimmer. */
+  count?: number;
+  /** Enable/disable the shimmer sweep (default: true). */
+  animate?: boolean;
+  /**
+   * Chat only. When true (default), a skeletonized full-width composer bar is
+   * drawn beneath the message rows — use this for an initial chat load. When
+   * false, only message rows are drawn, so a *visible* composer is never
+   * skeletonized (e.g. while waiting for the AI's first token).
+   */
+  composer?: boolean;
   className?: string;
 }
 
-export const Skeleton: React.FC<SkeletonProps> = ({ className = '' }) => (
-  <div className={`skeleton-shimmer rounded-lg ${className}`} />
-);
+// Natural-feeling message-bar widths for the chat preset.
+const CHAT_BAR_WIDTHS = ['70%', '50%', '85%', '60%', '75%', '65%'];
 
-export const SkeletonCard: React.FC<{ className?: string }> = ({ className = '' }) => (
-  <div className={`bg-surface rounded-3xl border border-border p-6 space-y-4 ${className}`}>
-    <Skeleton className="h-4 w-1/3" />
-    <Skeleton className="h-6 w-2/3" />
-    <Skeleton className="h-4 w-full" />
-    <Skeleton className="h-4 w-5/6" />
-    <Skeleton className="h-10 w-1/2" />
-  </div>
-);
+export const Skeleton: React.FC<SkeletonProps> = ({
+  layout,
+  count = 1,
+  animate = true,
+  composer = true,
+  className = '',
+}) => {
+  const shimmer = (extra: string) =>
+    `${animate ? 'skeleton-shimmer' : 'skeleton-static'} ${extra}`;
+  const n = Math.max(1, count);
 
-export const SkeletonRow: React.FC<{ className?: string }> = ({ className = '' }) => (
-  <div className={`flex items-center gap-3 py-3 ${className}`}>
-    <Skeleton className="w-11 h-11 rounded-full shrink-0" />
-    <div className="flex-1 space-y-2">
-      <Skeleton className="h-4 w-3/4" />
-      <Skeleton className="h-3 w-1/2" />
+  if (layout === 'chat') {
+    return (
+      <div className={`flex flex-col gap-5 w-full ${className}`} aria-hidden="true">
+        {Array.from({ length: n }).map((_, i) => (
+          <div key={i} className="flex items-start gap-3">
+            <div className={shimmer('w-10 h-10 rounded-full shrink-0')} />
+            <div
+              className={shimmer('rounded-lg')}
+              style={{ width: CHAT_BAR_WIDTHS[i % CHAT_BAR_WIDTHS.length], height: 16 }}
+            />
+          </div>
+        ))}
+        {composer && (
+          <div className={shimmer('w-full rounded-2xl mt-1')} style={{ height: 48 }} />
+        )}
+      </div>
+    );
+  }
+
+  if (layout === 'list') {
+    return (
+      <div className={`flex flex-col gap-4 w-full ${className}`} aria-hidden="true">
+        {Array.from({ length: n }).map((_, i) => (
+          <div key={i} className={shimmer('w-full rounded-2xl')} style={{ height: 72 }} />
+        ))}
+      </div>
+    );
+  }
+
+  if (layout === 'card') {
+    return (
+      <div className={`flex flex-col gap-4 w-full ${className}`} aria-hidden="true">
+        {Array.from({ length: n }).map((_, i) => (
+          <div key={i} className={shimmer('w-full rounded-2xl')} style={{ height: 96 }} />
+        ))}
+      </div>
+    );
+  }
+
+  // form
+  return (
+    <div className={`flex flex-col gap-3 w-full ${className}`} aria-hidden="true">
+      {Array.from({ length: n }).map((_, i) => (
+        <div key={i} className={shimmer('w-full rounded-xl')} style={{ height: 56 }} />
+      ))}
+      {/* Button row */}
+      <div className={shimmer('w-full rounded-xl')} style={{ height: 56 }} />
     </div>
+  );
+};
+
+/**
+ * Branded cold-start spinner: the Jouspace logo mark with a slow pulse, plus a
+ * quiet "Opening your space..." caption. Shown only while the app is waking up
+ * (never as a content skeleton).
+ */
+export const BrandedSpinner: React.FC<{ className?: string; label?: string }> = ({
+  className = '',
+  label = 'Opening your space...',
+}) => (
+  <div
+    className={`flex flex-col items-center justify-center gap-4 ${className}`}
+    role="status"
+    aria-live="polite"
+  >
+    <img
+      src={logoSrc}
+      alt=""
+      aria-hidden="true"
+      className="w-14 h-14 rounded-full shadow-sm object-cover animate-brand-pulse"
+    />
+    <span className="font-sans text-[13px] text-[#999999] select-none">{label}</span>
   </div>
 );
 
-export const SkeletonAvatar: React.FC<{ className?: string }> = ({ className = '' }) => (
-  <div className={`flex items-center gap-3 ${className}`}>
-    <Skeleton className="w-[38px] h-[38px] rounded-full shrink-0" />
-    <div className="space-y-2 flex-1">
-      <Skeleton className="h-5 w-2/3" />
-      <Skeleton className="h-3 w-1/3" />
-    </div>
-  </div>
-);
+/**
+ * Loading guard: returns true if `isLoading` has stayed true longer than
+ * `timeoutMs` (default 8s). Used to flip a hung skeleton into an error state so
+ * a skeleton never hangs forever.
+ */
+export function useLoadGuard(isLoading: boolean, timeoutMs = 8000): boolean {
+  const [timedOut, setTimedOut] = useState(false);
+  const startRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (isLoading) {
+      if (startRef.current === null) startRef.current = Date.now();
+      const remaining = timeoutMs - (Date.now() - startRef.current);
+      if (remaining <= 0) {
+        setTimedOut(true);
+        return;
+      }
+      const t = setTimeout(() => setTimedOut(true), remaining);
+      return () => clearTimeout(t);
+    }
+    startRef.current = null;
+    setTimedOut(false);
+  }, [isLoading, timeoutMs]);
+
+  return timedOut;
+}

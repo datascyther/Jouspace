@@ -5,6 +5,9 @@ import { ArrowRight } from 'lucide-react';
 interface WritingSummaryCardProps {
   entryCount: number;
   topThemes: string[];
+  /** When provided, replaces the computed entry-count/themes text with an
+   *  AI-written summary of the user's recent journal. */
+  summaryText?: string;
   onExploreMemories?: () => void;
   className?: string;
 }
@@ -12,6 +15,7 @@ interface WritingSummaryCardProps {
 export const WritingSummaryCard: React.FC<WritingSummaryCardProps> = ({
   entryCount,
   topThemes,
+  summaryText,
   onExploreMemories,
   className = '',
 }) => {
@@ -20,9 +24,13 @@ export const WritingSummaryCard: React.FC<WritingSummaryCardProps> = ({
       ? `${topThemes[0]},\n${topThemes[1]},\nand ${topThemes[2]}.`
       : topThemes.join(', ') + '.';
 
+  const bodyText =
+    summaryText ??
+    `You've written ${entryCount} entries.\n\nYour writing most often returns to\n${themesText}`;
+
   return (
     <div
-      className={`bg-surface rounded-3xl border border-border p-6 flex flex-col gap-4 ${className}`}
+      className={`bg-surface rounded-3xl border border-borderSubtle p-6 flex flex-col gap-4 ${className}`}
     >
       {/* Top Label */}
       <span className="font-sans text-[12.5px] font-medium text-muted tracking-wide uppercase select-none">
@@ -31,7 +39,7 @@ export const WritingSummaryCard: React.FC<WritingSummaryCardProps> = ({
 
       {/* Body */}
       <p className="font-serif text-[17px] font-normal text-primaryText leading-[1.65] tracking-tight whitespace-pre-line m-0">
-        {`You've written ${entryCount} entries.\n\nYour writing most often returns to\n${themesText}`}
+        {bodyText}
       </p>
 
       {/* Bottom Action */}

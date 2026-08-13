@@ -42,6 +42,11 @@ jobs:
         run: npm ci
 
       - name: Build web app (single-file dist)
+        # RUNTIME_URL (repo secret) bakes the hosted runtime URL into the APK so
+        # the installed app reaches Jouspace Intelligence over HTTPS by default.
+        # A user-supplied Profile URL still overrides this for dev/self-hosting.
+        env:
+          VITE_API_BASE_URL: ${{ secrets.RUNTIME_URL }}
         run: npm run build
 
       - name: Install Capacitor + Android platform

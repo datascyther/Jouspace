@@ -11,7 +11,7 @@ export const PrimaryCard: React.FC<PrimaryCardProps> = ({
 }) => {
   return (
     <div
-      className={`bg-surface rounded-3xl border border-border p-6 text-primaryText ${className}`}
+      className={`bg-surface rounded-3xl border border-borderSubtle p-6 text-primaryText ${className}`}
     >
       {children}
     </div>

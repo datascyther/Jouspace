@@ -1,5 +1,6 @@
 import React from 'react';
 import { ChevronRight } from 'lucide-react';
+import { LazyMarkdown } from './LazyMarkdown';
 
 /* ------------------------------------------------------------------ */
 /* User Message Bubble                                                 */
@@ -19,7 +20,7 @@ export const UserMessageBubble: React.FC<UserMessageBubbleProps> = ({
   return (
     <div className={`flex flex-col items-end w-full ${className}`}>
       <div className="max-w-[85%] bg-accentSoft rounded-[20px] px-5 py-3.5">
-        <p className="font-sans text-[14.5px] leading-[1.5] text-primaryText font-normal text-left">
+        <p className="font-sans text-[14.5px] leading-normal text-primaryText font-normal text-left">
           {text}
         </p>
       </div>
@@ -86,7 +87,7 @@ export const AssistantMessageBubble: React.FC<AssistantMessageBubbleProps> = ({
 }) => {
   return (
     <div className={`flex justify-start w-full ${className}`}>
-      <div className="max-w-[85%] bg-surface border border-border rounded-[20px] px-5 py-4 flex flex-col gap-3">
+      <div className="max-w-[85%] bg-surface border border-borderSubtle rounded-[20px] px-5 py-4 flex flex-col gap-3">
         {isThinking ? (
           <div className="flex items-center gap-1.5 py-1">
             <span className="w-1.5 h-1.5 rounded-full bg-muted animate-bounce [animation-delay:-0.3s]" />
@@ -94,9 +95,7 @@ export const AssistantMessageBubble: React.FC<AssistantMessageBubbleProps> = ({
             <span className="w-1.5 h-1.5 rounded-full bg-muted animate-bounce" />
           </div>
         ) : (
-          <p className="font-sans text-[14.5px] leading-[1.65] text-primaryText font-normal whitespace-pre-line text-left">
-            {text}
-          </p>
+          <LazyMarkdown text={text} />
         )}
 
         {!isThinking && citationCount && citationDates && (

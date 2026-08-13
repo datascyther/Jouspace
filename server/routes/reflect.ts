@@ -24,24 +24,17 @@ import { assembleContext } from '../context/ContextAssembler.js';
 import { buildSystemPrompt, buildMessages } from '../prompt/PromptAssembler.js';
 import { createModelGateway } from '../gateway/index.js';
 import { initSSE, streamToClient } from '../stream/StreamController.js';
+import { deriveReasoningProfile, floorProfile } from '../reasoning.js';
 import type { ModelMessage } from '../types.js';
+import { EntrySchema, ProfileSchema, MessageSchema } from '../schemas.js';
+import { acquireRateLimit, releaseRateLimit, streamRefusal } from '../aiSupport.js';
+import { anyOffDomain } from '../guard.js';
 
 export const reflectRouter = Router();
 
 // ── Request schema ────────────────────────────────────────────────────────────
 
-const HistoryMessageSchema = z.object({
-  role: z.enum(['user', 'assistant']),
-  content: z.string().min(1).max(8000),
-});
-
-const EntrySchema = z.object({
-  id: z.string(),
-  date: z.string(),
-  title: z.string(),
-  theme: z.string(),
-  content: z.string(),
-});
+const HistoryMessageSchema = MessageSchema;
 
 const ReflectRequestSchema = z.object({
   insight: z.string().min(1).max(1000),
@@ -49,6 +42,8 @@ const ReflectRequestSchema = z.object({
   history: z.array(HistoryMessageSchema).max(20).optional(),
   /** Local-first: the client's real journal entries used for AI context */
   entries: z.array(EntrySchema).max(20).optional(),
+  /** Device-derived personalization (treated as data, not instructions) */
+  profile: ProfileSchema.optional(),
 });
 
 // ── Route ─────────────────────────────────────────────────────────────────────
@@ -64,19 +59,36 @@ reflectRouter.post('/reflect', async (req, res, next) => {
     return;
   }
 
-  const { insight, userThought, history = [], entries } = parsed.data;
+  const { insight, userThought, history = [], entries, profile } = parsed.data;
+
+  // 2. Cheap domain pre-filter on the reflection anchor + the user's thought.
+  if (anyOffDomain(insight, userThought)) {
+    streamRefusal(res);
+    return;
+  }
+
+  // 3. Rate limit (token bucket + concurrency).
+  const rate = acquireRateLimit(req, 'conversational');
+  if (!rate.ok) {
+    res
+      .status(429)
+      .setHeader('Retry-After', String(rate.retryAfterSec))
+      .json({ error: 'Intelligence unavailable — please try again shortly.' });
+    return;
+  }
 
   try {
-    // 2. Assemble journal context with the insight as anchor
+    // 4. Assemble journal context with the insight as anchor
     const jouspaceContext = await assembleContext('user-1', 'reflect', {
       anchorInsight: insight,
       entries,
+      profile,
     });
 
-    // 3. Build the reflection-specific system prompt
+    // 5. Build the reflection-specific system prompt
     const systemPrompt = buildSystemPrompt(jouspaceContext, 'reflect');
 
-    // 4. Construct message history
+    // 6. Construct message history
     //    If there's no prior history, open with the insight as context,
     //    then the user's current thought (or a default opener).
     const conversationMessages: ModelMessage[] = history.length > 0
@@ -92,13 +104,35 @@ reflectRouter.post('/reflect', async (req, res, next) => {
 
     const modelMessages = buildMessages(systemPrompt, conversationMessages);
 
-    // 5. Get gateway and start SSE stream
+    // 7. Derive adaptive reasoning profile — floored at 'balanced' because a
+    //    reflection is a substantive generation, never a trivial chat.
+    const reasoning = floorProfile(
+      deriveReasoningProfile({ userText: userThought ?? '', entries }),
+      'balanced'
+    );
+
+    // 8. Get gateway and start SSE stream (header must be set before flush)
     const gateway = createModelGateway();
+    res.setHeader('X-Reasoning-Profile', reasoning);
     initSSE(res);
 
-    // 6. Stream response tokens to the client
-    await streamToClient(req, res, gateway.streamCompletion(modelMessages));
+    // Upstream abort controller: cancelled on client disconnect or the
+    // StreamController ceiling so the NVIDIA call is released promptly.
+    const upstreamAbort = new AbortController();
+
+    // 9. Stream response tokens to the client
+    await streamToClient(
+      req,
+      res,
+      gateway.streamCompletion(modelMessages, {
+        reasoning,
+        signal: upstreamAbort.signal,
+      }),
+      upstreamAbort
+    );
   } catch (err) {
     next(err);
+  } finally {
+    releaseRateLimit(rate.key);
   }
 });

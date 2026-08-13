@@ -6,6 +6,8 @@ interface JournalMetadataProps {
   dateLabel?: string;
   timeLabel?: string;
   status?: AutosaveStatus;
+  /** True for ~1.5s right after a manual save completes — shows the ✓ pulse. */
+  justSaved?: boolean;
   className?: string;
 }
 
@@ -13,6 +15,7 @@ export const JournalMetadata: React.FC<JournalMetadataProps> = ({
   dateLabel = 'Today',
   timeLabel = 'Aug 4, 2026 • 6:58 PM',
   status = 'autosaved',
+  justSaved = false,
   className = '',
 }) => {
   const getStatusText = () => {
@@ -47,16 +50,28 @@ export const JournalMetadata: React.FC<JournalMetadataProps> = ({
           <span className="w-1.5 h-1.5 rounded-full bg-accent animate-ping" />
         )}
         {status === 'failed' && (
-          <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+          <span className="w-1.5 h-1.5 rounded-full bg-error" />
         )}
-        <span
-          className={
-            status === 'failed'
-              ? 'text-red-500 font-medium'
-              : 'text-muted font-normal'
-          }
-        >
-          {getStatusText()}
+        {/* Relative wrapper: the ✓ is absolutely positioned so it pulses
+            without pushing the status text or causing layout reflow. */}
+        <span className="relative inline-flex items-center">
+          {justSaved && (
+            <span
+              className="save-checkmark absolute right-full mr-1.5 text-accent"
+              aria-hidden="true"
+            >
+              ✓
+            </span>
+          )}
+          <span
+            className={
+              status === 'failed'
+                ? 'text-error font-medium'
+                : 'text-muted font-normal'
+            }
+          >
+            {getStatusText()}
+          </span>
         </span>
       </div>
     </div>

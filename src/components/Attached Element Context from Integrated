@@ -1,0 +1,178 @@
+Attached Element Context from Integrated Browser
+
+Element: button.w-full.bg-accent.hover:bg-accentHover.active:bg-accentActive.text-white.font-sans.font-medium.text-[15px].py-4.rounded-[18px].transition-all.duration-150.shadow-sm.focus:outline-none.focus:ring-2.focus:ring-accent/40.cursor-pointer.flex.items-center.justify-center.gap-2
+
+URL: http://localhost:5173/
+
+HTML Path: div#root > div.min-h-screen.bg-base.md:bg-baseTint.flex.flex-col.items-center.justify-start.md:pt-3.md:pb-8 > div.w-full.flex.flex-col.items-center.selection:bg-accent/15 > div.relative.isolate.w-full.max-w-[430px].mx-auto.min-h-screen.h-dvh.bg-base.flex.flex-col.overflow-hidden.md:h-[880px].md:rounded-[40px].md:border.md:border-borderSubtle.md:shadow-2xl > div.absolute.inset-0.z-50.flex.items-end.justify-center > div.gpu-layer.relative.z-10.flex.flex-col.w-full.max-w-[430px].h-[58%].bg-base.rounded-t-[28px].overflow-hidden.animate-slideUp.transition-transform.duration-200.ease-out > div.flex.flex-col.w-full.h-full > div.flex-1.min-h-0.overflow-y-auto.overflow-x-hidden.overscroll-contain.px-6.pb-6 > button.w-full.bg-accent.hover:bg-accentHover.active:bg-accentActive.text-white.font-sans.font-medium.text-[15px].py-4.rounded-[18px].transition-all.duration-150.shadow-sm.focus:outline-none.focus:ring-2.focus:ring-accent/40.cursor-pointer.flex.items-center.justify-center.gap-2
+
+Outer HTML:
+```html
+<button type="button" class="w-full bg-accent hover:bg-accentHover active:bg-accentActive text-white font-sans font-medium text-[15px] py-4 rounded-[18px] transition-all duration-150 shadow-sm focus:outline-none focus:ring-2 focus:ring-accent/40 cursor-pointer flex items-center justify-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sparkles w-[18px] h-[18px] stroke-[1.8]" aria-hidden="true"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"></path><path d="M20 2v4"></path><path d="M22 4h-4"></path><circle cx="4" cy="20" r="2"></circle></svg>Reflect with AI</button>
+```
+
+Dimensions:
+- top: 805px
+- left: 828px
+- width: 379px
+- height: 54px
+
+CSS:
+```css
+*, ::after, ::before, ::backdrop, ::file-selector-button { box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    border: 0 solid; }
+button, input, select, optgroup, textarea, ::file-selector-button { font: inherit;
+    font-feature-settings: inherit;
+    font-variation-settings: inherit;
+    letter-spacing: inherit;
+    color: inherit;
+    border-radius: 0;
+    background-color: transparent;
+    opacity: 1; }
+button, input:where([type="button"], [type="reset"], [type="submit"]), ::file-selector-button { appearance: button; }
+.flex { display: flex; }
+.w-full { width: 100%; }
+.cursor-pointer { cursor: pointer; }
+.items-center { align-items: center; }
+.justify-center { justify-content: center; }
+.gap-2 { gap: calc(var(--spacing) * 2); }
+.rounded-\[18px\] { border-radius: 18px; }
+.bg-accent { background-color: var(--color-accent); }
+.py-4 { padding-block: calc(var(--spacing) * 4); }
+.font-sans { font-family: var(--font-sans); }
+.text-\[15px\] { font-size: 15px; }
+.font-medium { --tw-font-weight: var(--font-weight-medium);
+    font-weight: var(--font-weight-medium); }
+.text-white { color: var(--color-white); }
+.shadow-sm { --tw-shadow: 0 1px 3px 0 var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 1px 2px -1px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow); }
+.transition-all { transition-property: all;
+    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+    transition-duration: var(--tw-duration, var(--default-transition-duration)); }
+.duration-150 { --tw-duration: 150ms;
+    transition-duration: 150ms; }
+.hover\:bg-accentHover { &:hover {
+      @media (hover: hover) {
+        background-color: var(--color-accentHover);
+      }
+    } }
+.focus\:ring-2 { &:focus {
+      --tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);
+      box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+    } }
+.focus\:ring-accent\/40 { &:focus {
+      --tw-ring-color: color-mix(in srgb, #6C4DCA 40%, transparent);
+      @supports (color: color-mix(in lab, red, red)) {
+        --tw-ring-color: color-mix(in oklab, var(--color-accent) 40%, transparent);
+      }
+    } }
+.focus\:outline-none { &:focus {
+      --tw-outline-style: none;
+      outline-style: none;
+    } }
+.active\:bg-accentActive { &:active {
+      background-color: var(--color-accentActive);
+    } }
+&:hover { @media (hover: hover) {
+        background-color: var(--color-accentHover);
+      } }
+ { background-color: var(--color-accentHover); }
+
+/* Pseudo-elements */
+& *::selection { background-color: color-mix(in srgb, #6C4DCA 15%, transparent); }
+ { background-color: color-mix(in oklab, var(--color-accent) 15%, transparent); }
+::-webkit-scrollbar { width: 6px;
+  height: 6px; }
+::-webkit-scrollbar-thumb { background: var(--color-border);
+  border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-muted); }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* Inherited */
+body { color: var(--text-primary); font-family: var(--font-sans); font-feature-settings: "kern" 1, "liga" 1, "calt" 1; font-kerning: normal }
+html, :host { line-height: 1.5; tab-size: 4; font-family: var(--default-font-family, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"); font-feature-settings: var(--default-font-feature-settings, normal) }
+
+/* Resolved values */
+margin: 0px;
+padding: 16px 0px;
+border-radius: 18px;
+border: 0px solid rgb(255, 255, 255);
+align-items: center;
+appearance: button;
+background-attachment: scroll;
+background-clip: border-box;
+background-color: rgb(90, 62, 176);
+background-image: none;
+background-origin: padding-box;
+background-position-x: 0%;
+background-position-y: 0%;
+background-repeat: repeat;
+background-size: auto;
+box-shadow: rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.1) 0px 1px 2px -1px;
+box-sizing: border-box;
+color: rgb(255, 255, 255);
+cursor: pointer;
+display: flex;
+font-family: Inter, -apple-system, sans-serif;
+font-feature-settings: "calt", "kern", "liga";
+font-kerning: normal;
+font-language-override: normal;
+font-optical-sizing: auto;
+font-size: 15px;
+font-size-adjust: none;
+font-stretch: 100%;
+font-style: normal;
+font-variant-alternates: normal;
+font-variant-caps: normal;
+font-variant-east-asian: normal;
+font-variant-emoji: normal;
+font-variant-ligatures: normal;
+font-variant-numeric: normal;
+font-variant-position: normal;
+font-variation-settings: normal;
+font-weight: 500;
+height: 54.4688px;
+justify-content: center;
+letter-spacing: normal;
+line-height: 22.5px;
+opacity: 1;
+padding-block-end: 16px /*UA*/;
+padding-block-start: 16px /*UA*/;
+padding-inline-end: 0px /*UA*/;
+padding-inline-start: 0px /*UA*/;
+tab-size: 4;
+text-align: center /*UA*/;
+text-indent: 0px /*UA*/;
+text-rendering: auto /*UA*/;
+text-shadow: none /*UA*/;
+text-transform: none /*UA*/;
+transition-duration: 0.15s;
+transition-property: all;
+transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+width: 378.984px;
+word-spacing: 0px /*UA*/;
+
+/* CSS variables */
+--tw-ring-offset-shadow: 0 0 #0000;
+--tw-ring-shadow: 0 0 #0000;
+--default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+--tw-inset-ring-shadow: 0 0 #0000;
+--spacing: 0.25rem;
+--color-accentActive: #4A318F;
+--color-accentHover: #5A3EB0;
+--tw-inset-shadow: 0 0 #0000;
+--color-muted: #9B9B9B;
+--color-white: #fff;
+--color-accent: #6C4DCA;
+--font-sans: 'Inter', -apple-system, sans-serif;
+--text-primary: #1A1A1E;
+--tw-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+--tw-ring-offset-width: 0px;
+--color-border: rgba(0, 0, 0, 0.06);
+--default-font-family: 'Inter', -apple-system, sans-serif;
+--font-weight-medium: 500;
+--default-transition-duration: 150ms;
+--tw-duration: 150ms;
+```

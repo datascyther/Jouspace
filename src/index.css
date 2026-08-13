@@ -7,18 +7,30 @@
   --font-sans: 'Inter', -apple-system, sans-serif;
 
   /* Colors map 1:1 to the design tokens in theme.css */
-  --color-background: #F7F6F3; /* --bg-canvas */
-  --color-surface: #FFFFFF; /* --bg-card */
-  --color-primaryText: #1A1A1A; /* --text-primary */
-  --color-secondaryText: #6B6B6B; /* --text-secondary */
-  --color-muted: #9B9B9B; /* --text-muted */
+  /* ── Core tokens ── */
+  --color-base: #F5F3EF; /* bg-base — --bg-base */
+  --color-baseTint: #EDEAE3; /* desktop matte — --bg-base-tint */
+  --color-surface: #FFFFFF; /* bg-surface — --bg-surface */
+  --color-elevated: #FFFFFF; /* bg-elevated — --bg-elevated */
+  --color-borderSubtle: rgba(0, 0, 0, 0.06); /* border-subtle — --border-subtle */
+  --color-primary: #1A1A1E; /* text-primary — --text-primary */
+  --color-secondary: #6B6B6B; /* text-secondary — --text-secondary */
+  --color-muted: #9B9B9B; /* text-muted — --text-muted */
+
+  /* ── Legacy aliases (deprecated spellings, kept so existing utilities work) ── */
+  --color-background: #F5F3EF; /* → bg-base */
+  --color-canvasTint: #EDEAE3; /* → bg-baseTint */
+  --color-primaryText: #1A1A1E; /* → text-primary */
+  --color-secondaryText: #6B6B6B; /* → text-secondary */
+  --color-border: rgba(0, 0, 0, 0.06); /* → border-borderSubtle */
+  --color-divider: rgba(0, 0, 0, 0.06); /* → border-borderSubtle */
+
+  /* ── Accent / state (unchanged) ── */
   --color-accent: #6C4DCA; /* --accent-purple */
   --color-accentHover: #5A3EB0;
   --color-accentActive: #4A318F;
   --color-accentAlt: #5E40C0;
   --color-accentSoft: #F1ECFB; /* --accent-purple-light */
-  --color-border: #ECEAE6;
-  --color-divider: #EFEDEA;
   --color-avatarBg: #F1EFF8;
   --color-inputBg: #F4F3F0;
   --color-error: #C53030;
@@ -34,6 +46,14 @@
 @layer utilities {
   .animate-fadeIn {
     animation: fadeIn 400ms ease-in-out;
+  }
+
+  .animate-fadeIn200 {
+    animation: fadeIn 200ms ease-in-out;
+  }
+
+  .animate-fadeUp {
+    animation: fadeUp 300ms ease-out;
   }
 
   .animate-slideUp {
@@ -63,6 +83,10 @@
   .animate-shimmer {
     animation: shimmer 1.5s ease-in-out infinite;
   }
+
+  .animate-brand-pulse {
+    animation: brandPulse 2s ease-in-out infinite;
+  }
 }
 
 @keyframes fadeIn {
@@ -71,6 +95,17 @@
   }
   to {
     opacity: 1;
+  }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -131,12 +166,99 @@
 }
 
 @keyframes shimmer {
-  0% {
-    background-position: -200% 0;
+  from {
+    transform: translateX(-100%);
   }
-  100% {
-    background-position: 200% 0;
+  to {
+    transform: translateX(100%);
   }
+}
+
+@keyframes brandPulse {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ── Global animation foundation ───────────────────────────────────────────
+   Every animated element in the app is built from this vocabulary:
+   transform + opacity ONLY (never width/height/top/left/margin/padding, which
+   force layout recalculations and jank). Every animated element is
+   GPU-accelerated via `.gpu-layer`, with consistent timing and easing.
+
+   Timing:
+   - UI micro-interactions: 200ms
+   - Panels / sheets:       300ms
+   - Screen transitions:    400ms
+
+   Easing:
+   - Enter: cubic-bezier(0.16, 1, 0.3, 1) — decelerate (premium feel)
+   - Exit:  cubic-bezier(0.4, 0, 0.2, 1)  — accelerate out
+
+   State classes (`.*-enter`, `.*-enter-active`, `.*-exit`, `.*-exit-active`)
+   drive transform/opacity; the `.transition-enter` / `.transition-exit`
+   classes supply the transition timing. Everything is wrapped in
+   `@media (prefers-reduced-motion: no-preference)` so reduced-motion users
+   get instant, static presentation. */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* GPU acceleration base.
+     NOTE: `backface-visibility` is intentionally NOT set here — on
+     text-heavy layers it can make Chrome re-rasterize the layer when the
+     compositor re-organizes (e.g. when a sheet/backdrop is added above),
+     which reads as text flicker. `translateZ(0)` + `will-change` are
+     sufficient to keep the layer on the compositor. */
+  .gpu-layer {
+    will-change: transform, opacity;
+    transform: translateZ(0);
+  }
+
+  /* Standardized transitions */
+  .transition-enter {
+    transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1),
+      opacity 300ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .transition-exit {
+    transition: transform 250ms cubic-bezier(0.4, 0, 0.2, 1),
+      opacity 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Sheet enter/exit */
+  .sheet-enter { transform: translateY(100%); opacity: 0; }
+  .sheet-enter-active { transform: translateY(0); opacity: 1; }
+  .sheet-exit { transform: translateY(0); opacity: 1; }
+  .sheet-exit-active { transform: translateY(100%); opacity: 0; }
+
+  /* Fade enter/exit */
+  .fade-enter { opacity: 0; }
+  .fade-enter-active { opacity: 1; }
+  .fade-exit { opacity: 1; }
+  .fade-exit-active { opacity: 0; }
+
+  /* Fade + rise (panels that nudge up from below, e.g. the pause prompt) */
+  .fadeUp-enter { opacity: 0; transform: translateY(8px); }
+  .fadeUp-enter-active { opacity: 1; transform: translateY(0); }
+  .fadeUp-exit { opacity: 1; transform: translateY(0); }
+  .fadeUp-exit-active { opacity: 0; transform: translateY(8px); }
+
+  /* Scale enter/exit (for chips, pills) */
+  .scale-enter { transform: scale(0.95); opacity: 0; }
+  .scale-enter-active { transform: scale(1); opacity: 1; }
+  .scale-exit { transform: scale(1); opacity: 1; }
+  .scale-exit-active { transform: scale(0.95); opacity: 0; }
+
+  /* Backdrop */
+  .backdrop-enter { opacity: 0; }
+  .backdrop-enter-active { opacity: 1; }
+  .backdrop-exit { opacity: 1; }
+  .backdrop-exit-active { opacity: 0; }
+
+  /* Screen transitions: instant — screens switch in a single React commit,
+     no entrance animation, no transform, no will-change. */
 }
 
 /* Reduced motion preference */
@@ -150,11 +272,26 @@
   }
 }
 
-/* Skeleton loading shimmer */
+/* Skeleton loading shimmer — a GPU-only highlight sweep. The base is a flat
+   token colour; the moving highlight is a ::after strip translated with
+   `transform` (never background-position, which would repaint every frame). */
 .skeleton-shimmer {
-  background: linear-gradient(90deg, var(--color-border) 25%, var(--color-accentSoft) 50%, var(--color-border) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
+  position: relative;
+  overflow: hidden;
+  background: #E8E6E1;
+}
+.skeleton-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transform: translateX(-100%);
+  will-change: transform;
+  animation: shimmer 1.2s ease-in-out infinite;
+}
+/* Static variant (animate=false): same warm-grey base, no sweep. */
+.skeleton-static {
+  background: #E8E6E1;
 }
 
 /* Touch target minimum (44pt) */
@@ -178,11 +315,258 @@
   outline-offset: 2px;
 }
 
+/* ── App canvas ─────────────────────────────────────────────────────────────
+   The single painted background for the entire app. Mounted once inside the
+   phone frame (AppScreen → AppBackground), never remounted, never animated.
+   Screens and sheets layer above it at z-10 and up.
+
+   Deliberately FLAT. Earlier revisions painted a radial "depth" gradient here
+   and a per-theme colour wash on ::before. Both looked negligible in hex but
+   near-black those deltas are enormous in relative terms — the dark canvas
+   measured up to 2.35x the base luminance at the centre, reading as a visible
+   blob rather than depth. The canvas is now a single flat token colour on every
+   screen in both themes; the only texture is the grain tile below. */
+.app-background {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background-color: var(--bg-base);
+}
+
+/* Paper grain — a single 160px noise tile rasterised once and repeated. Keeps
+   the cream from reading flat/sterile without any per-frame cost. Disabled on
+   dark (--grain-opacity: 0), where the same noise reads as sensor grain. */
+.app-background::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: var(--grain-image);
+  background-size: 160px 160px;
+  opacity: var(--grain-opacity);
+}
+
+/* Pause prompt — a gentle, whisper-like writing nudge shown in the journal
+   composer when the user stops typing. Rendered inline, fades in over 600ms,
+   and is dismissed by tapping. Never steals focus from the textarea. */
+.pause-prompt {
+  width: 100%;
+  font-family: var(--font-serif);
+  font-size: 0.85rem;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--color-muted);
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Sentiment whisper — a single, dismissible line that softly reflects the
+   emotional tone of the draft. Sits flush below the body textarea (in the
+   scrollable flow) with the same hairline top border as the sparkle strip.
+   Rendered only when no other helper is open; tapping the line or the ✕
+   dismisses it. Fades in gently so it never feels abrupt. */
+.sentiment-whisper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  margin-top: 0.75rem;
+  padding-top: 0.625rem;
+  border-top: 1px solid var(--color-border);
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sentiment-whisper-text {
+  font-family: var(--font-serif);
+  font-size: 0.85rem;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--color-muted);
+}
+
+.sentiment-whisper-dismiss {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  color: var(--color-muted);
+  cursor: pointer;
+  transition: color 150ms ease, background-color 150ms ease, transform 150ms ease;
+}
+
+.sentiment-whisper-dismiss:hover {
+  color: var(--color-primaryText);
+  background-color: var(--color-accentSoft);
+}
+
+.sentiment-whisper-dismiss:active {
+  transform: scale(0.92);
+}
+
+/* Save checkmark — a brief ✓ pulse shown next to the autosave status when a
+   manual save completes. Absolutely positioned by its parent (relative
+   inline-flex) so it never causes layout reflow, and it fades itself out
+   over 1.5s. */
+.save-checkmark {
+  display: inline-block;
+  animation: checkPulse 1.5s ease forwards;
+}
+
+@keyframes checkPulse {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  20% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+/* Micro-reflection — a brief one-line insight shown for ~2s after tapping
+   Done. Covers the composer and captures taps for those 2s so Done cannot
+   be re-tapped (it is also disabled), preventing any interaction during the
+   hold. Background tints the theme canvas via color-mix so it adapts to
+   light/dark mode. */
+.reflection-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--bg-base) 85%, transparent);
+  z-index: 10;
+}
+
+.reflection-text {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  font-style: italic;
+  color: var(--color-muted);
+  text-align: center;
+  padding: 0 2rem;
+  max-width: 80%;
+}
+
+/* ─── Writing toolbar "alive" states ───────────────────────────────
+   Mic, Tag, and Sparkle each carry a living state so the user can see at
+   a glance what the composer is doing. All are pure decorations — they
+   never capture taps or change layout. */
+
+/* Sparkle glow — subtle pulse when user pauses typing. The drop-shadow is
+   static (composited once) and the pulse animates transform + opacity only,
+   so no per-frame filter repaint happens. */
+.sparkle-glow {
+  filter: drop-shadow(0 0 6px rgba(139, 92, 246, 0.4));
+  animation: sparkleGlowPulse 2s ease-in-out infinite;
+}
+
+@keyframes sparkleGlowPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.08); }
+}
+
+/* Sparkle generating — spin */
+.sparkle-generating {
+  animation: sparkleSpin 1s linear infinite;
+}
+
+@keyframes sparkleSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* Mic recording — red pulse dot */
+.mic-pulse-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  background: #ef4444;
+  border-radius: 50%;
+  animation: micPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes micPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.3); }
+}
+
+/* Sparkle inline continuation strip — sits flush below the body textarea as a
+   native journal companion: hairline top border, tiny header, compact pills.
+   No card background, no shadow, no Dismiss button. */
+.sparkle-strip {
+  margin-top: 0.625rem;
+  border-top: 1px solid var(--color-border);
+  padding-top: 0.625rem;
+}
+
+.sparkle-strip-header {
+  font-size: 0.6875rem;
+  color: var(--color-muted);
+  margin-bottom: 0.5rem;
+}
+
+.sparkle-strip-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.sparkle-pill {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-primaryText);
+  font-size: 0.8125rem;
+  line-height: 1.2;
+  padding: 0.4375rem 0.8125rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease, transform 150ms ease;
+}
+
+.sparkle-pill:hover {
+  background: var(--color-accentSoft);
+  border-color: var(--color-accent);
+}
+
+.sparkle-pill:active {
+  transform: scale(0.97);
+}
+
 .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
 .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
 
+/* Adaptive keyboard (web/Capacitor): visual-viewport-driven shell height + flags.
+   --vvh is kept in sync with window.visualViewport by useAdaptiveKeyboard. */
+:root {
+  --vvh: 100dvh;
+  --kb-height: 0px;
+  --kb-open: 0;
+}
+
+/* Composer bottom spacing while a keyboard is open: 8dp gap + respect safe area. */
+.pb-composer-kb {
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+}
+
 body {
-  background-color: var(--bg-canvas);
+  background-color: var(--bg-base);
   color: var(--text-primary);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -208,4 +592,216 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-muted);
+}
+
+/* ─── Permission primer — onboarding motion vocabulary ──────────────────────
+   Built from the same primitives as the rest of the app: transform + opacity
+   ONLY (GPU-composited), decelerate easing on enter, and automatically
+   neutralised by the global `prefers-reduced-motion: reduce` override below. */
+
+@layer utilities {
+  /* Cards rise + fade in. `both` fill mode holds the from-state during the
+     stagger delay so nothing flashes before its turn. */
+  .animate-cardIn {
+    animation: cardIn 400ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  /* Header sparkle — a one-time rotate + scale "pop" on mount to signal magic. */
+  .animate-sparkleIn {
+    animation: sparkleIn 600ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+}
+
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sparkleIn {
+  0% {
+    opacity: 0;
+    transform: rotate(-40deg) scale(0.5);
+  }
+  60% {
+    opacity: 1;
+    transform: rotate(10deg) scale(1.12);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+/* Soft depth orb — a single, contained, 3%-opacity brand-purple haze in the
+   top-right of the primer only. Deliberately NOT on the global app canvas
+   (that stays flat per the design foundation); this is localised, light-theme
+   only, and removed entirely on dark where low-alpha colour reads as a blob. */
+.onboarding-orb {
+  position: absolute;
+  top: -96px;
+  right: -80px;
+  width: 300px;
+  height: 300px;
+  border-radius: 9999px;
+  background: var(--accent-purple);
+  opacity: 0.03;
+  filter: blur(100px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+html[data-theme="dark"] .onboarding-orb {
+  display: none;
+}
+
+/* ── Auth screen depth orbs ───────────────────────────────────────────────
+   Two contained, low-opacity brand-purple hazes that give the auth canvas a
+   sense of "room" without repainting the flat app background. Light-theme
+   only (per the flat-canvas foundation); disabled on dark. */
+.auth-orb {
+  position: absolute;
+  border-radius: 9999px;
+  pointer-events: none;
+  z-index: 0;
+}
+.auth-orb--tr {
+  top: -90px;
+  right: -90px;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(108, 77, 202, 0.04) 0%, transparent 70%);
+  filter: blur(60px);
+}
+html[data-theme="dark"] .auth-orb {
+  display: none;
+}
+
+/* ── Auth screen: living, creative atmosphere ──────────────────────────────
+   Built on the app's motion foundation: transform/opacity only, GPU-composited,
+   and neutralised for reduced-motion users by the global rule at the bottom of
+   this file. Orbs stay light-theme-only (per the flat-canvas foundation). */
+
+/* A mirrored orb in the bottom-left for balanced ambient depth. */
+.auth-orb--bl {
+  bottom: -120px;
+  left: -110px;
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, rgba(94, 64, 192, 0.05) 0%, transparent 70%);
+  filter: blur(70px);
+  animation: orbDrift 19s ease-in-out infinite;
+}
+.auth-orb--tr {
+  animation: orbDriftAlt 22s ease-in-out infinite;
+}
+
+@keyframes orbDrift {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(16px, -12px, 0) scale(1.06); }
+}
+@keyframes orbDriftAlt {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-14px, 14px, 0) scale(1.05); }
+}
+
+/* Staggered entrance for the welcome hero — a calm rise into place. */
+.rise-in {
+  opacity: 0;
+  animation: riseIn 600ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.rise-1 { animation-delay: 90ms; }
+.rise-2 { animation-delay: 200ms; }
+.rise-3 { animation-delay: 310ms; }
+.rise-4 { animation-delay: 420ms; }
+.rise-5 { animation-delay: 520ms; }
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Auth micro-interactions ────────────────────────────────────────────── */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+.animate-shake {
+  animation: shake 300ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes checkPop {
+  0% { opacity: 0; transform: scale(0.4); }
+  60% { opacity: 1; transform: scale(1.15); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.animate-checkPop {
+  animation: checkPop 400ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 0.75; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+.animate-breathe {
+  animation: breathe 4s ease-in-out infinite;
+}
+
+/* Slow, gentle pulse so the brand sparkle reads as alive, not a placeholder. */
+@keyframes sparklePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+.animate-sparklePulse {
+  animation: sparklePulse 3s ease-in-out infinite;
+}
+
+/* "Sign in" link — underline grows in from the left on hover/focus. */
+.link-underline-grow {
+  position: relative;
+}
+.link-underline-grow::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  height: 1.5px;
+  width: 100%;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.link-underline-grow:hover::after,
+.link-underline-grow:focus-visible::after,
+.link-underline-grow:active::after {
+  transform: scaleX(1);
+}
+
+/* ── Labeled auth input fields ──────────────────────────────────────────────
+   Defined as plain CSS (not Tailwind variant utilities) so the focus/hover and
+   error states are guaranteed to apply regardless of JIT scanning. The wrapper
+   carries `.labeled-field` (+ `.is-error` when invalid); the border colour, the
+   focus ring, and the error ring are all resolved here.
+   - Default: 1.5px #E0DDD6 hairline, solid.
+   - Focus-within: brand #6C4DCA border + soft 4px ring.
+   - Error: red border + red ring. */
+.labeled-field {
+  border-style: solid;
+  border-color: #e0ddd6;
+}
+.labeled-field:focus-within {
+  border-color: #6c4dca;
+  box-shadow: 0 0 0 4px rgba(108, 77, 202, 0.08);
+}
+.labeled-field.is-error {
+  border-color: #c53030;
+  box-shadow: 0 0 0 4px rgba(197, 48, 48, 0.1);
 }

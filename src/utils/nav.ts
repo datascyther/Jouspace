@@ -9,6 +9,8 @@
 export type Screen = 'home' | 'journal' | 'memory' | 'ai' | 'profile';
 export type NavTab = 'home' | 'journal' | 'write' | 'memory' | 'ai';
 
+import { queueUserPrefsSync } from '../lib/supabaseUserPrefs';
+
 export interface NavState {
   screen: Screen;
   tab: NavTab;
@@ -51,4 +53,5 @@ export function writeStoredNav(
   } catch {
     /* ignore storage failure (private mode, quota, etc.) */
   }
+  void queueUserPrefsSync();
 }

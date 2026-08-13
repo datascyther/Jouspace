@@ -20,7 +20,7 @@ export const IconButton: React.FC<IconButtonProps> = ({
       type="button"
       onClick={onClick}
       aria-label={ariaLabel}
-      className={`relative p-2.5 min-w-11 min-h-11 flex items-center justify-center text-primaryText hover:text-accent rounded-full transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 ${className}`}
+      className={`relative p-2.5 min-w-11 min-h-11 flex items-center justify-center text-primaryText hover:text-accent hover:bg-elevated rounded-full transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 ${className}`}
     >
       {icon}
       {badge && (

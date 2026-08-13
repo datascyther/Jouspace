@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
+import { queueUserPrefsSync } from '../lib/supabaseUserPrefs';
 
 export type Theme = 'light' | 'dark' | 'system';
 
 const THEME_KEY = 'jouspace:theme';
 
-const LIGHT_CANVAS = '#F7F6F3';
-const DARK_CANVAS = '#15151A';
+const LIGHT_BASE = '#F5F3EF';
+const DARK_BASE = '#1A1A1E';
 
 function systemPrefersDark(): boolean {
   if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
@@ -29,7 +30,7 @@ export function applyTheme(resolved: 'light' | 'dark'): void {
   document.documentElement.dataset.theme = resolved;
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) {
-    meta.setAttribute('content', resolved === 'dark' ? DARK_CANVAS : LIGHT_CANVAS);
+    meta.setAttribute('content', resolved === 'dark' ? DARK_BASE : LIGHT_BASE);
   }
 }
 
@@ -64,6 +65,7 @@ export function useTheme(): {
   const setTheme = useCallback((next: Theme) => {
     localStorage.setItem(THEME_KEY, next);
     setThemeState(next);
+    void queueUserPrefsSync();
   }, []);
 
   return { theme, resolvedTheme, setTheme };

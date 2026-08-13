@@ -11,8 +11,14 @@ export interface Draft {
   title: string;
   body: string;
   theme: string;
+  /** Selected Space id ('journal' | 'note' | 'gratitude' | 'release' | 'custom'). */
+  spaceId?: string;
+  /** Custom theme id when a "Create your own theme" space is active. */
+  customThemeId?: string;
   savedAt: number;
 }
+
+import { queueUserPrefsSync } from '../lib/supabaseUserPrefs';
 
 const DRAFT_STORAGE_KEY = 'jouspace:journal:draft';
 
@@ -35,6 +41,11 @@ export function readDraft(storage: ReadableStorage = localStorage): Draft | null
         title: parsed.title,
         body: parsed.body,
         theme: parsed.theme,
+        spaceId: typeof parsed.spaceId === 'string' ? parsed.spaceId : undefined,
+        customThemeId:
+          typeof parsed.customThemeId === 'string'
+            ? parsed.customThemeId
+            : undefined,
         savedAt: typeof parsed.savedAt === 'number' ? parsed.savedAt : Date.now(),
       };
     }
@@ -54,6 +65,7 @@ export function writeDraft(
   } catch {
     /* ignore storage failure (private mode, quota, etc.) */
   }
+  void queueUserPrefsSync();
 }
 
 /** Remove the persisted draft (called after the entry is saved). */
@@ -63,4 +75,5 @@ export function clearDraft(storage: RemovableStorage = localStorage): void {
   } catch {
     /* ignore storage failure */
   }
+  void queueUserPrefsSync();
 }

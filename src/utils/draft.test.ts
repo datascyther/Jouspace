@@ -19,6 +19,34 @@ describe('writeDraft / readDraft', () => {
     expect(readDraft(storage)).toEqual(draft);
   });
 
+  it('round-trips a draft with a Space + custom theme', () => {
+    const storage = makeStorage();
+    const draft: Draft = {
+      title: 't',
+      body: 'b',
+      theme: 'my_morning',
+      spaceId: 'custom',
+      customThemeId: 'my_morning',
+      savedAt: 1,
+    };
+    writeDraft(draft, storage);
+    expect(readDraft(storage)).toEqual(draft);
+  });
+
+  it('tolerates a legacy payload without spaceId/customThemeId', () => {
+    const storage = makeStorage({
+      'jouspace:journal:draft': JSON.stringify({ title: 'T', body: 'B', theme: 'clarity', savedAt: 1 }),
+    });
+    expect(readDraft(storage)).toEqual({
+      title: 'T',
+      body: 'B',
+      theme: 'clarity',
+      spaceId: undefined,
+      customThemeId: undefined,
+      savedAt: 1,
+    });
+  });
+
   it('returns null when nothing is stored', () => {
     expect(readDraft(makeStorage())).toBeNull();
   });

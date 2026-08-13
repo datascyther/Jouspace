@@ -10,7 +10,7 @@
  * DB call leaves every downstream layer unchanged.
  */
 
-import type { JouspaceContext, JournalEntry } from '../types.js';
+import type { JouspaceContext, JournalEntry, ClientProfile } from '../types.js';
 
 // ── Seed data ─────────────────────────────────────────────────────────────────
 // Mirrors DEFAULT_RECENT_ENTRIES and DEFAULT_PROFILE from src/mockData.ts.
@@ -87,6 +87,12 @@ export interface ContextOptions {
    * journal. Falls back to SEED_ENTRIES when omitted or empty.
    */
   entries?: JournalEntry[];
+  /**
+   * Device-derived personalization profile sent by the client. When supplied,
+   * it overrides the hardcoded seed user (name/topThemes) and carries the
+   * distilled `personalization` notes for injection into the system prompt.
+   */
+  profile?: ClientProfile;
 }
 
 /**
@@ -106,16 +112,26 @@ export async function assembleContext(
   capability: string,
   options: ContextOptions = {}
 ): Promise<JouspaceContext> {
-  const { maxEntries = 5, anchorEntryId, anchorInsight, entries } = options;
+  const { maxEntries = 5, anchorEntryId, anchorInsight, entries, profile } = options;
 
   // Use the client's real entries when provided; otherwise fall back to seed.
   const source = entries && entries.length > 0 ? entries : SEED_ENTRIES;
   const recent = source.slice(0, maxEntries);
 
+  // Local-first personalization: when the client supplies a profile, it
+  // overrides the hardcoded seed identity. The runtime stays stateless — it
+  // never stores this; it's replayed from the device on every request.
+  const userName = profile?.userName?.trim() || SEED_USER.userName;
+  const topThemes =
+    profile?.topThemes && profile.topThemes.length > 0
+      ? profile.topThemes
+      : SEED_USER.topThemes;
+
   const context: JouspaceContext = {
-    userName: SEED_USER.userName,
-    topThemes: SEED_USER.topThemes,
+    userName,
+    topThemes,
     recentEntries: recent,
+    personalization: profile?.personalization?.trim() || undefined,
   };
 
   // Reflection capability adds an anchor

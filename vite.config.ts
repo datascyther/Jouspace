@@ -24,6 +24,10 @@ export default defineConfig({
       "/api": {
         target: "http://localhost:3001",
         changeOrigin: true,
+        // Never kill a slow AI stream before it reaches the browser. The 9-minute
+        // server-side ceiling in StreamController is the real upper bound.
+        timeout: 0,
+        proxyTimeout: 0,
       },
     },
   },

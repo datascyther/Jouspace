@@ -1,17 +1,20 @@
 import React from 'react';
+import { AppBackground } from './AppBackground';
 
 interface AppScreenProps {
   children: React.ReactNode;
-  showStatusBar?: boolean;
   className?: string;
   isOffline?: boolean;
+  /** Overlays (modals/drawers/toasts) rendered INSIDE the phone frame so their
+   *  backdrops are clipped to the app container instead of the browser viewport. */
+  overlays?: React.ReactNode;
 }
 
 export const AppScreen: React.FC<AppScreenProps> = ({
   children,
-  showStatusBar = true,
   className = '',
   isOffline = false,
+  overlays,
 }) => {
   return (
     <div className="w-full flex flex-col items-center selection:bg-accent/15">
@@ -23,35 +26,25 @@ export const AppScreen: React.FC<AppScreenProps> = ({
       )}
 
       {/* Mobile Prison — single centered column, max 430px.
-          Fills the viewport on mobile; floats as a phone on desktop. */}
+          Fills the viewport on mobile; floats as a phone on desktop.
+          `h-dvh` pins the frame to the viewport height so it never grows
+          taller than the screen (otherwise the BODY becomes the scroll
+          container and the background can scroll/move behind overlays instead
+          of staying frozen). Screens scroll via their own `flex-1 min-h-0
+          overflow-y-auto` containers. */}
       <div
-        className={`relative w-full max-w-[430px] mx-auto min-h-screen bg-background flex flex-col overflow-hidden md:h-[880px] md:rounded-[40px] md:border md:border-black/10 md:shadow-2xl ${className}`}
+        className={`relative isolate w-full max-w-[430px] mx-auto h-(--vvh) bg-base flex flex-col overflow-hidden md:h-[880px] md:rounded-[40px] md:border md:border-borderSubtle md:shadow-2xl ${className}`}
       >
-        {showStatusBar && (
-          <div className="flex items-center justify-between px-7 pt-safe pt-3 pb-1 text-[13px] font-semibold text-primaryText select-none tracking-tight shrink-0">
-            <span>9:41</span>
-            <div className="flex items-center gap-1.5 text-primaryText">
-              <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor">
-                <rect x="0" y="7" width="2.5" height="4" rx="0.5" />
-                <rect x="4.5" y="5" width="2.5" height="6" rx="0.5" />
-                <rect x="9" y="2.5" width="2.5" height="8.5" rx="0.5" />
-                <rect x="13.5" y="0" width="2.5" height="11" rx="0.5" />
-              </svg>
-              <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor">
-                <path d="M7.5 10.5C8.05228 10.5 8.5 10.0523 8.5 9.5C8.5 8.94772 8.05228 8.5 7.5 8.5C6.94772 8.5 6.5 8.94772 6.5 9.5C6.5 10.0523 6.94772 10.5 7.5 10.5Z" />
-                <path d="M4.67157 6.67157C6.23367 5.10948 8.76633 5.10948 10.3284 6.67157L11.7426 5.25736C9.39949 2.91421 5.60051 2.91421 3.25736 5.25736L4.67157 6.67157Z" />
-                <path d="M1.84315 3.84315C4.96734 0.718953 10.0327 0.718953 13.1569 3.84315L14.5711 2.42893C10.6658 -1.47631 4.33418 -1.47631 0.428932 2.42893L1.84315 3.84315Z" />
-              </svg>
-              <div className="w-5 h-2.5 border border-primaryText rounded-[3px] p-px flex items-center">
-                <div className="w-3.5 h-full bg-primaryText rounded-[1px]" />
-              </div>
-            </div>
-          </div>
-        )}
+        {/* The app's one painted canvas. Everything below must sit at z-10 or
+            higher: a positioned z-index:0 layer paints ABOVE in-flow content. */}
+        <AppBackground />
 
-        <div className="flex-1 flex flex-col overflow-hidden min-h-0">
+        <div className="relative z-10 flex-1 flex flex-col overflow-hidden min-h-0">
           {children}
         </div>
+
+        {/* Overlays rendered inside the frame so they stay clipped to the app */}
+        {overlays}
       </div>
     </div>
   );

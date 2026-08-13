@@ -10,6 +10,7 @@
  */
 
 import type { ModelMessage, GatewayStreamChunk } from '../types.js';
+import type { ReasoningProfile } from '../reasoning.js';
 
 export interface ModelGateway {
   /**
@@ -22,8 +23,15 @@ export interface ModelGateway {
    * by the implementation — they must never appear in yielded chunks.
    *
    * @param messages  Full conversation history including system prompt
+   * @param opts.reasoning  Adaptive reasoning depth; the gateway maps this to
+   *                        provider-specific params. Defaults to 'balanced'.
+   * @param opts.signal     Optional AbortSignal to cancel the upstream request
+   *                        when the client disconnects.
    */
-  streamCompletion(messages: ModelMessage[]): AsyncIterable<GatewayStreamChunk>;
+  streamCompletion(
+    messages: ModelMessage[],
+    opts?: { reasoning?: ReasoningProfile; signal?: AbortSignal }
+  ): AsyncIterable<GatewayStreamChunk>;
 }
 
 // Re-export types so consumers only need to import from gateway/

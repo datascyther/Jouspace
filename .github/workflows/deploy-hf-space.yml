@@ -1,0 +1,34 @@
+name: Deploy HF Space
+
+# Runs our existing scripts/deploy-hf-space.mjs on GitHub's infrastructure
+# (which is NOT behind the local proxy that strips auth headers), using the
+# HF_TOKEN repo secret. Manual trigger only.
+on:
+  workflow_dispatch:
+    inputs:
+      space_name:
+        description: 'Hugging Face Space name (URL becomes <user>-<name>.hf.space)'
+        required: false
+        default: 'jouspace-runtime'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install deploy dependency (isolated in scripts/)
+        run: npm install @huggingface/hub@^0.16.0 --prefix scripts --no-audit --no-fund
+
+      - name: Deploy to Hugging Face Spaces
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_USERNAME: jouspace
+          HF_SPACE_NAME: ${{ inputs.space_name }}
+        run: node scripts/deploy-hf-space.mjs

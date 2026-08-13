@@ -25,6 +25,11 @@ export interface JouspaceContext {
   anchorInsight?: string;
   /** For reflection capability: the entry being reflected on */
   anchorEntry?: JournalEntry;
+  /**
+   * Device-derived personalization notes (treated as DATA, not instructions).
+   * Injected into the system prompt inside a clearly-labeled block.
+   */
+  personalization?: string;
 }
 
 // ── Model-layer message (provider-agnostic) ───────────────────────────────────
@@ -38,7 +43,7 @@ export interface ModelMessage {
 
 // ── Capability types ──────────────────────────────────────────────────────────
 
-export type Capability = 'chat' | 'reflect' | 'insight' | 'summarize' | 'search';
+export type Capability = 'chat' | 'reflect' | 'insight' | 'summarize' | 'memory';
 
 // ── Gateway streaming chunk ───────────────────────────────────────────────────
 
@@ -49,27 +54,16 @@ export interface GatewayStreamChunk {
   done: boolean;
 }
 
-// ── Capability request payloads (validated at route layer) ────────────────────
+// ── Personalization profile (client-supplied, device-derived) ──────────────────
+// Sent on every AI request so the stateless runtime can feel personal without
+// ever storing per-user state. `personalization` is treated as DATA, not
+// instructions (see PromptAssembler), to limit indirect prompt-injection.
 
-export interface ChatRequest {
-  capability: 'chat';
-  messages: ModelMessage[];
-  context?: {
-    entryId?: string;
-  };
+export interface ClientProfile {
+  userName?: string;
+  topThemes?: string[];
+  personalization?: string;
 }
-
-export interface ReflectRequest {
-  capability: 'reflect';
-  /** The AI insight text being reflected on */
-  insight: string;
-  /** Optional follow-up thought from the user */
-  userThought?: string;
-  /** Prior turns in this reflection session */
-  history?: ModelMessage[];
-}
-
-export type CapabilityRequest = ChatRequest | ReflectRequest;
 
 // ── SSE event shape sent to the frontend ─────────────────────────────────────
 

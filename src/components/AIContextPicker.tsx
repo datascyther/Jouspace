@@ -1,6 +1,7 @@
 import React, { useId, useRef } from 'react';
 import { X, BookOpen, Layers, Sparkles } from 'lucide-react';
 import { useFocusTrap } from '../hooks/useFocusTrap';
+import { useAnimatedPresence } from '../hooks/useAnimatedPresence';
 
 export const CONTEXT_ITEMS = [
   { id: '1', icon: Sparkles, label: 'Morning reflections', type: 'Thread' },
@@ -33,25 +34,40 @@ export const AIContextPicker: React.FC<AIContextPickerProps> = ({
     containerRef: pickerRef,
   });
 
-  if (!isOpen) return null;
+  // Exit-safe: stay mounted through the exit transition so the sheet slides
+  // down and the backdrop fades before the DOM is removed (no instant flicker).
+  const { present, closing, entered } = useAnimatedPresence(isOpen, 300);
+  if (!present) return null;
+
+  const backdropClass = closing
+    ? 'gpu-layer backdrop-exit backdrop-exit-active transition-exit'
+    : entered
+      ? 'gpu-layer backdrop-enter backdrop-enter-active transition-enter'
+      : 'gpu-layer backdrop-enter transition-enter';
+
+  const panelClass = closing
+    ? 'sheet-exit sheet-exit-active transition-exit gpu-layer'
+    : entered
+      ? 'sheet-enter-active transition-enter gpu-layer'
+      : 'sheet-enter transition-enter gpu-layer';
 
   return (
-    <div ref={pickerRef} className={`fixed inset-0 z-50 flex items-end justify-center ${className}`}>
+    <div ref={pickerRef} className={`absolute inset-0 z-50 flex items-end justify-center ${className}`}>
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-primaryText/30 animate-fadeIn"
+        className={`absolute inset-0 bg-primaryText/30 ${backdropClass}`}
         onClick={onClose}
       />
 
       {/* Sheet */}
       <div
         role="dialog"
-        aria-modal="true"
+        aria-modal={!closing}
         aria-label="Change context"
-        className="relative w-full max-w-[430px] bg-surface rounded-t-[28px] px-6 pt-4 pb-8 animate-slideUp"
+        className={`relative w-full max-w-[430px] bg-surface rounded-t-[28px] px-6 pt-4 pb-8 ${panelClass}`}
       >
         {/* Handle */}
-        <div className="w-9 h-1 rounded-full bg-border mx-auto mb-4" />
+        <div className="w-9 h-1 rounded-full bg-borderSubtle mx-auto mb-4" />
 
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
@@ -62,7 +78,7 @@ export const AIContextPicker: React.FC<AIContextPickerProps> = ({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="w-8 h-8 rounded-full bg-background flex items-center justify-center text-secondaryText hover:bg-border transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-full bg-base flex items-center justify-center text-secondaryText hover:bg-borderSubtle transition-all duration-150 active:scale-95 cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -79,8 +95,8 @@ export const AIContextPicker: React.FC<AIContextPickerProps> = ({
                 type="button"
                 onClick={() => onSelectContext?.(item.id)}
                 aria-pressed={isActive}
-                className={`flex items-center gap-3.5 w-full text-left rounded-[14px] px-4 py-3.5 transition-colors focus:outline-none focus:ring-2 focus:ring-accent/20 cursor-pointer ${
-                  isActive ? 'bg-accentSoft' : 'bg-background hover:bg-accentSoft'
+                className={`flex items-center gap-3.5 w-full text-left rounded-[14px] px-4 py-3.5 transition-all duration-150 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-accent/20 cursor-pointer ${
+                  isActive ? 'bg-accentSoft' : 'bg-base hover:bg-accentSoft'
                 }`}
               >
                 <div className="w-9 h-9 rounded-full bg-accentSoft flex items-center justify-center shrink-0">

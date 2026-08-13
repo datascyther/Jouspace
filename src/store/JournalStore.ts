@@ -37,7 +37,7 @@ export interface JournalStore {
   /** Create (no id) or update (with id) an entry. Returns the stored entry. */
   save(input: NewEntryInput): StoredEntry;
   remove(id: string): boolean;
-  /** Seed demo entries (used only by the Settings "Load sample data" action). */
+  /** Seed demo entries (used only by the Profile "Load sample data" action). */
   loadDemo(entries: StoredEntry[]): void;
   /** Return a serializable snapshot of all entries. */
   exportAll(): JournalExport;

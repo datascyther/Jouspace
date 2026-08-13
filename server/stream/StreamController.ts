@@ -65,13 +65,35 @@ function writeError(res: Response, message: string): void {
 export async function streamToClient(
   req: Request,
   res: Response,
-  source: AsyncIterable<GatewayStreamChunk>
+  source: AsyncIterable<GatewayStreamChunk>,
+  // Upstream abort controller owned by the route. Aborting it cancels the
+  // in-flight NVIDIA call (frees the model, lets the ceiling work). It is NOT
+  // req.signal — Express's req.signal is already aborted on arrival in this
+  // runtime, which would abort every request instantly.
+  upstreamAbort?: AbortController
 ): Promise<void> {
   let clientDisconnected = false;
 
   req.on('close', () => {
     clientDisconnected = true;
+    upstreamAbort?.abort();
   });
+
+  // ── Heartbeat ──────────────────────────────────────────────────────────────
+  // Keep the browser + Vite proxy from dropping the SSE across a long silent
+  // "thinking" gap. An SSE comment line (`: keep-alive`) is ignored by clients
+  // and by our frontend parser (parseSSELine drops non-`data:` lines).
+  const keepAlive = setInterval(() => {
+    if (res.writableEnded) return;
+    res.write(': keep-alive\n\n');
+  }, 15_000);
+
+  // ── Hard ceiling ───────────────────────────────────────────────────────────
+  // No infinite hang if NVIDIA truly stalls. Abort the upstream call; the
+  // generator throws, which the catch below turns into a clean close.
+  const ceiling = setTimeout(() => {
+    upstreamAbort?.abort();
+  }, 9 * 60_000);
 
   try {
     for await (const chunk of source) {
@@ -96,5 +118,8 @@ export async function streamToClient(
     if (!res.writableEnded) {
       writeError(res, 'Intelligence stream interrupted. Please try again.');
     }
+  } finally {
+    clearInterval(keepAlive);
+    clearTimeout(ceiling);
   }
 }

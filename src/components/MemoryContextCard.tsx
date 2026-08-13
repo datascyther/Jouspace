@@ -25,7 +25,7 @@ export const MemoryContextCard: React.FC<MemoryContextCardProps> = ({
 }) => {
   return (
     <div
-      className={`bg-surface rounded-3xl border border-border p-6 text-primaryText flex flex-col gap-3 ${className}`}
+      className={`bg-surface rounded-3xl border border-borderSubtle p-6 text-primaryText flex flex-col gap-3 ${className}`}
     >
       {/* Top Label */}
       <MemoryLabel text={label} />
