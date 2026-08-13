@@ -39,24 +39,53 @@ jobs:
           cache: npm
 
       - name: Install web app dependencies
-        run: npm ci
+        # No root package-lock.json is committed, so `npm ci` would fail; use
+        # `npm install` instead.
+        run: npm install
 
       - name: Build web app (single-file dist)
         # RUNTIME_URL (repo secret) bakes the hosted runtime URL into the APK so
         # the installed app reaches Jouspace Intelligence over HTTPS by default.
         # A user-supplied Profile URL still overrides this for dev/self-hosting.
+        # Falls back to the deployed worker URL when the secret is unset.
         env:
-          VITE_API_BASE_URL: ${{ secrets.RUNTIME_URL }}
+          VITE_API_BASE_URL: ${{ secrets.RUNTIME_URL || 'https://jouspace-runtime.jouspace.workers.dev' }}
         run: npm run build
 
       - name: Install Capacitor + Android platform
-        run: npm i -D @capacitor/cli @capacitor/core @capacitor/android
+        # Pin to v6 to match @capacitor/core ^6.1.0 in dependencies.
+        run: npm i -D @capacitor/cli@^6 @capacitor/android@^6
 
       - name: Add Android platform
         run: npx cap add android
 
       - name: Sync web assets into native shell
         run: npx cap sync android
+
+      - name: Declare native permissions (mic, notifications, wake lock)
+        # capacitor.config.ts warns these must be declared natively or the OS
+        # refuses runtime requests. Insert before </manifest> only if absent.
+        run: |
+          python3 - <<'PY'
+          import re, pathlib
+          m = pathlib.Path('android/app/src/main/AndroidManifest.xml')
+          src = m.read_text()
+          perms = [
+            'android.permission.RECORD_AUDIO',
+            'android.permission.POST_NOTIFICATIONS',
+            'android.permission.WAKE_LOCK',
+          ]
+          inserts = '\n'.join(
+            f'    <uses-permission android:name="{p}" />'
+            for p in perms if f'"{p}"' not in src
+          )
+          if inserts:
+            src = src.replace('</manifest>', inserts + '\n</manifest>', 1)
+            m.write_text(src)
+            print('added permissions:\n' + inserts)
+          else:
+            print('permissions already present')
+          PY
 
       - name: Decode signing keystore (if provided)
         if: ${{ env.KEYSTORE != '' }}
