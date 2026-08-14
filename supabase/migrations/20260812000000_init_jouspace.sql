@@ -149,79 +149,107 @@ alter table public.personalization  enable row level security;
 alter table public.user_prefs       enable row level security;
 
 -- profiles (PK = user id)
+drop policy if exists profiles_select_own on public.profiles;
 create policy profiles_select_own on public.profiles
   for select to authenticated using ((select auth.uid()) = id);
+drop policy if exists profiles_insert_own on public.profiles;
 create policy profiles_insert_own on public.profiles
   for insert to authenticated with check ((select auth.uid()) = id);
+drop policy if exists profiles_update_own on public.profiles;
 create policy profiles_update_own on public.profiles
   for update to authenticated
     using ((select auth.uid()) = id) with check ((select auth.uid()) = id);
+drop policy if exists profiles_delete_own on public.profiles;
 create policy profiles_delete_own on public.profiles
   for delete to authenticated using ((select auth.uid()) = id);
 
 -- journal_entries (FK user_id)
+drop policy if exists journal_select_own on public.journal_entries;
 create policy journal_select_own on public.journal_entries
   for select to authenticated using ((select auth.uid()) = user_id);
+drop policy if exists journal_insert_own on public.journal_entries;
 create policy journal_insert_own on public.journal_entries
   for insert to authenticated with check ((select auth.uid()) = user_id);
+drop policy if exists journal_update_own on public.journal_entries;
 create policy journal_update_own on public.journal_entries
   for update to authenticated
     using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+drop policy if exists journal_delete_own on public.journal_entries;
 create policy journal_delete_own on public.journal_entries
   for delete to authenticated using ((select auth.uid()) = user_id);
 
 -- custom_themes
+drop policy if exists custom_themes_select_own on public.custom_themes;
 create policy custom_themes_select_own on public.custom_themes
   for select to authenticated using ((select auth.uid()) = user_id);
+drop policy if exists custom_themes_insert_own on public.custom_themes;
 create policy custom_themes_insert_own on public.custom_themes
   for insert to authenticated with check ((select auth.uid()) = user_id);
+drop policy if exists custom_themes_update_own on public.custom_themes;
 create policy custom_themes_update_own on public.custom_themes
   for update to authenticated
     using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+drop policy if exists custom_themes_delete_own on public.custom_themes;
 create policy custom_themes_delete_own on public.custom_themes
   for delete to authenticated using ((select auth.uid()) = user_id);
 
 -- ai_chat_history (PK = user id)
+drop policy if exists ai_chat_select_own on public.ai_chat_history;
 create policy ai_chat_select_own on public.ai_chat_history
   for select to authenticated using ((select auth.uid()) = user_id);
+drop policy if exists ai_chat_insert_own on public.ai_chat_history;
 create policy ai_chat_insert_own on public.ai_chat_history
   for insert to authenticated with check ((select auth.uid()) = user_id);
+drop policy if exists ai_chat_update_own on public.ai_chat_history;
 create policy ai_chat_update_own on public.ai_chat_history
   for update to authenticated
     using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+drop policy if exists ai_chat_delete_own on public.ai_chat_history;
 create policy ai_chat_delete_own on public.ai_chat_history
   for delete to authenticated using ((select auth.uid()) = user_id);
 
 -- ai_context
+drop policy if exists ai_context_select_own on public.ai_context;
 create policy ai_context_select_own on public.ai_context
   for select to authenticated using ((select auth.uid()) = user_id);
+drop policy if exists ai_context_insert_own on public.ai_context;
 create policy ai_context_insert_own on public.ai_context
   for insert to authenticated with check ((select auth.uid()) = user_id);
+drop policy if exists ai_context_update_own on public.ai_context;
 create policy ai_context_update_own on public.ai_context
   for update to authenticated
     using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+drop policy if exists ai_context_delete_own on public.ai_context;
 create policy ai_context_delete_own on public.ai_context
   for delete to authenticated using ((select auth.uid()) = user_id);
 
 -- personalization
+drop policy if exists personalization_select_own on public.personalization;
 create policy personalization_select_own on public.personalization
   for select to authenticated using ((select auth.uid()) = user_id);
+drop policy if exists personalization_insert_own on public.personalization;
 create policy personalization_insert_own on public.personalization
   for insert to authenticated with check ((select auth.uid()) = user_id);
+drop policy if exists personalization_update_own on public.personalization;
 create policy personalization_update_own on public.personalization
   for update to authenticated
     using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+drop policy if exists personalization_delete_own on public.personalization;
 create policy personalization_delete_own on public.personalization
   for delete to authenticated using ((select auth.uid()) = user_id);
 
 -- user_prefs
+drop policy if exists user_prefs_select_own on public.user_prefs;
 create policy user_prefs_select_own on public.user_prefs
   for select to authenticated using ((select auth.uid()) = user_id);
+drop policy if exists user_prefs_insert_own on public.user_prefs;
 create policy user_prefs_insert_own on public.user_prefs
   for insert to authenticated with check ((select auth.uid()) = user_id);
+drop policy if exists user_prefs_update_own on public.user_prefs;
 create policy user_prefs_update_own on public.user_prefs
   for update to authenticated
     using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+drop policy if exists user_prefs_delete_own on public.user_prefs;
 create policy user_prefs_delete_own on public.user_prefs
   for delete to authenticated using ((select auth.uid()) = user_id);
 
