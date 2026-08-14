@@ -821,7 +821,9 @@ html[data-theme="dark"] .auth-orb {
    - Error: red border + red ring. */
 .labeled-field {
   border-style: solid;
-  border-color: #e0ddd6;
+  /* Uses the theme token so the hairline inverts in dark mode (light: warm
+     grey, dark: faint white). Was a hardcoded #e0ddd6 that stayed light-only. */
+  border-color: var(--color-borderSubtle);
 }
 .labeled-field:focus-within {
   border-color: #6c4dca;

@@ -335,15 +335,15 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed, onContinueWith
               </PrimaryButton>
 
               <div className="flex items-center gap-3 py-1 text-[12.5px] text-muted">
-                <span className="h-px flex-1 bg-[#E0DDD6]" />
+                <span className="h-px flex-1 bg-borderSubtle" />
                 or
-                <span className="h-px flex-1 bg-[#E0DDD6]" />
+                <span className="h-px flex-1 bg-borderSubtle" />
               </div>
 
               <PrimaryButton
                 gradient={false}
                 size="lg"
-                className="gap-2.5 tracking-[0.3px] bg-white! text-primary! border border-[#D9D6CF]! hover:bg-[#F4F2EE]! active:bg-[#ECEAE4]! shadow-[0_1px_3px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.04)]! hover:shadow-[0_2px_8px_rgba(0,0,0,0.1)]! w-full"
+                className="gap-2.5 tracking-[0.3px] bg-surface! text-primary! border border-borderSubtle! hover:bg-baseTint! active:bg-elevated! shadow-[0_1px_3px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.04)]! hover:shadow-[0_2px_8px_rgba(0,0,0,0.1)]! w-full"
                 disabled={loading}
                 onClick={() => handleOAuth('google')}
                 icon={
@@ -456,7 +456,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed, onContinueWith
 function WelcomeView({ onGetStarted, onSignIn, onContinueWithoutAccount }: { onGetStarted: () => void; onSignIn: () => void; onContinueWithoutAccount: () => void }) {
   return (
     <div className="text-center">
-      <div className="mb-5 inline-flex items-center gap-1.5 rounded-full border border-white/50 bg-white/40 px-3 py-1.5 text-accent backdrop-blur-md">
+      <div className="mb-5 inline-flex items-center gap-1.5 rounded-full border border-borderSubtle bg-surface/40 px-3 py-1.5 text-accent backdrop-blur-md">
         <TbSparkle className="h-4 w-4 -translate-y-px" aria-hidden="true" />
         <span className="text-[11px] font-semibold uppercase tracking-[1.2px]">Your private journal</span>
       </div>
@@ -514,7 +514,7 @@ function FormShell({
     <div>
       <div className="mb-2 text-[11px] font-semibold uppercase tracking-[1.2px] text-accent">{eyebrow}</div>
       <h1 className="mb-1.5 text-[26px] font-bold leading-[1.2] tracking-[-0.3px] text-primary">{title}</h1>
-      <p className="mb-7 max-w-[320px] text-[15px] font-normal leading-normal text-[#6b6b7b]">{subtitle}</p>
+      <p className="mb-7 max-w-[320px] text-[15px] font-normal leading-normal text-secondary">{subtitle}</p>
       <div className="flex flex-col gap-5">{children}</div>
     </div>
   );
@@ -540,13 +540,13 @@ function LabeledField({
   const inputId = useId();
   return (
     <div className={hasError ? 'animate-shake' : undefined}>
-      <label htmlFor={inputId} className="mb-2 block text-[14px] font-medium text-[#1a1a2e]">
+      <label htmlFor={inputId} className="mb-2 block text-[14px] font-medium text-primary">
         {label}
       </label>
       <div
-        className={`relative flex h-14 items-center rounded-[14px] bg-white border-[1.5px] px-4 transition-all duration-150 labeled-field ${hasError ? 'is-error' : ''}`}
+        className={`relative flex h-14 items-center rounded-[14px] bg-surface border-[1.5px] px-4 transition-all duration-150 labeled-field ${hasError ? 'is-error' : ''}`}
       >
-        <span className="mr-3 flex h-5 w-5 shrink-0 items-center justify-center text-[#9E9E9E]">{icon}</span>
+        <span className="mr-3 flex h-5 w-5 shrink-0 items-center justify-center text-muted">{icon}</span>
         <input
           id={inputId}
           type={type}
@@ -554,7 +554,7 @@ function LabeledField({
           autoComplete={autoComplete}
           onChange={(e) => onChange(e.target.value)}
           placeholder={label}
-          className="h-full w-full bg-transparent text-[16px] font-sans font-normal text-[#1a1a2e] placeholder:text-[15px] placeholder:text-[#B0B0B0] focus:outline-none"
+          className="h-full w-full bg-transparent text-[16px] font-sans font-normal text-primary placeholder:text-[15px] placeholder:text-muted focus:outline-none"
         />
       </div>
     </div>
@@ -578,13 +578,13 @@ function LabeledPasswordField({
   const inputId = useId();
   return (
     <div className={hasError ? 'animate-shake' : undefined}>
-      <label htmlFor={inputId} className="mb-2 block text-[14px] font-medium text-[#1a1a2e]">
+      <label htmlFor={inputId} className="mb-2 block text-[14px] font-medium text-primary">
         {label}
       </label>
       <div
-        className={`relative flex h-14 items-center rounded-[14px] bg-white border-[1.5px] px-4 transition-all duration-150 labeled-field ${hasError ? 'is-error' : ''}`}
+        className={`relative flex h-14 items-center rounded-[14px] bg-surface border-[1.5px] px-4 transition-all duration-150 labeled-field ${hasError ? 'is-error' : ''}`}
       >
-        <span className="mr-3 flex h-5 w-5 shrink-0 items-center justify-center text-[#9E9E9E]">
+        <span className="mr-3 flex h-5 w-5 shrink-0 items-center justify-center text-muted">
           <Lock className="h-5 w-5" />
         </span>
         <input
@@ -594,13 +594,13 @@ function LabeledPasswordField({
           autoComplete={autoComplete}
           onChange={(e) => onChange(e.target.value)}
           placeholder={label}
-          className="h-full w-full bg-transparent text-[16px] font-sans font-normal text-[#1a1a2e] placeholder:text-[15px] placeholder:text-[#B0B0B0] focus:outline-none"
+          className="h-full w-full bg-transparent text-[16px] font-sans font-normal text-primary placeholder:text-[15px] placeholder:text-muted focus:outline-none"
         />
         <button
           type="button"
           onClick={() => setShow((s) => !s)}
           aria-label={show ? 'Hide password' : 'Show password'}
-          className="ml-1 flex h-12 w-12 shrink-0 items-center justify-center text-[#9E9E9E] transition-colors hover:text-accent active:text-accent focus:outline-none"
+          className="ml-1 flex h-12 w-12 shrink-0 items-center justify-center text-muted transition-colors hover:text-accent active:text-accent focus:outline-none"
         >
           {show ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
         </button>
