@@ -1,6 +1,6 @@
 {
   "name": "jouspace-runtime-worker",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "private": true,
   "description": "Cloudflare Worker build of the Jouspace Intelligence Runtime (free, no card).",
   "type": "module",

@@ -1,6 +1,6 @@
 {
   "name": "jouspace-intelligence-runtime",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "private": true,
   "type": "module",
   "description": "Jouspace Intelligence Runtime — provider-agnostic AI orchestration layer",
