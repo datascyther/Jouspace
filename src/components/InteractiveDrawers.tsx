@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useId, useRef } from 'react';
 import { Entry } from './EntryRow';
-import { X, Sparkles, Send, Pencil, Trash2 } from 'lucide-react';
+import { X, Send, Pencil, Trash2 } from 'lucide-react';
+import { TbSparkle } from 'react-icons/tb';
 import { useJouspaceIntelligence } from '../hooks/useJouspaceIntelligence';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useAnimatedPresence } from '../hooks/useAnimatedPresence';
@@ -88,7 +89,7 @@ export const AIReflectDrawer: React.FC<AIReflectDrawerProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-borderSubtle">
           <div className="flex items-center gap-2 text-accent">
-            <Sparkles className="w-4 h-4 stroke-2" />
+            <TbSparkle className="w-4 h-4 stroke-2" />
             <span className="font-serif text-lg text-primaryText">AI Reflection</span>
           </div>
           <button

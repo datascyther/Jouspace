@@ -1,5 +1,6 @@
 import React from 'react';
-import { Bell, Sparkles, BookOpen, RefreshCw } from 'lucide-react';
+import { Bell, BookOpen, RefreshCw } from 'lucide-react';
+import { TbSparkle } from 'react-icons/tb';
 
 interface NotificationScreenProps {
   onBack?: () => void;
@@ -55,7 +56,7 @@ const NOTIFICATIONS: Notification[] = [
 const getIcon = (type: NotificationType) => {
   switch (type) {
     case 'memory':
-      return <Sparkles className="w-[18px] h-[18px] text-accent stroke-[1.8]" />;
+      return <TbSparkle className="w-[18px] h-[18px] text-accent stroke-[1.8]" />;
     case 'reflection':
       return <RefreshCw className="w-[18px] h-[18px] text-accent stroke-[1.8]" />;
     case 'thread':
