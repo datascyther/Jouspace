@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Jouspace brand background for adaptive icons (matches --bg-base light theme) -->
+    <!-- Jouspace brand background for adaptive icons (matches bg-base light theme) -->
     <color name="ic_launcher_background">#F5F3EF</color>
 </resources>
