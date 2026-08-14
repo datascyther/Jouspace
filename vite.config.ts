@@ -69,6 +69,7 @@ export default defineConfig(({ mode }) => {
     environmentOptions: {
       jsdom: { url: "http://localhost/" },
     },
+    include: ["src/**/*.{test,spec}.{ts,tsx}"],
     setupFiles: ["./src/test/setup.ts"],
     css: false,
   },
