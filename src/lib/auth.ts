@@ -14,7 +14,7 @@
  *    redirected back to (detectSessionInUrl), which fires onAuthStateChange.
  */
 
-import { supabase, isSupabaseConfigured, SUPABASE_REDIRECT_URL } from './supabaseClient';
+import { supabase, isSupabaseConfigured, getSupabaseRedirectUrl } from './supabaseClient';
 
 export interface AuthUser {
   id: string;
@@ -194,7 +194,7 @@ export async function signInWithMagicLink(
     return { ok: false, error: 'Enter a valid email address.' };
   const { error } = await supabase.auth.signInWithOtp({
     email: mail,
-    options: { emailRedirectTo: SUPABASE_REDIRECT_URL },
+    options: { emailRedirectTo: getSupabaseRedirectUrl() },
   });
   return error ? { ok: false, error: error.message } : { ok: true };
 }
@@ -207,7 +207,7 @@ export async function signInWithOAuth(
 ): Promise<AuthActionResult> {
   const { error } = await supabase.auth.signInWithOAuth({
     provider,
-    options: { redirectTo: SUPABASE_REDIRECT_URL },
+    options: { redirectTo: getSupabaseRedirectUrl() },
   });
   return error ? { ok: false, error: error.message } : { ok: true };
 }
@@ -239,7 +239,7 @@ export async function requestPasswordReset(
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail))
     return { ok: false, error: 'Enter a valid email address.' };
   const { error } = await supabase.auth.resetPasswordForEmail(mail, {
-    redirectTo: `${SUPABASE_REDIRECT_URL}/reset`,
+    redirectTo: `${getSupabaseRedirectUrl()}/reset`,
   });
   return error ? { ok: false, error: error.message } : { ok: true };
 }

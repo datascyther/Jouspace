@@ -141,7 +141,7 @@ export const PermissionPrimerScreen: React.FC<{ onComplete: () => void }> = ({ o
   };
 
   return (
-    <div className="relative flex-1 flex flex-col min-h-0 bg-base overflow-y-auto">
+    <div className="relative flex-1 flex flex-col min-h-0 bg-base overflow-y-auto overflow-x-hidden overscroll-contain">
       {/* Localised depth orb — light theme only, hidden on dark (see index.css). */}
       <div aria-hidden="true" className="onboarding-orb" />
 

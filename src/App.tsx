@@ -19,6 +19,7 @@ import { PermissionPrimerScreen } from './components/PermissionPrimerScreen';
 import { AuthScreen } from './components/AuthScreen';
 import { SearchScreen } from './components/SearchScreen';
 import { NotificationScreen } from './components/NotificationScreen';
+import { NotificationSettingsSheet } from './components/NotificationSettingsSheet';
 import { MemoryThreadScreen } from './components/MemoryThreadScreen';
 import { AIContextPicker, CONTEXT_ITEMS } from './components/AIContextPicker';
 import { normalizeTheme, themeLabel } from './components/ThemeChipGroup';
@@ -59,7 +60,7 @@ import { loadAiContext, saveAiContext } from './lib/supabaseAiContext';
 import { hydrateAllUserSync } from './lib/supabaseHydrate';
 import { queueUserPrefsSync } from './lib/supabaseUserPrefs';
 
-type Overlay = 'search' | 'memory-thread' | 'notifications' | null;
+type Overlay = 'search' | 'memory-thread' | 'notifications' | 'notification-settings' | null;
 
 const DAY_MS = 86_400_000;
 
@@ -703,6 +704,9 @@ export function App() {
                       onReflectWithAI={handleReflectWithAI}
                     />
                   )}
+                  {overlayScreen === 'notification-settings' && (
+                    <NotificationSettingsSheet onClose={handleCloseOverlay} />
+                  )}
                 </div>
               </div>
             )}
@@ -825,6 +829,7 @@ export function App() {
               isOffline={!online}
               onSave={setDisplayName}
               onOpenNotifications={() => setOverlayScreen('notifications')}
+              onOpenNotificationSettings={() => setOverlayScreen('notification-settings')}
               onOpenAppearance={() => setIsThemeSheetOpen(true)}
               onOpenInfo={handleOpenInfo}
               onExport={downloadJournalExport}

@@ -28,6 +28,9 @@ const config: CapacitorConfig = {
     // also set android:usesCleartextTraffic="true" in
     // android/app/src/main/AndroidManifest.xml.
     allowMixedContent: false,
+    // Use a custom URI scheme for OAuth callbacks (jouspace://).
+    // Registered in Supabase Dashboard → Auth → URL Configuration.
+    backgroundColor: '#F5F3EF',
   },
 
   server: {
@@ -35,6 +38,13 @@ const config: CapacitorConfig = {
     // avoids cleartext restrictions; matches the https://localhost origin we
     // allow in the runtime's CORS config.
     androidScheme: 'https',
+  },
+
+  plugins: {
+    App: {
+      // Handle deep links for OAuth callbacks (jouspace://)
+      // The supabase-js client detects the session from the URL fragment.
+    },
   },
 };
 

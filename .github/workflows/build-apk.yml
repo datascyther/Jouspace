@@ -52,6 +52,8 @@ jobs:
         # Falls back to the deployed worker URL when the secret is unset.
         env:
           VITE_API_BASE_URL: ${{ secrets.RUNTIME_URL || 'https://jouspace-runtime.jouspace.workers.dev' }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
         run: npm run build
 
       - name: Install Capacitor + Android platform
@@ -64,29 +66,89 @@ jobs:
       - name: Sync web assets into native shell
         run: npx cap sync android
 
+      - name: Apply custom Android icons and branding
+        # Copy pre-built adaptive icon XML + launcher PNGs from the repo into
+        # the generated android/ directory so the app ships with Jouspace
+        # branding instead of the default Capacitor icon.
+        # Uses the existing 192×192 PWA icon for all densities (Android
+        # downscales at runtime; the adaptive-icon foreground layer is vector).
+        run: |
+          cp -f android-resources/ic_launcher.xml        android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
+          cp -f android-resources/ic_launcher_round.xml  android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
+          cp -f android-resources/ic_launcher.xml        android/app/src/main/res/mipmap-anydpi-v33/ic_launcher.xml
+          cp -f android-resources/ic_launcher_round.xml  android/app/src/main/res/mipmap-anydpi-v33/ic_launcher_round.xml
+          cp -f android-resources/ic_launcher_foreground.xml android/app/src/main/res/drawable/ic_launcher_foreground.xml
+          # Use the existing PWA icon (192×192) as the raster fallback for
+          # all densities. Android downscales at runtime — a larger source
+          # is perfectly fine and avoids a resize-tool dependency.
+          for density in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
+            dst="android/app/src/main/res/mipmap-${density}"
+            if [ -d "$dst" ]; then
+              cp -f public/icon-192.png "$dst/ic_launcher.png"
+              cp -f public/icon-192.png "$dst/ic_launcher_round.png"
+            fi
+          done
+          # Merge ic_launcher_background colour into values/colors.xml
+          values_xml="android/app/src/main/res/values/colors.xml"
+          if [ -f "$values_xml" ] && ! grep -q 'ic_launcher_background' "$values_xml"; then
+            sed -i 's|</resources>|    <color name="ic_launcher_background">#F5F3EF</color>\n</resources>|' "$values_xml"
+          elif [ ! -f "$values_xml" ]; then
+            mkdir -p android/app/src/main/res/values
+            cp -f android-resources/colors.xml "$values_xml"
+          fi
+          echo "Custom Jouspace icons applied"
+
       - name: Declare native permissions (mic, notifications, wake lock)
         # capacitor.config.ts warns these must be declared natively or the OS
         # refuses runtime requests. Insert before </manifest> only if absent.
+        # Also adds a deep-link intent filter for jouspace:// so OAuth
+        # callbacks route back into the app after Supabase redirects.
         run: |
           python3 - <<'PY'
           import pathlib
           m = pathlib.Path('android/app/src/main/AndroidManifest.xml')
           src = m.read_text()
+
+          # ── Permissions ──
           perms = [
-            'android.permission.RECORD_AUDIO',
-            'android.permission.POST_NOTIFICATIONS',
-            'android.permission.WAKE_LOCK',
+              'android.permission.RECORD_AUDIO',
+              'android.permission.POST_NOTIFICATIONS',
+              'android.permission.WAKE_LOCK',
           ]
           inserts = '\n'.join(
-            f'    <uses-permission android:name="{p}" />'
-            for p in perms if f'"{p}"' not in src
+              f'    <uses-permission android:name="{p}" />'
+              for p in perms if f'"{p}"' not in src
           )
-          if inserts:
-            src = src.replace('</manifest>', inserts + '\n</manifest>', 1)
-            m.write_text(src)
-            print('added permissions:\n' + inserts)
+
+          # ── Deep-link intent filter for jouspace:// OAuth callbacks ──
+          intent_filter = '''
+          <intent-filter android:autoVerify="true">
+              <action android:name="android.intent.action.VIEW" />
+              <category android:name="android.intent.category.DEFAULT" />
+              <category android:name="android.intent.category.BROWSABLE" />
+              <data android:scheme="jouspace" />
+          </intent-filter>'''
+
+          if 'android.permission.RECORD_AUDIO' not in src:
+              src = src.replace('</manifest>', inserts + '\n</manifest>', 1)
+              print('added permissions:\n' + inserts)
+
+          if 'jouspace' not in src:
+              # Insert inside <activity> that has the MAIN/LAUNCHER filter
+              marker = '<category android:name="android.intent.category.LAUNCHER" />'
+              if marker in src:
+                  src = src.replace(
+                      marker,
+                      marker + '\n' + intent_filter,
+                      1,
+                  )
+                  print('added jouspace:// deep-link intent filter')
+              else:
+                  print('WARNING: could not find LAUNCHER category — skipping intent filter')
           else:
-            print('permissions already present')
+              print('intent filter already present')
+
+          m.write_text(src)
           PY
 
       - name: Set up JDK 17

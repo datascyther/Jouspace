@@ -1,5 +1,5 @@
 import React, { useState, useId } from 'react';
-import { Mail, Lock, User as UserIcon, ArrowLeft, Eye, EyeOff, CheckCircle2, Shield, Lock as LockIcon, Globe, Apple } from 'lucide-react';
+import { Mail, Lock, User as UserIcon, ArrowLeft, Eye, EyeOff, CheckCircle2, Shield, Lock as LockIcon } from 'lucide-react';
 import { TbSparkle } from 'react-icons/tb';
 import { RiPencilAi2Line } from 'react-icons/ri';
 import { PrimaryButton } from './PrimaryButton';
@@ -11,7 +11,6 @@ import {
   signIn,
   requestVerificationCode,
   requestPasswordReset,
-  signInWithMagicLink,
   signInWithOAuth,
 } from '../lib/auth';
 
@@ -29,7 +28,6 @@ interface AuthScreenProps {
  */
 export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed }) => {
   const [view, setView] = useState<View>('welcome');
-  const [dir, setDir] = useState<'fwd' | 'back'>('fwd');
   const [pending, setPending] = useState<AuthUser | null>(null);
   const [pendingOrigin, setPendingOrigin] = useState<'create' | 'signin'>('create');
   const [error, setError] = useState<string | null>(null);
@@ -50,9 +48,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed }) => {
     setResetSent(false);
   };
 
-  const go = (next: View, direction: 'fwd' | 'back' = 'fwd') => {
+  const go = (next: View, _direction: 'fwd' | 'back' = 'fwd') => {
     setError(null);
-    setDir(direction);
     setView(next);
   };
 
@@ -112,25 +109,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed }) => {
     setResetSent(true);
   };
 
-  const handleMagicLink = async () => {
-    if (!email.trim()) {
-      setError('Enter your email to receive a magic link.');
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    const res = await signInWithMagicLink(email);
-    setLoading(false);
-    if (!res.ok) {
-      setError(res.error);
-      return;
-    }
-    setPending({ ...currentFallbackUser(), email });
-    setPendingOrigin('signin');
-    go('verify', 'fwd');
-  };
-
-  const handleOAuth = async (provider: 'google' | 'apple') => {
+  const handleOAuth = async (provider: 'google') => {
     setError(null);
     const res = await signInWithOAuth(provider);
     if (!res.ok) setError(res.error);
@@ -150,7 +129,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed }) => {
   };
 
   return (
-    <div className="relative flex-1 flex flex-col min-h-0 bg-base overflow-y-auto">
+    <div className="relative flex-1 flex flex-col min-h-0 bg-base overflow-hidden overscroll-contain">
       {/* Ambient depth orbs — two contained, low-opacity brand-purple hazes that
           give the auth canvas a sense of room (light theme only; hidden on dark).
           They drift slowly for a living, creative atmosphere. */}
@@ -194,27 +173,31 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed }) => {
           {/* Brand lockup */}
           <div className="flex justify-center mb-10">
             <div className="relative grid place-items-center">
-              {/* Layered brand glow — translucent, blends into the background,
-                  matches the flower mark's accent purple. */}
+              {/* Outer ambient glow — wide, soft spread */}
               <div
                 aria-hidden
-                className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-28 w-28 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(108,77,202,0.55),rgba(108,77,202,0.12)_55%,transparent_75%)] blur-md"
+                className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(108,77,202,0.22),rgba(108,77,202,0.08)_50%,transparent_72%)] blur-2xl"
               />
+              {/* Mid-range glow ring */}
               <div
                 aria-hidden
-                className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-48 w-48 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(108,77,202,0.30),transparent_70%)] blur-xl"
+                className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(108,77,202,0.40),rgba(108,77,202,0.10)_60%,transparent_80%)] blur-xl"
               />
-              {/* Logo mark floating in the glow — no hard border, just a faint
-                  translucent rim and a soft accent halo. */}
+              {/* Inner tight glow — punchy core */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-28 w-28 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(108,77,202,0.60),rgba(108,77,202,0.15)_55%,transparent_75%)] blur-lg"
+              />
+              {/* Logo mark with layered purple glow depth */}
               <img
                 src={logoSrc}
                 alt=""
-                className="relative h-20 w-20 rounded-full object-cover shadow-[0_0_28px_-2px_rgba(108,77,202,0.6)] ring-1 ring-white/30"
+                className="relative h-20 w-20 rounded-full object-cover shadow-[0_0_32px_-2px_rgba(108,77,202,0.55),0_0_60px_-4px_rgba(108,77,202,0.3),inset_0_1px_2px_rgba(255,255,255,0.15)]"
               />
             </div>
           </div>
 
-          <div key={view} className={dir === 'fwd' ? 'animate-slideInRight' : 'animate-slideInLeft'}>
+          <div key={view}>
 
           {view === 'welcome' && (
             <WelcomeView onGetStarted={() => { resetForm(); go('create'); }} onSignIn={() => { resetForm(); go('signin'); }} />
@@ -318,36 +301,20 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed }) => {
               <PrimaryButton
                 gradient={false}
                 size="lg"
-                className="w-full tracking-[0.3px] !bg-white !text-primary border !border-[#D9D6CF] hover:!bg-[#F4F2EE] active:!bg-[#ECEAE4]"
-                disabled={loading || !email.trim()}
-                onClick={handleMagicLink}
-                icon={<Mail className="h-[18px] w-[18px]" />}
+                className="gap-2.5 tracking-[0.3px] bg-white! text-primary! border border-[#D9D6CF]! hover:bg-[#F4F2EE]! active:bg-[#ECEAE4]! shadow-[0_1px_3px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.04)]! hover:shadow-[0_2px_8px_rgba(0,0,0,0.1)]! w-full"
+                disabled={loading}
+                onClick={() => handleOAuth('google')}
+                icon={
+                  <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                  </svg>
+                }
               >
-                Email me a magic link
+                Continue with Google
               </PrimaryButton>
-
-              <div className="flex gap-3">
-                <PrimaryButton
-                  gradient={false}
-                  size="lg"
-                  className="flex-1 tracking-[0.3px] !bg-white !text-primary border !border-[#D9D6CF] hover:!bg-[#F4F2EE] active:!bg-[#ECEAE4]"
-                  disabled={loading}
-                  onClick={() => handleOAuth('google')}
-                  icon={<Globe className="h-[18px] w-[18px]" />}
-                >
-                  Google
-                </PrimaryButton>
-                <PrimaryButton
-                  gradient={false}
-                  size="lg"
-                  className="flex-1 tracking-[0.3px] !bg-white !text-primary border !border-[#D9D6CF] hover:!bg-[#F4F2EE] active:!bg-[#ECEAE4]"
-                  disabled={loading}
-                  onClick={() => handleOAuth('apple')}
-                  icon={<Apple className="h-[18px] w-[18px]" />}
-                >
-                  Apple
-                </PrimaryButton>
-              </div>
             </FormShell>
           )}
 
@@ -447,21 +414,21 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed }) => {
 function WelcomeView({ onGetStarted, onSignIn }: { onGetStarted: () => void; onSignIn: () => void }) {
   return (
     <div className="text-center">
-      <div className="rise-in rise-1 mb-5 inline-flex items-center gap-1.5 rounded-full border border-white/50 bg-white/40 px-3 py-1.5 text-accent backdrop-blur-md">
+      <div className="mb-5 inline-flex items-center gap-1.5 rounded-full border border-white/50 bg-white/40 px-3 py-1.5 text-accent backdrop-blur-md">
         <TbSparkle className="h-4 w-4 -translate-y-px" aria-hidden="true" />
         <span className="text-[11px] font-semibold uppercase tracking-[1.2px]">Your private journal</span>
       </div>
-      <h1 className="rise-in rise-2 mx-auto mb-4 max-w-[340px] font-serif text-[32px] font-bold leading-[1.22] tracking-[-0.3px] text-primary">
+      <h1 className="mx-auto mb-4 max-w-[340px] font-serif text-[32px] font-bold leading-[1.22] tracking-[-0.3px] text-primary">
         A calm space to write, reflect, and remember.
       </h1>
-      <p className="rise-in rise-3 mx-auto mb-10 max-w-[320px] text-[15px] font-normal leading-[1.6] text-secondary">
+      <p className="mx-auto mb-10 max-w-[320px] text-[15px] font-normal leading-[1.6] text-secondary">
         Your thoughts deserve a space that remembers — not a server that stores.
       </p>
 
       <PrimaryButton
         gradient={false}
         size="lg"
-        className="rise-in rise-4 bg-accent! hover:bg-accentHover! active:bg-accentActive! shadow-[0_4px_14px_rgba(108,77,202,0.3)]! active:shadow-[0_2px_8px_rgba(108,77,202,0.45)]! active:scale-[0.98]! disabled:opacity-50! w-full tracking-[0.3px]"
+        className="bg-accent! hover:bg-accentHover! active:bg-accentActive! shadow-[0_4px_14px_rgba(108,77,202,0.3)]! active:shadow-[0_2px_8px_rgba(108,77,202,0.45)]! active:scale-[0.98]! disabled:opacity-50! w-full tracking-[0.3px]"
         onClick={onGetStarted}
       >
         <span className="inline-flex items-center">
@@ -472,7 +439,7 @@ function WelcomeView({ onGetStarted, onSignIn }: { onGetStarted: () => void; onS
         </span>
       </PrimaryButton>
 
-      <div className="rise-in rise-5 mt-7 flex items-center justify-center gap-0.5 text-[15px] font-medium text-secondary">
+      <div className="mt-7 flex items-center justify-center gap-0.5 text-[15px] font-medium text-secondary">
         <span>Already have an account?</span>
         <TextAction onClick={onSignIn} className="px-0 text-[15px] font-medium text-accent! link-underline-grow">
           Sign in

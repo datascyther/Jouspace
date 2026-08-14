@@ -576,6 +576,32 @@ body {
   font-kerning: normal;
   text-size-adjust: 100%;
   -webkit-text-size-adjust: 100%;
+  /* Prevent overscroll / rubber-band on Android WebView.
+     The app's own scroll containers (flex-1 overflow-y-auto) handle
+     scrolling; the document itself must never scroll or bounce. */
+  overscroll-behavior: none;
+  overflow: hidden;
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* Prevent touch-dragging the whole page (like a native app). */
+  touch-action: manipulation;
+}
+
+/* Ensure the root div also prevents overscroll and page-dragging. */
+html {
+  overscroll-behavior: none;
+  overflow: hidden;
+  height: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#root {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: manipulation;
 }
 
 /* Custom scrollbar styling for desktop preview */

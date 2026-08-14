@@ -4,26 +4,47 @@ import { fileURLToPath } from "url";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
+import { loadEnv } from "vite";
 import { viteSingleFile } from "vite-plugin-singlefile";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Default Intelligence Runtime URL, baked into production builds so the AI chat
-// works out-of-the-box. Also feeds index.html's CSP `connect-src` via the
-// %VITE_API_BASE_URL% placeholder. Override with VITE_API_BASE_URL at build time
-// or the in-app Profile field at runtime.
-const RUNTIME_URL =
-  process.env.VITE_API_BASE_URL || 'https://jouspace-runtime.jouspace.workers.dev';
-
 // https://vite.dev/config/
-export default defineConfig({
-  plugins: [react(), tailwindcss(), viteSingleFile()],
-  // Ensure VITE_API_BASE_URL is always defined for both `import.meta.env` and the
-  // index.html %VITE_API_BASE_URL% replacement, even if not passed via env.
-  define: {
-    'import.meta.env.VITE_API_BASE_URL': JSON.stringify(RUNTIME_URL),
-  },
+export default defineConfig(({ mode }) => {
+  // Load .env values early so both `define` and the HTML plugin can use them.
+  const env = loadEnv(mode, process.cwd(), '');
+
+  const RUNTIME_URL =
+    env.VITE_API_BASE_URL || 'https://jouspace-runtime.jouspace.workers.dev';
+  const SUPABASE_URL = env.VITE_SUPABASE_URL || '';
+
+  // ── Vite env-HTML plugin ────────────────────────────────────────────────────
+  // Vite replaces %VITE_*% in index.html only for built-in envs. This tiny
+  // plugin scans HTML and replaces %VITE_*% placeholders from the loaded env.
+  function htmlEnvPlugin(): import('vite').Plugin {
+    return {
+      name: 'html-env-replace',
+      transformIndexHtml(html) {
+        return html.replace(
+          /%([A-Z_][A-Z0-9_]*)%/g,
+          (_match, name: string) => {
+            if (name.startsWith('VITE_')) {
+              return env[name] ?? '';
+            }
+            return _match;
+          },
+        );
+      },
+    };
+  }
+
+  return {
+    plugins: [react(), tailwindcss(), viteSingleFile(), htmlEnvPlugin()],
+    define: {
+      'import.meta.env.VITE_API_BASE_URL': JSON.stringify(RUNTIME_URL),
+      'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(SUPABASE_URL),
+    },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),
@@ -52,5 +73,6 @@ export default defineConfig({
     setupFiles: ["./src/test/setup.ts"],
     css: false,
   },
+  };
 });
 

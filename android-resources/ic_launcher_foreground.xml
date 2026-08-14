@@ -1,0 +1,40 @@
+<!-- Jouspace app icon foreground — simplified flower mark on transparent background.
+     The visible area is the inner 66dp of the 108dp adaptive-icon canvas.
+     Content must stay within the safe zone (33dp inset from each edge). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Accent-purple flower / sparkle mark, centred in the 108dp canvas.
+         The mark sits within the inner 66dp safe zone (21dp → 87dp). -->
+    <group
+        android:translateX="27"
+        android:translateY="27"
+        android:scaleX="0.5"
+        android:scaleY="0.5">
+        <!-- Four petal arcs forming a soft, organic flower shape -->
+        <path
+            android:pathData="M54,12 C62,12 68,18 68,26 C68,34 62,40 54,40 C46,40 40,34 40,26 C40,18 46,12 54,12 Z"
+            android:fillColor="#6C4DCA"
+            android:fillAlpha="0.9"/>
+        <path
+            android:pathData="M80,40 C80,48 74,54 66,54 C58,54 52,48 52,40 C52,32 58,26 66,26 C74,26 80,32 80,40 Z"
+            android:fillColor="#6C4DCA"
+            android:fillAlpha="0.85"/>
+        <path
+            android:pathData="M54,68 C62,68 68,74 68,82 C68,90 62,96 54,96 C46,96 40,90 40,82 C40,74 46,68 54,68 Z"
+            android:fillColor="#6C4DCA"
+            android:fillAlpha="0.9"/>
+        <path
+            android:pathData="M28,40 C28,48 34,54 42,54 C50,54 56,48 56,40 C56,32 50,26 42,26 C34,26 28,32 28,40 Z"
+            android:fillColor="#6C4DCA"
+            android:fillAlpha="0.85"/>
+        <!-- Centre circle -->
+        <path
+            android:pathData="M54,46 A8,8 0 1,1 54.01,46 Z"
+            android:fillColor="#FFFFFF"
+            android:fillAlpha="0.95"/>
+    </group>
+</vector>

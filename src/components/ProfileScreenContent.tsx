@@ -40,6 +40,7 @@ interface ProfileScreenContentProps {
   isOffline?: boolean;
   onSave?: (name: string) => void;
   onOpenNotifications?: () => void;
+  onOpenNotificationSettings?: () => void;
   onOpenAppearance?: () => void;
   onOpenInfo?: (kind: InfoSheetKind) => void;
   onExport?: () => void;
@@ -68,6 +69,7 @@ export const ProfileScreenContent: React.FC<ProfileScreenContentProps> = ({
   isOffline = false,
   onSave,
   onOpenNotifications,
+  onOpenNotificationSettings,
   onOpenAppearance,
   onOpenInfo,
   onExport,
@@ -220,7 +222,7 @@ export const ProfileScreenContent: React.FC<ProfileScreenContentProps> = ({
               <SettingsRow
                 icon={<Bell className="w-[18px] h-[18px] text-muted stroke-[1.6]" />}
                 title="Notifications"
-                onClick={onOpenNotifications}
+                onClick={onOpenNotificationSettings ?? onOpenNotifications}
               />
               <div className="h-px bg-borderSubtle ml-10" />
               <SettingsRow
