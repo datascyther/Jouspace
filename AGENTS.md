@@ -6,7 +6,7 @@ Guide for AI agents working in this repository.
 
 **Jouspace** — a local-first, account-free AI journaling app. Two packages:
 
-- **Frontend** (repo root): React 19 + TypeScript + Vite 7 + Tailwind CSS 4. Builds to a *single* `dist/index.html` via `vite-plugin-singlefile`; wrapped in a Capacitor Android shell for APK builds.
+- **Frontend** (repo root): React 19 + TypeScript + Vite 7 + Tailwind CSS 4. Builds to a *single* `dist/index.html` via `vite-plugin-singlefile`; wrapped in a Capacitor Android shell for APK builds. The `android/` platform directory is **committed** to the repo with branded icons, native permissions, and a permanent release signing config — it is NOT regenerated each build.
 - **Intelligence Runtime** (`server/`): Express 4 + tsx, own `package.json`. Provider-agnostic AI orchestration (currently NVIDIA NIM via OpenAI SDK) exposing SSE endpoints under `/api/ai/*`. It is **stateless** — no database; the client sends its own journal entries with every request.
 
 ## Commands
@@ -30,7 +30,7 @@ npm run build               # production build → single-file dist/index.html
 - **There is no linter/formatter configured.** CI (`.github/workflows/ci.yml`) only runs `tsc --noEmit`, `build`, and `test`. Do not add lint tooling unprompted.
 - **Server must be running for AI features in dev.** Without it, `/api` proxy requests fail; the frontend degrades gracefully (`isRuntimeConfigured()` checks for a URL).
 - `.env` goes in the **project root**, not `server/` (the runtime resolves `../.env` explicitly). Needs `NVIDIA_API_KEY` for real AI responses; without it the runtime boots but streams fail.
-- APK builds happen in GitHub Actions (`.github/workflows/build-apk.yml`); no local Android tooling is expected. `android/` is gitignored and generated.
+- APK builds happen in GitHub Actions (`.github/workflows/build-apk.yml`); the committed `android/` directory provides the native shell. CI runs `npx cap sync android` then `assembleRelease` with the committed keystore. `android/` is NOT gitignored.
 
 ## Architecture
 

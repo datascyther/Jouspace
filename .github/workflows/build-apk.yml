@@ -1,25 +1,34 @@
 # Build a SIGNED release Android APK — cloud build with zero local Android tooling.
 #
-# Trigger: Actions tab -> "Build Android APK" -> Run workflow, or push a tag
-# like v1.0.0.
+# Trigger: Actions tab -> "Build Android APK" -> Run workflow (optionally
+# passing a version to stamp), or push a tag like v1.0.5.
 #
-# For a SIGNED release build, add these GitHub Actions *secrets* to the repo
-# (Settings -> Secrets and variables -> Actions):
-#   ANDROID_KEYSTORE_BASE64  base64 of your upload-keystore.jks
-#   ANDROID_KEY_ALIAS        key alias (e.g. upload)
-#   ANDROID_KEYSTORE_PASSWORD
-#   ANDROID_KEY_PASSWORD
-# If the keystore secret is absent the workflow falls back to a debug APK so
-# the build still runs.
+# The native Android shell (android/) is COMMITTED to the repo, including:
+#   - the branded Jouspace adaptive icon set (drawable/, drawable-v24/,
+#     mipmap-anydpi-v26/, mipmap-anydpi-v33/, per-density mipmaps, splash)
+#   - the native permissions + jouspace:// deep-link in AndroidManifest.xml
+#   - the release keystore (android/keystore/jouspace-release.keystore) and
+#     its credentials (android/keystore.properties)
+# Both `debug` and `release` build types sign with that committed keystore
+# (see android/app/build.gradle), so EVERY build shares the SAME certificate
+# and installs over previous builds — no more "App not installed as package
+# conflicts with an existing package" and no default Capacitor icon.
 #
-# KEYSTORE BACKUP: losing upload-keystore.jks means you can NEVER update an
-# app installed from a previous release (users must uninstall first). Store the
-# keystore + passwords somewhere safe (password manager, not just this repo).
+# `npx cap sync android` only copies the web build + plugin files into the
+# committed shell; it never touches the branded res/ tree or signing config.
+#
+# Versioning: versionCode/versionName derive from the git tag (v1.0.5 ->
+# versionName 1.0.5, versionCode 10005) or from the manual "version" input.
 
 name: Build Android APK
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to stamp (e.g. 1.0.5). Defaults to the latest git tag.'
+        required: false
+        type: string
   push:
     tags:
       - 'v*'
@@ -27,10 +36,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
-    env:
-      # Single source of truth for the conditional steps below.
-      HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
 
     steps:
       - name: Checkout
@@ -43,6 +48,7 @@ jobs:
 
       - name: Install web app dependencies
         # No root package-lock.json is committed, so use `npm install`.
+        # @capacitor/cli + @capacitor/android are devDependencies.
         run: npm install
 
       - name: Build web app (single-file dist)
@@ -56,102 +62,25 @@ jobs:
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
         run: npm run build
 
-      - name: Install Capacitor + Android platform
-        # Pin to v6 to match @capacitor/core ^6.1.0 in dependencies.
-        run: npm i -D @capacitor/cli@^6 @capacitor/android@^6
-
-      - name: Add Android platform
-        run: npx cap add android
-
-      - name: Sync web assets into native shell
+      - name: Sync web assets into committed native shell
         run: npx cap sync android
 
-      - name: Apply custom Android icons and branding
-        # Copy pre-built adaptive icon XML + launcher PNGs from the repo into
-        # the generated android/ directory so the app ships with Jouspace
-        # branding instead of the default Capacitor icon.
-        # Uses the existing 192×192 PWA icon for all densities (Android
-        # downscales at runtime; the adaptive-icon foreground layer is vector).
+      - name: Derive version from tag / input
+        id: version
         run: |
-          # Ensure target directories exist (Capacitor may not create these)
-          mkdir -p android/app/src/main/res/mipmap-anydpi-v26
-          mkdir -p android/app/src/main/res/mipmap-anydpi-v33
-          mkdir -p android/app/src/main/res/drawable
-          cp -f android-resources/ic_launcher.xml        android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
-          cp -f android-resources/ic_launcher_round.xml  android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
-          cp -f android-resources/ic_launcher.xml        android/app/src/main/res/mipmap-anydpi-v33/ic_launcher.xml
-          cp -f android-resources/ic_launcher_round.xml  android/app/src/main/res/mipmap-anydpi-v33/ic_launcher_round.xml
-          cp -f android-resources/ic_launcher_foreground.xml android/app/src/main/res/drawable/ic_launcher_foreground.xml
-          # Use the existing PWA icon (192×192) as the raster fallback for
-          # all densities. Android downscales at runtime — a larger source
-          # is perfectly fine and avoids a resize-tool dependency.
-          for density in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
-            dst="android/app/src/main/res/mipmap-${density}"
-            if [ -d "$dst" ]; then
-              cp -f public/icon-192.png "$dst/ic_launcher.png"
-              cp -f public/icon-192.png "$dst/ic_launcher_round.png"
-            fi
-          done
-          # Merge ic_launcher_background colour into values/colors.xml
-          # Remove any existing ic_launcher_background.xml to avoid duplicates.
-          bg_xml="android/app/src/main/res/values/ic_launcher_background.xml"
-          [ -f "$bg_xml" ] && rm -f "$bg_xml"
-          values_xml="android/app/src/main/res/values/colors.xml"
-          if [ -f "$values_xml" ] && ! grep -q 'ic_launcher_background' "$values_xml"; then
-            sed -i 's|</resources>|    <color name="ic_launcher_background">#7C5CDB</color>\n</resources>|' "$values_xml"
-          elif [ ! -f "$values_xml" ]; then
-            mkdir -p android/app/src/main/res/values
-            cp -f android-resources/colors.xml "$values_xml"
+          VERSION="${{ inputs.version }}"
+          if [ -z "$VERSION" ] && [ "${{ github.ref_type }}" = "tag" ]; then
+            VERSION="${GITHUB_REF_NAME#v}"
           fi
-          echo "Custom Jouspace icons applied"
-
-      - name: Declare native permissions (mic, notifications, wake lock)
-        # capacitor.config.ts warns these must be declared natively or the OS
-        # refuses runtime requests. Insert before </manifest> only if absent.
-        # Also adds a deep-link intent filter for jouspace:// so OAuth
-        # callbacks route back into the app after Supabase redirects.
-        run: |
-          cat > /tmp/patch_manifest.py << 'ENDSCRIPT'
-          import pathlib, textwrap
-          m = pathlib.Path('android/app/src/main/AndroidManifest.xml')
-          src = m.read_text()
-          perms = [
-              'android.permission.RECORD_AUDIO',
-              'android.permission.POST_NOTIFICATIONS',
-              'android.permission.WAKE_LOCK',
-          ]
-          inserts = '\n'.join(
-              '    <uses-permission android:name="%s" />' % p
-              for p in perms if '"%s"' % p not in src
-          )
-          intent_filter = textwrap.dedent("""\
-              <intent-filter android:autoVerify="true">
-                  <action android:name="android.intent.action.VIEW" />
-                  <category android:name="android.intent.category.DEFAULT" />
-                  <category android:name="android.intent.category.BROWSABLE" />
-                  <data android:scheme="jouspace" />
-              </intent-filter>""")
-          if 'android.permission.RECORD_AUDIO' not in src:
-              src = src.replace('</manifest>', inserts + '\n</manifest>', 1)
-              print('added permissions:\n' + inserts)
-          if 'jouspace' not in src:
-              # Find the closing </intent-filter> that contains the LAUNCHER
-              # category and insert the deep-link filter right after it.
-              import re
-              m2 = re.search(
-                  r'(<category\s+android:name="android.intent.category.LAUNCHER"\s*/>)'
-                  r'\s*(</intent-filter>)',
-                  src)
-              if m2:
-                  src = src[:m2.end()] + '\n' + intent_filter + src[m2.end():]
-                  print('added jouspace:// deep-link intent filter')
-              else:
-                  print('WARNING: could not find LAUNCHER intent-filter')
-          else:
-              print('intent filter already present')
-          m.write_text(src)
-          ENDSCRIPT
-          python3 /tmp/patch_manifest.py
+          VERSION="${VERSION:-1.0.0}"
+          MAJ="${VERSION%%.*}"; REST="${VERSION#*.}"
+          MIN="${REST%%.*}"; PAT="${REST#*.}"
+          PAT="${PAT%%[^0-9]*}"
+          MAJ="${MAJ:-0}"; MIN="${MIN:-0}"; PAT="${PAT:-0}"
+          VCODE=$(( MAJ * 10000 + MIN * 100 + PAT ))
+          echo "versionName=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "versionCode=$VCODE" >> "$GITHUB_OUTPUT"
+          echo "Derived versionName=$VERSION versionCode=$VCODE"
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -170,45 +99,19 @@ jobs:
       - name: Point Gradle at the SDK
         run: echo "sdk.dir=$ANDROID_HOME" > android/local.properties
 
-      - name: Decode signing keystore (if provided)
-        if: ${{ env.HAS_KEYSTORE == 'true' }}
-        env:
-          KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-        run: |
-          echo "$KEYSTORE" | base64 -d > android/app/upload-keystore.jks
-
-      - name: Build release APK
-        if: ${{ env.HAS_KEYSTORE == 'true' }}
-        env:
-          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      - name: Build release APK (signed with committed keystore)
+        # The committed keystore + keystore.properties are picked up by
+        # android/app/build.gradle. Passing -Pjouspace.versionCode/-Name
+        # stamps the version; defaults are 1 / "1.0.0" if unset.
         working-directory: android
         run: |
           chmod +x ./gradlew
           ./gradlew assembleRelease --no-daemon \
-            -Pandroid.injected.signing.store.file=app/upload-keystore.jks \
-            -Pandroid.injected.signing.store.password="$KEYSTORE_PASSWORD" \
-            -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
-            -Pandroid.injected.signing.key.password="$KEY_PASSWORD"
-
-      - name: Build debug APK (no keystore secret)
-        if: ${{ env.HAS_KEYSTORE != 'true' }}
-        working-directory: android
-        run: |
-          chmod +x ./gradlew
-          ./gradlew assembleDebug --no-daemon
+            -Pjouspace.versionCode=${{ steps.version.outputs.versionCode }} \
+            -Pjouspace.versionName=${{ steps.version.outputs.versionName }}
 
       - name: Upload release APK
-        if: ${{ env.HAS_KEYSTORE == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: jouspace-release
           path: android/app/build/outputs/apk/release/app-release.apk
-
-      - name: Upload debug APK
-        if: ${{ env.HAS_KEYSTORE != 'true' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: jouspace-debug
-          path: android/app/build/outputs/apk/debug/app-debug.apk

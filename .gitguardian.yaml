@@ -1,0 +1,10 @@
+## GitGuardian ignore rules
+## The release keystore credentials are intentionally committed so that every
+## CI build signs with the same certificate (no more "package conflicts" from
+## ephemeral debug keystores). See AGENTS.md for the rationale.
+
+known_secret:
+  - 36113334  # android/keystore.properties — release keystore password (intentional)
+
+paths-ignore:
+  - android/keystore.properties
