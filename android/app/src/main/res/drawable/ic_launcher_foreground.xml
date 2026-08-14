@@ -1,0 +1,29 @@
+<!-- Jouspace app icon foreground — white "J" lettermark + gold accent dot.
+     The visible area is the inner 66dp of the 108dp adaptive-icon canvas.
+     Content stays within the safe zone (21dp inset from each edge).
+     Background layer provides the brand purple; this layer is transparent. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Brand mark scaled from the 512×512 source (app-icon.svg) into the
+         66dp safe zone, centred in the 108dp canvas. -->
+    <group
+        android:translateX="21"
+        android:translateY="21"
+        android:scaleX="0.12890625"
+        android:scaleY="0.12890625">
+
+        <!-- White "J" lettermark -->
+        <path
+            android:pathData="M296,132 c24,0 42,18 42,42 v128 c0,32 -26,58 -58,58 c-18,0 -34,-9 -42,-23 l23,-14 c6,9 13,14 22,14 c14,0 25,-11 25,-25 V174 c0,-12 -11,-23 -25,-23 s-25,11 -25,23 h-28 c0,-38 30,-66 66,-66 z"
+            android:fillColor="#FFFFFF"/>
+
+        <!-- Gold accent dot -->
+        <path
+            android:pathData="M300,78 a26,26 0 1,0 0,52 a26,26 0 1,0 0,-52 z"
+            android:fillColor="#F0A050"/>
+    </group>
+</vector>
