@@ -1,10 +1,11 @@
 import React, { useId, useRef } from 'react';
-import { X, BookOpen, Layers, Sparkles } from 'lucide-react';
+import { X, BookOpen, Layers } from 'lucide-react';
+import { TbSparkle } from 'react-icons/tb';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useAnimatedPresence } from '../hooks/useAnimatedPresence';
 
 export const CONTEXT_ITEMS = [
-  { id: '1', icon: Sparkles, label: 'Morning reflections', type: 'Thread' },
+  { id: '1', icon: TbSparkle, label: 'Morning reflections', type: 'Thread' },
   { id: '2', icon: BookOpen, label: "What I'm trying to understand", type: 'Recent entry' },
   { id: '3', icon: Layers, label: 'Building Jouspace', type: 'Memory thread' },
   { id: '4', icon: BookOpen, label: 'Creative work and flow', type: 'Recent entry' },
