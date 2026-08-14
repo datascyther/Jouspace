@@ -374,12 +374,22 @@ export function App() {
     return off;
   }, []);
 
-  // Sign out: clear the local session and re-show the auth screen so the
-  // transition can be re-tested (no backend yet, so this is fully local).
-  const handleSignOut = useCallback(() => {
+  // Show the auth screen on demand (e.g. from Profile -> Sign in / Switch
+  // account, or after signing out). Resets to the no-account placeholder so the
+  // auth gate renders, then drops the user into the auth flow at any time — not
+  // just on first run.
+  const goToAuth = useCallback(() => {
     clearSession();
     setAuthUser(NoAccountUser);
+    setStage('auth');
   }, []);
+
+  // Sign out: clear the local session and return to the auth screen so the user
+  // can switch accounts or continue without one (no backend yet, so this is
+  // fully local).
+  const handleSignOut = useCallback(() => {
+    goToAuth();
+  }, [goToAuth]);
 
   // Persist the active screen/tab so a reload/relaunch returns where you left off.
   useEffect(() => {
@@ -872,6 +882,7 @@ export function App() {
               }}
               aiMemoryNotes={aiMemoryNotes || undefined}
               onResetMemory={handleResetMemory}
+              onSignIn={goToAuth}
               onSignOut={handleSignOut}
             />
           ) : (

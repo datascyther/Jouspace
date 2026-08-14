@@ -20,6 +20,7 @@ import {
   MessageCircle,
   Info,
   LogOut,
+  UserPlus,
 } from 'lucide-react';
 
 export type InfoSheetKind = 'privacy' | 'help' | 'feedback' | 'about';
@@ -49,6 +50,8 @@ interface ProfileScreenContentProps {
   aiMemoryNotes?: string;
   /** Clears the on-device AI memory. */
   onResetMemory?: () => void;
+  /** Opens the auth screen (sign in / switch account) on demand. */
+  onSignIn?: () => void;
   /** Signs the user out (revives the auth screen). */
   onSignOut?: () => void;
 }
@@ -76,6 +79,7 @@ export const ProfileScreenContent: React.FC<ProfileScreenContentProps> = ({
   onLoadDemo,
   aiMemoryNotes,
   onResetMemory,
+  onSignIn,
   onSignOut,
 }) => {
   // Live AI-written summary of the user's journal. Only streams when a runtime
@@ -167,6 +171,13 @@ export const ProfileScreenContent: React.FC<ProfileScreenContentProps> = ({
             <div className="flex flex-col">
               <SectionTitle className="mb-1 px-0">Account</SectionTitle>
               <div className="flex flex-col bg-surface rounded-3xl border border-borderSubtle overflow-hidden">
+                {onSignIn && (
+                  <SettingsRow
+                    icon={<UserPlus className="w-[18px] h-[18px] text-muted stroke-[1.6]" />}
+                    title="Sign in / Switch account"
+                    onClick={onSignIn}
+                  />
+                )}
                 <SettingsRow
                   icon={<LogOut className="w-[18px] h-[18px] text-muted stroke-[1.6]" />}
                   title="Sign out"
