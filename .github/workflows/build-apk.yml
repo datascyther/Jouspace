@@ -104,52 +104,41 @@ jobs:
         # Also adds a deep-link intent filter for jouspace:// so OAuth
         # callbacks route back into the app after Supabase redirects.
         run: |
-          python3 - <<'PY'
-          import pathlib
+          cat > /tmp/patch_manifest.py << 'ENDSCRIPT'
+          import pathlib, textwrap
           m = pathlib.Path('android/app/src/main/AndroidManifest.xml')
           src = m.read_text()
-
-          # ── Permissions ──
           perms = [
               'android.permission.RECORD_AUDIO',
               'android.permission.POST_NOTIFICATIONS',
               'android.permission.WAKE_LOCK',
           ]
           inserts = '\n'.join(
-              f'    <uses-permission android:name="{p}" />'
-              for p in perms if f'"{p}"' not in src
+              '    <uses-permission android:name="%s" />' % p
+              for p in perms if '"%s"' % p not in src
           )
-
-          # ── Deep-link intent filter for jouspace:// OAuth callbacks ──
-          intent_filter = '''
-          <intent-filter android:autoVerify="true">
-              <action android:name="android.intent.action.VIEW" />
-              <category android:name="android.intent.category.DEFAULT" />
-              <category android:name="android.intent.category.BROWSABLE" />
-              <data android:scheme="jouspace" />
-          </intent-filter>'''
-
+          intent_filter = textwrap.dedent("""\
+              <intent-filter android:autoVerify="true">
+                  <action android:name="android.intent.action.VIEW" />
+                  <category android:name="android.intent.category.DEFAULT" />
+                  <category android:name="android.intent.category.BROWSABLE" />
+                  <data android:scheme="jouspace" />
+              </intent-filter>""")
           if 'android.permission.RECORD_AUDIO' not in src:
               src = src.replace('</manifest>', inserts + '\n</manifest>', 1)
               print('added permissions:\n' + inserts)
-
           if 'jouspace' not in src:
-              # Insert inside <activity> that has the MAIN/LAUNCHER filter
               marker = '<category android:name="android.intent.category.LAUNCHER" />'
               if marker in src:
-                  src = src.replace(
-                      marker,
-                      marker + '\n' + intent_filter,
-                      1,
-                  )
+                  src = src.replace(marker, marker + '\n' + intent_filter, 1)
                   print('added jouspace:// deep-link intent filter')
               else:
-                  print('WARNING: could not find LAUNCHER category — skipping intent filter')
+                  print('WARNING: could not find LAUNCHER category')
           else:
               print('intent filter already present')
-
           m.write_text(src)
-          PY
+          ENDSCRIPT
+          python3 /tmp/patch_manifest.py
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
