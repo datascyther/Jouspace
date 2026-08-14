@@ -379,7 +379,11 @@ export function App() {
   // auth gate renders, then drops the user into the auth flow at any time — not
   // just on first run.
   const goToAuth = useCallback(() => {
-    clearSession();
+    // Force the auth gate open by resetting to the no-account placeholder, then
+    // drop the user into the auth flow. We intentionally do NOT clear the real
+    // Supabase session here: that can throw/hang on a misconfigured client and
+    // break the click. A successful sign-in (handleAuthed) overwrites authUser
+    // anyway; choosing "Continue without an account" keeps the placeholder.
     setAuthUser(NoAccountUser);
     setStage('auth');
   }, []);
@@ -388,6 +392,9 @@ export function App() {
   // can switch accounts or continue without one (no backend yet, so this is
   // fully local).
   const handleSignOut = useCallback(() => {
+    // Best-effort clear of any real Supabase session; never let a failure block
+    // returning to the auth screen.
+    void clearSession().catch(() => {});
     goToAuth();
   }, [goToAuth]);
 
@@ -810,7 +817,7 @@ export function App() {
           {stage === 'splash' ? (
             <SplashScreen />
           ) : stage === 'welcome' ? (
-            <WelcomeScreen onContinue={() => setStage('auth')} />
+            <WelcomeScreen onContinue={() => { setAuthUser(NoAccountUser); setStage('auth'); }} />
           ) : stage === 'permissions' ? (
             <PermissionPrimerScreen onComplete={finishOnboarding} />
           ) : isNoAccountUser(authUser) ? (
