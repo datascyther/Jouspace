@@ -73,6 +73,10 @@ jobs:
         # Uses the existing 192×192 PWA icon for all densities (Android
         # downscales at runtime; the adaptive-icon foreground layer is vector).
         run: |
+          # Ensure target directories exist (Capacitor may not create these)
+          mkdir -p android/app/src/main/res/mipmap-anydpi-v26
+          mkdir -p android/app/src/main/res/mipmap-anydpi-v33
+          mkdir -p android/app/src/main/res/drawable
           cp -f android-resources/ic_launcher.xml        android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
           cp -f android-resources/ic_launcher_round.xml  android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
           cp -f android-resources/ic_launcher.xml        android/app/src/main/res/mipmap-anydpi-v33/ic_launcher.xml
