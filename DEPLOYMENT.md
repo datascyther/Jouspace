@@ -81,65 +81,55 @@ curl https://your-runtime-host/api/health
 
 ## 2. Signing & releasing the APK
 
-The CI workflow (`.github/workflows/build-apk.yml`) produces a **debug-signed**
-APK — fine for sideloading, not acceptable for the Play Store. For release:
+The `android/` platform is **committed to the repo** with branded icons, native
+permissions, and a permanent signing configuration. Every CI build produces a
+**signed release APK** — there is no debug fallback.
 
-### 2.1 Generate a keystore (one time)
+### 2.1 Signing setup (one time, already done)
 
-```bash
-keytool -genkeypair -v \
-  -keystore jouspace-release.keystore \
-  -alias jouspace \
-  -keyalg RSA -keysize 2048 -validity 10000
-```
+A release keystore is committed at `android/keystore/jouspace-release.keystore`
+(alias `jouspace`, RSA 2048, SHA256, valid ~27 years). Credentials are in
+`android/keystore.properties` (also committed — intentional).
 
-### 2.2 Configure Gradle signing (on the generated `android/` project)
+`android/app/build.gradle` loads `keystore.properties` at build time and signs
+**both** debug and release build types with the committed keystore. This means
+every build — local or CI — shares the **same signing certificate**, so APKs
+install over previous builds (no "App not installed as package conflicts with an
+existing package").
 
-Add to `android/app/build.gradle` (or `keystore.properties` + reference):
+> **IMPORTANT:** losing this keystore means you can NEVER update an app
+> installed from a previous release (users must uninstall first). Back up the
+> keystore + credentials somewhere safe (password manager, separate from the
+> repo).
 
-```gradle
-android {
-    signingConfigs {
-        release {
-            storeFile file("../jouspace-release.keystore")
-            storePassword System.getenv("KEYSTORE_PASSWORD")
-            keyAlias "jouspace"
-            keyPassword System.getenv("KEYSTORE_PASSWORD")
-        }
-    }
-    buildTypes {
-        release {
-            signingConfig signingConfigs.release
-            minifyEnabled false
-        }
-    }
-}
-```
+### 2.2 Versioning
 
-### 2.3 CI release build (Play Store ready)
+The CI workflow derives `versionCode` and `versionName` from the git tag:
 
-Add to `.github/workflows/build-apk.yml` a step that loads the keystore from
-GitHub **secrets** (never commit the keystore):
+| Tag | versionName | versionCode |
+|---|---|---|
+| `v1.0.4` | `1.0.4` | `10004` |
+| `v1.0.5` | `1.0.5` | `10005` |
+| `v2.1.3` | `2.1.3` | `20103` |
 
-```yaml
-- name: Decode keystore
-  env:
-    KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-  run: echo "$KEYSTORE_BASE64" | base64 --decode > android/jouspace-release.keystore
+Pass a manual `version` input in the Actions UI to override the tag.
 
-- name: Build release APK
-  working-directory: android
-  env:
-    KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-  run: ./gradlew assembleRelease
-```
+### 2.3 CI build (automated)
 
-Store these repo secrets: `KEYSTORE_BASE64` (base64 of the keystore file) and
-`KEYSTORE_PASSWORD`.
+The workflow (`.github/workflows/build-apk.yml`):
+
+1. Checks out the committed `android/` platform
+2. Builds the Vite web app → `dist/`
+3. `npx cap sync android` copies `dist/` + plugin files into the native shell
+4. Stamps `versionCode`/`versionName` from the git tag or manual input
+5. Runs `./gradlew assembleRelease` (signed with committed keystore)
+6. Uploads `app-release.apk` as a build artifact
+
+No keystore secrets, no debug fallback, no icon/manifest patching steps.
 
 ### 2.4 Upload to Play Store
 
-1. In `android/app/build.gradle`, set a real `applicationId` (default: `com.jouspace.app`).
+1. `applicationId` is `com.jouspace.app` (set in `android/app/build.gradle`).
 2. Build: `./gradlew bundleRelease` → produces `app-release.aab` (Android App Bundle — required by Play).
 3. Create a Play Console app, upload the `.aab`, complete the Data safety & content ratings forms.
 

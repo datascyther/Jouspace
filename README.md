@@ -18,7 +18,7 @@ Express server that orchestrates a hosted NVIDIA NIM model).
 | Build | `vite-plugin-singlefile` — the whole app inlines into one `dist/index.html` |
 | PWA | Manifest + icons + self-hosted fonts in `public/` (offline-safe) |
 | AI Runtime | Express 4 + OpenAI SDK (NVIDIA NIM gateway), SSE streaming |
-| Mobile shell | Capacitor (config + cloud CI provided; no local Android SDK required) |
+| Mobile shell | Capacitor — committed `android/` platform with branded icons, native permissions, and release signing |
 
 ## Quick start
 
@@ -63,29 +63,28 @@ on the server.
 
 ## Building the Android APK
 
-The web app compiles to a single `dist/index.html` (plus `public/` assets) which
-Capacitor loads inside a WebView. **No Android SDK or Java is required on your
-Mac** — use the included cloud build.
+The `android/` platform is **committed** to the repo with branded icons, native
+permissions, and a permanent release signing config. The web app compiles to a
+single `dist/index.html` which Capacitor syncs into the committed native shell.
 
 ### Option A — GitHub Actions (recommended, zero local setup)
 
 1. Push this repo to GitHub.
 2. GitHub → **Actions** → **Build Android APK** → **Run workflow**.
-3. Download `jouspace-debug.apk` from the run's **Artifacts** section.
+3. Download `jouspace-release.apk` from the run's **Artifacts** section.
 
-The workflow (`.github/workflows/build-apk.yml`) installs Node, builds the web
-app, adds the Capacitor Android platform, and runs Gradle on a hosted runner
-with JDK 17 + Android SDK preinstalled.
+The workflow (`.github/workflows/build-apk.yml`) builds the web app, runs
+`npx cap sync android` into the committed platform directory, and produces a
+**signed release APK** using the committed keystore. Version is stamped from
+the git tag (e.g. `v1.0.5` → versionName `1.0.5`, versionCode `10005`).
 
 ### Option B — local build (needs JDK 17 + Android SDK)
 
 ```bash
 npm run build
-npm i -D @capacitor/cli @capacitor/core @capacitor/android
-npx cap add android
 npx cap sync android
-cd android && ./gradlew assembleDebug
-# → android/app/build/outputs/apk/debug/app-debug.apk
+cd android && ./gradlew assembleRelease
+# → android/app/build/outputs/apk/release/app-release.apk
 ```
 
 ### Production notes
