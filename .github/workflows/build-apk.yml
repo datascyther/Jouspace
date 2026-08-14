@@ -98,7 +98,7 @@ jobs:
           [ -f "$bg_xml" ] && rm -f "$bg_xml"
           values_xml="android/app/src/main/res/values/colors.xml"
           if [ -f "$values_xml" ] && ! grep -q 'ic_launcher_background' "$values_xml"; then
-            sed -i 's|</resources>|    <color name="ic_launcher_background">#F5F3EF</color>\n</resources>|' "$values_xml"
+            sed -i 's|</resources>|    <color name="ic_launcher_background">#7C5CDB</color>\n</resources>|' "$values_xml"
           elif [ ! -f "$values_xml" ]; then
             mkdir -p android/app/src/main/res/values
             cp -f android-resources/colors.xml "$values_xml"

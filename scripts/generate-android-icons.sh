@@ -43,4 +43,7 @@ for pair in "mdpi:48" "hdpi:72" "xhdpi:96" "xxhdpi:144" "xxxhdpi:192"; do
   echo "  ${density}: ${size}x${size} ✓"
 done
 
+echo ""
 echo "Android launcher icons generated in ${OUT_DIR}/"
+echo "Note: Adaptive icons use vector foreground (ic_launcher_foreground.xml)"
+echo "      with purple background (#7C5CDB). Raster PNGs are fallbacks only."
