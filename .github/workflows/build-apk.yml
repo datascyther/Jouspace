@@ -93,6 +93,9 @@ jobs:
             fi
           done
           # Merge ic_launcher_background colour into values/colors.xml
+          # Remove any existing ic_launcher_background.xml to avoid duplicates.
+          bg_xml="android/app/src/main/res/values/ic_launcher_background.xml"
+          [ -f "$bg_xml" ] && rm -f "$bg_xml"
           values_xml="android/app/src/main/res/values/colors.xml"
           if [ -f "$values_xml" ] && ! grep -q 'ic_launcher_background' "$values_xml"; then
             sed -i 's|</resources>|    <color name="ic_launcher_background">#F5F3EF</color>\n</resources>|' "$values_xml"
