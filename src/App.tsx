@@ -16,6 +16,7 @@ import { AIScreenContent } from './components/AIScreenContent';
 import { ProfileScreenContent, type InfoSheetKind } from './components/ProfileScreenContent';
 import { SplashScreen } from './components/SplashScreen';
 import { PermissionPrimerScreen } from './components/PermissionPrimerScreen';
+import { WelcomeScreen } from './components/WelcomeScreen';
 import { AuthScreen } from './components/AuthScreen';
 import { SearchScreen } from './components/SearchScreen';
 import { NotificationScreen } from './components/NotificationScreen';
@@ -46,6 +47,8 @@ import {
   initializeAuth,
   onAuthStateChange,
   type AuthUser,
+  NoAccountUser,
+  isNoAccountUser,
 } from './lib/auth';
 import { useTheme } from './hooks/useTheme';
 import {
@@ -206,14 +209,19 @@ export function App() {
   // Auth gate — revived as a backend-free local mock so the transition can be
   // tested in the running app. Once the real backend lands, only lib/localAuth
   // changes; this gate and the AuthScreen stay the same.
-  const [authUser, setAuthUser] = useState<AuthUser | null>(() => loadSession());
+  // No persisted session (Supabase unconfigured or fresh) -> start as a local
+  // no-account user so the app stays usable. Real Supabase sessions override
+  // this in initializeAuth; a successful sign-in replaces it via handleAuthed.
+  const [authUser, setAuthUser] = useState<AuthUser | null>(() => loadSession() ?? NoAccountUser);
 
-  const [onboardingScreen, setOnboardingScreen] = useState<'splash' | 'permissions' | 'complete'>(
+  // First-run flow stages: splash -> welcome -> auth -> permissions -> app.
+  // Returning users (jouspace.onboarded === '1') start straight at 'app'.
+  const [stage, setStage] = useState<'splash' | 'welcome' | 'auth' | 'permissions' | 'app'>(
     () => {
       try {
         return typeof localStorage !== 'undefined' &&
           localStorage.getItem('jouspace.onboarded') === '1'
-          ? 'complete'
+          ? 'app'
           : 'splash';
       } catch {
         // Private-mode / storage-disabled: behave like a first run.
@@ -332,10 +340,10 @@ export function App() {
 
   // Splash screen: auto-advance after 1.5s → permission primer (first run) or app.
   useEffect(() => {
-    if (onboardingScreen !== 'splash') return;
-    const timer = setTimeout(() => setOnboardingScreen('permissions'), 1500);
+    if (stage !== 'splash') return;
+    const timer = setTimeout(() => setStage('welcome'), 1500);
     return () => clearTimeout(timer);
-  }, [onboardingScreen]);
+  }, [stage]);
 
   // Mark onboarding done and dismiss the primer. Safe to call from the primer's
   // Continue or Skip actions — the app is fully usable either way.
@@ -346,12 +354,13 @@ export function App() {
       /* privacy mode — just advance */
     }
     void queueUserPrefsSync();
-    setOnboardingScreen('complete');
+    setStage('app');
   }, []);
 
   // Auth: persist the session and drop the gate so the app shows.
-  const handleAuthed = useCallback((user: AuthUser) => {
-    setAuthUser(user);
+  const handleAuthed = useCallback((user: AuthUser | null) => {
+    setAuthUser(user ?? NoAccountUser);
+    setStage((prev) => (prev === 'auth' ? 'permissions' : 'app'));
   }, []);
 
   // Hydrate the session from the persisted Supabase session on startup, and keep
@@ -369,7 +378,7 @@ export function App() {
   // transition can be re-tested (no backend yet, so this is fully local).
   const handleSignOut = useCallback(() => {
     clearSession();
-    setAuthUser(null);
+    setAuthUser(NoAccountUser);
   }, []);
 
   // Persist the active screen/tab so a reload/relaunch returns where you left off.
@@ -383,9 +392,9 @@ export function App() {
   // foreground. On the web we can't defer notifications, so we show a best-effort
   // nudge as the tab is hidden (native builds deliver them with the app closed).
   useEffect(() => {
-    if (onboardingScreen !== 'complete') return;
+    if (stage !== 'app') return;
     void ReminderService.refresh();
-  }, [onboardingScreen]);
+  }, [stage]);
 
   // App lifecycle: foreground refreshes, background arms, tap opens the composer.
   useEffect(() => {
@@ -399,6 +408,7 @@ export function App() {
 
     const cap = (window as unknown as { Capacitor?: any }).Capacitor;
     let offNative: (() => void) | undefined;
+    let offUrlOpen: (() => void) | undefined;
     if (cap?.isNativePlatform?.()) {
       const app = cap.Plugins?.App;
       if (app?.addListener) {
@@ -411,6 +421,23 @@ export function App() {
         );
         offNative =
           typeof handle?.remove === 'function' ? () => handle.remove() : undefined;
+
+        // Handle deep links (jouspace://) for OAuth & password-reset callbacks.
+        // When the app is already running and receives a new deep link, supabase-js
+        // needs to process the URL fragment to extract the session token.
+        const urlHandle = app.addListener(
+          'appUrlOpen',
+          (event: { url?: string }) => {
+            if (event?.url) {
+              // supabase-js with detectSessionInUrl processes the current
+              // document URL on the next tick — force it by navigating the
+              // WebView to the deep-link URL so the fragment is visible.
+              void window.location.assign(event.url);
+            }
+          },
+        );
+        offUrlOpen =
+          typeof urlHandle?.remove === 'function' ? () => urlHandle.remove() : undefined;
       }
     }
 
@@ -428,6 +455,7 @@ export function App() {
     return () => {
       offTap();
       offNative?.();
+      offUrlOpen?.();
       document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('pagehide', onPageHide);
     };
@@ -769,12 +797,17 @@ export function App() {
             No `key` lets React reuse this wrapper element and just swap the
             child — instant and clean. */}
         <div className="flex-1 flex flex-col min-h-0">
-          {onboardingScreen === 'splash' ? (
+          {stage === 'splash' ? (
             <SplashScreen />
-          ) : onboardingScreen === 'permissions' ? (
+          ) : stage === 'welcome' ? (
+            <WelcomeScreen onContinue={() => setStage('auth')} />
+          ) : stage === 'permissions' ? (
             <PermissionPrimerScreen onComplete={finishOnboarding} />
-          ) : !authUser ? (
-            <AuthScreen onAuthed={handleAuthed} />
+          ) : isNoAccountUser(authUser) ? (
+            <AuthScreen
+              onAuthed={handleAuthed}
+              onContinueWithoutAccount={() => handleAuthed(null)}
+            />
           ) : currentScreen === 'ai' ? (
             <AIScreenContent
               activeTab="ai"

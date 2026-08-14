@@ -17,8 +17,11 @@ import {
 type View = 'welcome' | 'signin' | 'create' | 'forgot' | 'verify';
 
 interface AuthScreenProps {
-  /** Called with the authenticated user once sign-in / verification completes. */
-  onAuthed: (user: AuthUser) => void;
+  /** Called with the authenticated user once sign-in / verification completes.
+   *  Pass `null` to clear back to a local no-account session (e.g. sign-out). */
+  onAuthed: (user: AuthUser | null) => void;
+  /** Lets the user enter the app without a cloud account (local-first). */
+  onContinueWithoutAccount: () => void;
 }
 
 /**
@@ -26,7 +29,7 @@ interface AuthScreenProps {
  * mock in `lib/localAuth.ts` so the transition can be tested in the running
  * app. When the real backend lands, only that module changes.
  */
-export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed }) => {
+export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed, onContinueWithoutAccount }) => {
   const [view, setView] = useState<View>('welcome');
   const [pending, setPending] = useState<AuthUser | null>(null);
   const [pendingOrigin, setPendingOrigin] = useState<'create' | 'signin'>('create');
@@ -56,40 +59,50 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed }) => {
   const handleCreate = async () => {
     setLoading(true);
     setError(null);
-    const res = await signUp(name, email, password);
-    setLoading(false);
-    if (!res.ok) {
-      setError(res.error);
-      return;
+    try {
+      const res = await signUp(name, email, password);
+      if (!res.ok) {
+        setError(res.error);
+        return;
+      }
+      // Supabase confirms via email link. Route to the "check your email" view
+      // (the link completes sign-in via onAuthStateChange → onAuthed).
+      setSuccess(true);
+      setPending(res.user);
+      setPendingOrigin('create');
+      setTimeout(() => {
+        setSuccess(false);
+        go('verify', 'fwd');
+      }, 600);
+    } catch {
+      setError('Unable to create account. Check your connection and try again.');
+    } finally {
+      setLoading(false);
     }
-    // Supabase confirms via email link. Route to the "check your email" view
-    // (the link completes sign-in via onAuthStateChange → onAuthed).
-    setSuccess(true);
-    setPending(res.user);
-    setPendingOrigin('create');
-    setTimeout(() => {
-      setSuccess(false);
-      go('verify', 'fwd');
-    }, 600);
   };
 
   const handleSignIn = async () => {
     setLoading(true);
     setError(null);
-    const res = await signIn(email, password);
-    setLoading(false);
-    if (!res.ok) {
-      // If the account exists but isn't confirmed yet, nudge to check email.
-      if (/confirm|verify/i.test(res.error)) {
-        setPending({ ...currentFallbackUser(), email });
-        setPendingOrigin('signin');
-        go('verify', 'fwd');
+    try {
+      const res = await signIn(email, password);
+      if (!res.ok) {
+        // If the account exists but isn't confirmed yet, nudge to check email.
+        if (/confirm|verify/i.test(res.error)) {
+          setPending({ ...currentFallbackUser(), email });
+          setPendingOrigin('signin');
+          go('verify', 'fwd');
+          return;
+        }
+        setError(res.error);
         return;
       }
-      setError(res.error);
-      return;
+      onAuthed(res.user);
+    } catch {
+      setError('Unable to sign in. Check your connection and try again.');
+    } finally {
+      setLoading(false);
     }
-    onAuthed(res.user);
   };
 
   const currentFallbackUser = (): AuthUser => ({
@@ -104,28 +117,53 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed }) => {
     if (!pending) return;
     setLoading(true);
     setError(null);
-    await requestVerificationCode(pending.email);
-    setLoading(false);
-    setResetSent(true);
+    try {
+      await requestVerificationCode(pending.email);
+      setResetSent(true);
+    } catch {
+      setError('Unable to resend the link. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleOAuth = async (provider: 'google') => {
     setError(null);
-    const res = await signInWithOAuth(provider);
-    if (!res.ok) setError(res.error);
-    // On success the browser redirects to the provider.
+    setLoading(true);
+    try {
+      const res = await signInWithOAuth(provider);
+      if (!res.ok) {
+        setError(res.error);
+        // If a redirect was never initiated (e.g. provider not enabled in the
+        // Supabase Dashboard, or the origin is not an approved redirect URL) we
+        // must stop the spinner and tell the user instead of leaving it stuck.
+        setLoading(false);
+        return;
+      }
+      // On success the browser redirects to the provider; keep the spinner
+      // running because navigation is imminent (clearing it here is harmless
+      // since the page will unload).
+    } catch {
+      setError('Unable to start sign-in. Please try again.');
+      setLoading(false);
+    }
   };
 
   const handleReset = async () => {
     setLoading(true);
     setError(null);
-    const res = await requestPasswordReset(email);
-    setLoading(false);
-    if (!res.ok) {
-      setError(res.error);
-      return;
+    try {
+      const res = await requestPasswordReset(email);
+      if (!res.ok) {
+        setError(res.error);
+        return;
+      }
+      setResetSent(true);
+    } catch {
+      setError('Unable to send reset link. Please try again.');
+    } finally {
+      setLoading(false);
     }
-    setResetSent(true);
   };
 
   return (
@@ -200,7 +238,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed }) => {
           <div key={view}>
 
           {view === 'welcome' && (
-            <WelcomeView onGetStarted={() => { resetForm(); go('create'); }} onSignIn={() => { resetForm(); go('signin'); }} />
+            <WelcomeView
+              onGetStarted={() => { resetForm(); go('create'); }}
+              onSignIn={() => { resetForm(); go('signin'); }}
+              onContinueWithoutAccount={onContinueWithoutAccount}
+            />
           )}
 
           {view === 'create' && (
@@ -411,7 +453,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed }) => {
 
 // Landing decorative flower removed per polish pass — the typography and CTA now breathe.
 
-function WelcomeView({ onGetStarted, onSignIn }: { onGetStarted: () => void; onSignIn: () => void }) {
+function WelcomeView({ onGetStarted, onSignIn, onContinueWithoutAccount }: { onGetStarted: () => void; onSignIn: () => void; onContinueWithoutAccount: () => void }) {
   return (
     <div className="text-center">
       <div className="mb-5 inline-flex items-center gap-1.5 rounded-full border border-white/50 bg-white/40 px-3 py-1.5 text-accent backdrop-blur-md">
@@ -445,6 +487,14 @@ function WelcomeView({ onGetStarted, onSignIn }: { onGetStarted: () => void; onS
           Sign in
         </TextAction>
       </div>
+
+      <button
+        type="button"
+        onClick={onContinueWithoutAccount}
+        className="mt-4 w-full inline-flex items-center justify-center text-[14px] font-medium text-muted hover:text-secondary active:text-secondary transition-colors min-h-12"
+      >
+        Continue without an account
+      </button>
     </div>
   );
 }

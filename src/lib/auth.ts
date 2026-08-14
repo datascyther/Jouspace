@@ -24,6 +24,27 @@ export interface AuthUser {
   verified: boolean;
 }
 
+/**
+ * Local, no-account placeholder user. The app is fully usable without a real
+ * cloud sign-in (journaling is local-first). When Supabase is unconfigured, or
+ * the user has never signed in, the app seeds this so the experience is seamless.
+ * `noAccount` is the runtime flag callers check to decide whether cloud sync /
+ * account-aware UI should appear.
+ */
+export const NoAccountUser: AuthUser = {
+  id: '',
+  email: '',
+  displayName: 'You',
+  joinedDate: '',
+  verified: false,
+  noAccount: true,
+} as AuthUser & { noAccount: true };
+
+/** Narrowing helper: true when the user is the local no-account placeholder. */
+export function isNoAccountUser(user: AuthUser | null): boolean {
+  return Boolean(user && (user as AuthUser & { noAccount?: boolean }).noAccount);
+}
+
 export type AuthResult =
   | { ok: true; user: AuthUser }
   | { ok: false; error: string };
@@ -144,7 +165,10 @@ export async function signUp(
   const { data, error } = await supabase.auth.signUp({
     email: mail,
     password,
-    options: { data: { display_name: name } },
+    options: {
+      data: { display_name: name },
+      emailRedirectTo: getSupabaseRedirectUrl(),
+    },
   });
   if (error) return { ok: false, error: error.message };
   if (!data.user) return { ok: false, error: 'Unable to create account.' };
@@ -239,7 +263,7 @@ export async function requestPasswordReset(
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail))
     return { ok: false, error: 'Enter a valid email address.' };
   const { error } = await supabase.auth.resetPasswordForEmail(mail, {
-    redirectTo: `${getSupabaseRedirectUrl()}/reset`,
+    redirectTo: `${getSupabaseRedirectUrl()}reset`,
   });
   return error ? { ok: false, error: error.message } : { ok: true };
 }
