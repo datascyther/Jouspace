@@ -135,12 +135,18 @@ jobs:
               src = src.replace('</manifest>', inserts + '\n</manifest>', 1)
               print('added permissions:\n' + inserts)
           if 'jouspace' not in src:
-              marker = '<category android:name="android.intent.category.LAUNCHER" />'
-              if marker in src:
-                  src = src.replace(marker, marker + '\n' + intent_filter, 1)
+              # Find the closing </intent-filter> that contains the LAUNCHER
+              # category and insert the deep-link filter right after it.
+              import re
+              m2 = re.search(
+                  r'(<category\s+android:name="android.intent.category.LAUNCHER"\s*/>)'
+                  r'\s*(</intent-filter>)',
+                  src)
+              if m2:
+                  src = src[:m2.end()] + '\n' + intent_filter + src[m2.end():]
                   print('added jouspace:// deep-link intent filter')
               else:
-                  print('WARNING: could not find LAUNCHER category')
+                  print('WARNING: could not find LAUNCHER intent-filter')
           else:
               print('intent filter already present')
           m.write_text(src)
