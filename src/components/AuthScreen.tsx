@@ -7,6 +7,7 @@ import { TextAction } from './TextAction';
 import logoSrc from '../assets/Jouspace logo.png';
 import {
   type AuthUser,
+  isSupabaseConfigured,
   signUp,
   signIn,
   requestVerificationCode,
@@ -128,21 +129,31 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed, onContinueWith
   };
 
   const handleOAuth = async (provider: 'google') => {
+    if (!isSupabaseConfigured) {
+      setError('Sign-in is not configured. Use “Continue without an account” for now.');
+      return;
+    }
     setError(null);
     setLoading(true);
     try {
       const res = await signInWithOAuth(provider);
       if (!res.ok) {
         setError(res.error);
-        // If a redirect was never initiated (e.g. provider not enabled in the
-        // Supabase Dashboard, or the origin is not an approved redirect URL) we
-        // must stop the spinner and tell the user instead of leaving it stuck.
         setLoading(false);
         return;
       }
-      // On success the browser redirects to the provider; keep the spinner
-      // running because navigation is imminent (clearing it here is harmless
-      // since the page will unload).
+      // On success supabase-js navigates the top-level window to the provider.
+      // If navigation is blocked (popup blocker, or the browser never leaves),
+      // don’t leave the spinner stuck forever — bail out after a beat
+      // and tell the user what likely went wrong.
+      setTimeout(() => {
+        setError(
+          'Could not open Google. Check that Google sign-in is enabled in the '
+            + 'Supabase Dashboard and that this exact URL is an allowed redirect '
+            + 'URL. You can also use “Continue without an account”.',
+        );
+        setLoading(false);
+      }, 1500);
     } catch {
       setError('Unable to start sign-in. Please try again.');
       setLoading(false);

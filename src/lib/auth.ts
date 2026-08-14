@@ -16,6 +16,9 @@
 
 import { supabase, isSupabaseConfigured, getSupabaseRedirectUrl } from './supabaseClient';
 
+// Re-export so UI modules can import auth concerns from a single module.
+export { isSupabaseConfigured } from './supabaseClient';
+
 export interface AuthUser {
   id: string;
   email: string;
