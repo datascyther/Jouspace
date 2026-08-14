@@ -57,10 +57,10 @@ describe('getApiBaseUrl', () => {
     expect(getApiBaseUrl()).toBe('https://example.com');
   });
 
-  it('returns empty in production with no URL or build var', () => {
+  it('falls back to deployed runtime URL in production with no URL or build var', () => {
     vi.stubEnv('DEV', false);
     localStorage.removeItem('jouspace:runtimeUrl');
-    expect(getApiBaseUrl()).toBe('');
+    expect(getApiBaseUrl()).toBe('https://jouspace-runtime.jouspace.workers.dev');
   });
 });
 
@@ -71,10 +71,10 @@ describe('isRuntimeConfigured', () => {
     expect(isRuntimeConfigured()).toBe(true);
   });
 
-  it('is false in production with no URL', () => {
+  it('is true in production — falls back to deployed runtime URL', () => {
     vi.stubEnv('DEV', false);
     localStorage.removeItem('jouspace:runtimeUrl');
-    expect(isRuntimeConfigured()).toBe(false);
+    expect(isRuntimeConfigured()).toBe(true);
   });
 });
 

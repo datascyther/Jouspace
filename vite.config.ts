@@ -15,8 +15,7 @@ export default defineConfig(({ mode }) => {
   // Load .env values early so both `define` and the HTML plugin can use them.
   const env = loadEnv(mode, process.cwd(), '');
 
-  const RUNTIME_URL =
-    env.VITE_API_BASE_URL || 'https://jouspace-runtime.jouspace.workers.dev';
+  const RUNTIME_URL = env.VITE_API_BASE_URL || '';
   const SUPABASE_URL = env.VITE_SUPABASE_URL || '';
 
   // ── Vite env-HTML plugin ────────────────────────────────────────────────────
