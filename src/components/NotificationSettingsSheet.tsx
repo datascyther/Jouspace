@@ -4,19 +4,20 @@ import { usePermissions } from '../permissions/usePermissions';
 import { ReminderService } from '../notifications';
 
 /**
- * NotificationSettingsSheet — a bottom-sheet overlay for managing notification
+ * NotificationSettingsScreen — a full-screen route for managing notification
  * and reminder preferences. Wired to the real PermissionService and
  * ReminderService so every toggle persists and actually does what it says.
  *
- * Presentation: render inside AppScreen's `overlays` prop so it stays clipped
- * inside the phone frame. Close via `onClose`.
+ * Presentation: rendered as a dedicated route on the nav stack (only one screen
+ * mounted at a time) so the background screen freezes instead of shifting. Back
+ * via `onBack`.
  */
-interface NotificationSettingsSheetProps {
-  onClose: () => void;
+interface NotificationSettingsScreenProps {
+  onBack: () => void;
 }
 
-export const NotificationSettingsSheet: React.FC<NotificationSettingsSheetProps> = ({
-  onClose,
+export const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
+  onBack,
 }) => {
   const { states, ensure, openSettings } = usePermissions();
   const [busy, setBusy] = useState<'notifications' | 'reminders' | null>(null);
@@ -67,24 +68,25 @@ export const NotificationSettingsSheet: React.FC<NotificationSettingsSheetProps>
   }, [remindersEnabled]);
 
   return (
-    <div className="flex flex-col w-full h-full bg-base">
+    <div className="flex flex-col w-full flex-1 min-h-0 bg-base">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 pt-5 pb-3">
-        <h2 className="font-serif font-medium text-[22px] text-primaryText tracking-tight">
-          Notifications
-        </h2>
+      <div className="flex items-center justify-between px-5 pt-3 pb-2 shrink-0">
         <button
           type="button"
-          onClick={onClose}
-          aria-label="Close notification settings"
-          className="w-[38px] h-[38px] rounded-full bg-surface border border-borderSubtle flex items-center justify-center text-primaryText hover:bg-accentSoft transition-colors focus:outline-none focus:ring-2 focus:ring-accent/20 cursor-pointer"
+          onClick={onBack}
+          aria-label="Back"
+          className="w-9 h-9 rounded-full bg-surface border border-borderSubtle flex items-center justify-center text-primaryText hover:bg-accentSoft transition-colors focus:outline-none focus:ring-2 focus:ring-accent/20 cursor-pointer"
         >
-          <X className="w-[18px] h-[18px] stroke-[1.8]" />
+          <X className="w-4 h-4" />
         </button>
+        <h1 className="font-serif font-medium text-[18px] text-primaryText tracking-tight">
+          Notifications
+        </h1>
+        <div className="w-9 h-9" aria-hidden="true" />
       </div>
 
       {/* Settings list */}
-      <div className="flex-1 overflow-y-auto overscroll-contain px-6 pb-6">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-6 pb-4 pb-safe">
         <div className="flex flex-col gap-4">
           {/* Notification permission toggle */}
           <div className="bg-surface rounded-2xl border border-borderSubtle p-4 flex items-center gap-4">
@@ -128,7 +130,7 @@ export const NotificationSettingsSheet: React.FC<NotificationSettingsSheetProps>
                             ${notifGranted ? 'bg-accent' : 'bg-baseTint'}`}
               />
               <span
-                className={`absolute top-1/2 left-1 -translate-y-1/2 w-7 h-7 rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.2)]
+                className={`absolute top-1/2 left-1 -translate-y-1/2 w-7 h-7 rounded-full bg-surface shadow-[0_1px_3px_rgba(0,0,0,0.2)]
                             transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]
                             ${notifGranted ? 'translate-x-5' : 'translate-x-0'}`}
               />
@@ -171,7 +173,7 @@ export const NotificationSettingsSheet: React.FC<NotificationSettingsSheetProps>
                               ${remindersEnabled ? 'bg-accent' : 'bg-baseTint'}`}
                 />
                 <span
-                  className={`absolute top-1/2 left-1 -translate-y-1/2 w-7 h-7 rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.2)]
+                  className={`absolute top-1/2 left-1 -translate-y-1/2 w-7 h-7 rounded-full bg-surface shadow-[0_1px_3px_rgba(0,0,0,0.2)]
                               transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]
                               ${remindersEnabled ? 'translate-x-5' : 'translate-x-0'}`}
                 />

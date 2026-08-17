@@ -6,18 +6,102 @@
  * legacy value safely falls back to Home.
  */
 
-export type Screen = 'home' | 'journal' | 'memory' | 'ai' | 'profile';
+export type Screen =
+  | 'home'
+  | 'journal'
+  | 'memory'
+  | 'ai'
+  | 'profile'
+  // Profile sub-screens (previously sheets/overlays → now full screens)
+  | 'notifications'
+  | 'notificationSettings'
+  | 'appearance'
+  | 'privacy'
+  | 'help'
+  | 'feedback'
+  | 'about'
+  | 'editProfile'
+  // Memory sub-screens
+  | 'search'
+  | 'memoryThread'
+  // AI sub-screens
+  | 'aiContext'
+  | 'aiHistory'
+  | 'aiReflect'
+  | 'entryPicker'
+  // Entry / composer sub-screens
+  | 'entryDetail'
+  | 'spacePicker';
+
 export type NavTab = 'home' | 'journal' | 'write' | 'memory' | 'ai';
 
-import { queueUserPrefsSync } from '../lib/supabaseUserPrefs';
+/**
+ * A nav node carries the active screen plus the bottom-nav tab that should stay
+ * highlighted while it (and any screens pushed on top of it) is visible. The
+ * navigation stack is an array of these; the last entry is the current screen.
+ */
+export interface NavNode {
+  screen: Screen;
+  tab: NavTab;
+}
 
 export interface NavState {
   screen: Screen;
   tab: NavTab;
 }
 
+/** Screens that anchor the bottom navigation (each maps to one tab). */
+const TAB_ROOTS: ReadonlySet<Screen> = new Set<Screen>([
+  'home',
+  'journal',
+  'memory',
+  'ai',
+  'profile',
+]);
+
+export function isTabRoot(screen: Screen): boolean {
+  return TAB_ROOTS.has(screen);
+}
+
+/** Map a bottom-nav tab to the root screen + tab node that should be shown. */
+export function tabToNode(tab: NavTab): NavNode {
+  switch (tab) {
+    case 'home':
+      return { screen: 'home', tab: 'home' };
+    case 'journal':
+      return { screen: 'journal', tab: 'journal' };
+    case 'write':
+      return { screen: 'journal', tab: 'write' };
+    case 'memory':
+      return { screen: 'memory', tab: 'memory' };
+    case 'ai':
+      return { screen: 'ai', tab: 'ai' };
+  }
+}
+
 const NAV_STORAGE_KEY = 'jouspace:nav';
-const SCREEN_VALUES: readonly Screen[] = ['home', 'journal', 'memory', 'ai', 'profile'];
+const SCREEN_VALUES: readonly Screen[] = [
+  'home',
+  'journal',
+  'memory',
+  'ai',
+  'profile',
+  'notifications',
+  'notificationSettings',
+  'appearance',
+  'privacy',
+  'help',
+  'feedback',
+  'about',
+  'search',
+  'memoryThread',
+  'aiContext',
+  'aiHistory',
+  'aiReflect',
+  'entryPicker',
+  'entryDetail',
+  'spacePicker',
+];
 const TAB_VALUES: readonly NavTab[] = ['home', 'journal', 'write', 'memory', 'ai'];
 
 type ReadableStorage = Pick<Storage, 'getItem'>;
@@ -53,5 +137,4 @@ export function writeStoredNav(
   } catch {
     /* ignore storage failure (private mode, quota, etc.) */
   }
-  void queueUserPrefsSync();
 }

@@ -29,8 +29,6 @@ interface MemoryScreenContentProps {
   userInitials?: string;
   /** When true, show the list skeleton while entries are "fetching". */
   isLoading?: boolean;
-  /** Retry handler surfaced if the load guard times out. */
-  onRetry?: () => void;
 }
 
 /**
@@ -69,7 +67,6 @@ export const MemoryScreenContent: React.FC<MemoryScreenContentProps> = ({
   onAvatarClick = () => {},
   userInitials,
   isLoading = false,
-  onRetry,
 }) => {
   // Flip a hung skeleton into an error state after 8s so it never hangs forever.
   const memoryTimedOut = useLoadGuard(isLoading, 8000);
@@ -182,7 +179,6 @@ export const MemoryScreenContent: React.FC<MemoryScreenContentProps> = ({
                 <ErrorState
                   title="Couldn't load"
                   message="Your entries took too long to load."
-                  onRetry={onRetry}
                 />
               ) : (
                 <Skeleton layout="list" count={5} className="animate-fadeIn200" />

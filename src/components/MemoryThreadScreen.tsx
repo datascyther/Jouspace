@@ -24,7 +24,7 @@ export const MemoryThreadScreen: React.FC<MemoryThreadScreenProps> = ({
   className = '',
 }) => {
   return (
-    <div className={`flex flex-col w-full h-full ${className}`}>
+    <div className={`flex flex-col w-full flex-1 min-h-0 ${className}`}>
       {/* Header */}
       <div className="flex items-center justify-between px-6 pt-4 pb-3 shrink-0 border-b border-borderSubtle">
         <h1 className="font-serif font-medium text-[22px] text-primaryText tracking-tight">
@@ -41,7 +41,7 @@ export const MemoryThreadScreen: React.FC<MemoryThreadScreenProps> = ({
       </div>
 
       {/* Scrollable content */}
-      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-6 pb-6">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-6 pb-6 pb-safe">
         {/* Theme Title */}
         <div className="bg-surface border border-borderSubtle rounded-2xl px-5 py-4 mt-5 mb-6">
           <h2 className="font-serif font-medium text-[20px] text-primaryText mb-1 capitalize">

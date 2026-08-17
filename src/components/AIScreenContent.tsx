@@ -1,23 +1,19 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { AIHeader } from './AIHeader';
 import { MemoryContextCard } from './MemoryContextCard';
 import { SuggestionRow } from './SuggestionRow';
 import { UserMessageBubble, AssistantMessageBubble } from './MessageBubbles';
 import { Composer } from './Composer';
 import { BottomNavigation, NavTab } from './BottomNavigation';
-import { EntryPickerSheet } from './EntryPickerSheet';
 import { Skeleton, useLoadGuard } from './Skeleton';
 import { ErrorState } from './ErrorState';
 import {
   useJouspaceIntelligence,
-  RUNTIME_UNAVAILABLE_MESSAGE,
   loadChatMessages,
 } from '../hooks/useJouspaceIntelligence';
 import { journalStore } from '../store';
-import { useEscapeKey } from '../hooks/useEscapeKey';
 import { useKeyboard } from '../hooks/useAdaptiveKeyboard';
-import { useVoiceInput } from '../hooks/useVoiceInput';
-import { usePermission } from '../permissions/usePermissions';
+import { readAiAttach, clearAiAttach } from '../utils/pickerStore';
 import type { Entry } from './EntryRow';
 
 export interface AIMessage {
@@ -49,6 +45,8 @@ interface AIScreenContentProps {
   onOpenHistory?: () => void;
   onOpenContextPicker?: () => void;
   onOpenEntry?: (id: string) => void;
+  /** Opens the entry picker as a separate route (AI "attach" action). */
+  onOpenEntryPicker?: () => void;
 }
 
 /** Real themes present in the journal, used as AI memory context. */
@@ -69,24 +67,27 @@ export const AIScreenContent: React.FC<AIScreenContentProps> = ({
   onOpenHistory,
   onOpenContextPicker,
   onOpenEntry,
+  onOpenEntryPicker,
 }) => {
   const [composerValue, setComposerValue] = useState('');
-  const [isAttachOpen, setIsAttachOpen] = useState(false);
-  // Keyboard: Escape closes the attach entry-picker sheet.
-  useEscapeKey(() => setIsAttachOpen(false), isAttachOpen);
 
   // Restore persisted chat history on mount so navigation doesn't lose it.
   const [initialMessages] = useState(() => loadChatMessages());
   const ai = useJouspaceIntelligence('chat', initialMessages);
 
-  // Never let the "waiting for AI" state hang forever — after 8s, surface an
-  // error so the user can retry instead of staring at a frozen skeleton.
-  const chatTimedOut = useLoadGuard(ai.isThinking, 8000);
+  // Apply any pending "attach" selected in the entry-picker route (one-shot
+  // transient store). Runs after mount so it composes with the restored chat.
+  useEffect(() => {
+    const title = readAiAttach();
+    if (title) {
+      setComposerValue((prev) => (prev ? `${prev}\n` : '') + `Re: ${title}`);
+      clearAiAttach();
+    }
+  }, []);
 
-  const handleChatRetry = () => {
-    // Cancel the hung request; the composer re-enables so the user can resend.
-    ai.abort();
-  };
+  // Never let the "waiting for AI" state hang forever — after 8s, surface an
+  // error so the composer re-enables and the user can resend.
+  const chatTimedOut = useLoadGuard(ai.isThinking, 8000);
 
   // ── Adaptive keyboard (web/Capacitor) ──────────────────────────────────────
   // The app shell height follows window.visualViewport (set by KeyboardProvider
@@ -134,78 +135,23 @@ export const AIScreenContent: React.FC<AIScreenContentProps> = ({
     if (atBottomRef.current) scrollToBottom(false);
   }, [keyboardVisible]);
 
-  // Voice input — shared Web Speech API hook (gracefully disabled if
-  // unsupported). It commits finalized transcript segments to the composer and
-  // streams a live interim preview so the user sees words as they speak.
-  const [voiceInterim, setVoiceInterim] = useState('');
-  const [voiceError, setVoiceError] = useState<string | null>(null);
-
-  const voice = useVoiceInput({
-    onFinal: (text) => {
-      setComposerValue((prev) => {
-        const sep = prev.length > 0 && !/\s$/.test(prev) ? ' ' : '';
-        return prev + sep + text;
-      });
-    },
-    onInterim: (text) => setVoiceInterim(text ?? ''),
-    onError: (code) => {
-      setVoiceInterim('');
-      setVoiceError(
-        code === 'not-allowed' || code === 'service-not-allowed'
-          ? 'Microphone permission blocked for voice input.'
-          : code === 'audio-capture'
-            ? 'No microphone found for voice input.'
-            : 'Voice input unavailable — could not reach the speech service. Check your connection or mic permission.',
-      );
-      // Auto-dismiss the notice after a few seconds.
-      window.setTimeout(() => setVoiceError(null), 5000);
-    },
-    onStop: () => setVoiceInterim(''),
-  });
-
-  // Gate the mic behind the unified permission system. We always call `ensure`
-  // (which requests in-context on first use and never re-prompts once denied),
-  // then start voice input only when permitted. On the web the actual mic grant
-  // is shared with the Web Speech API, so this single prompt covers both.
-  const mic = usePermission('microphone');
-
-  const handleMic = useCallback(async () => {
-    if (!voice.supported) {
-      setVoiceError('Voice input isn’t supported on this device or browser.');
-      window.setTimeout(() => setVoiceError(null), 5000);
-      return;
-    }
-    const res = await mic.ensure();
-    if (!res.ok) {
-      if (res.state === 'deniedPermanently' || res.state === 'restricted') {
-        const opened = await mic.openSettings();
-        if (!opened) {
-          setVoiceError(
-            'Microphone access is blocked. Enable it in your browser or device Settings, then return here.',
-          );
-          window.setTimeout(() => setVoiceError(null), 5000);
-        }
-      } else {
-        setVoiceError(
-          res.state === 'unsupported'
-            ? 'No microphone found for voice input.'
-            : 'Microphone permission blocked for voice input.',
-        );
-        window.setTimeout(() => setVoiceError(null), 5000);
-      }
-      return;
-    }
-    // Warm the on-device model right after the mic is granted so the first tap
-    // is instant (no interruption). The toggle below then loads if still pending.
-    voice.preload?.();
-    voice.toggle();
-  }, [mic.ensure, mic.openSettings, voice.supported, voice.toggle, voice.preload, setVoiceError]);
+  // Pin to the bottom whenever the thread grows — a new text message or streamed
+  // tokens — so a streaming reply stays in view. Only auto-scrolls while the
+  // user is already at the bottom (reading history is never yanked).
+  useEffect(() => {
+    if (!atBottomRef.current) return;
+    scrollToBottom(false);
+  }, [ai.messages, ai.isThinking, ai.isStreaming]);
 
   const handleSend = (overrideText?: string) => {
     const text = (overrideText ?? composerValue).trim();
     if (!text) return;
     setComposerValue('');
     ai.send(text);
+  };
+
+  const handleComposerChange = (value: string) => {
+    setComposerValue(value);
   };
 
   const handleSuggestion = (question: string) => handleSend(question);
@@ -218,11 +164,6 @@ export const AIScreenContent: React.FC<AIScreenContentProps> = ({
     const match =
       list.find((e) => msg.citationDates!.includes(e.date)) ?? list[0];
     onOpenEntry?.(match.id);
-  };
-
-  const handleAttachSelect = (entry: Entry) => {
-    setComposerValue((prev) => (prev ? `${prev}\n` : '') + `Re: ${entry.title}`);
-    setIsAttachOpen(false);
   };
 
   return (
@@ -302,7 +243,6 @@ export const AIScreenContent: React.FC<AIScreenContentProps> = ({
                     <ErrorState
                       title="Couldn't load"
                       message="Jouspace is taking too long to respond."
-                      onRetry={handleChatRetry}
                     />
                   ) : (
                     <Skeleton
@@ -315,9 +255,7 @@ export const AIScreenContent: React.FC<AIScreenContentProps> = ({
 
                 {ai.error && (
                   <p className="font-sans text-[13px] text-muted py-1">
-                    {ai.error === RUNTIME_UNAVAILABLE_MESSAGE
-                      ? RUNTIME_UNAVAILABLE_MESSAGE
-                      : 'Jouspace Intelligence is unavailable. Please try again.'}
+                    {ai.error || 'Jouspace Intelligence is unavailable. Please try again.'}
                   </p>
                 )}
               </>
@@ -329,48 +267,30 @@ export const AIScreenContent: React.FC<AIScreenContentProps> = ({
       {/* Pinned Composer */}
       <div
         className={`shrink-0 px-4 pt-1 transition-[padding] duration-200 ${
-          keyboardVisible ? 'pb-composer-kb' : 'pb-2'
+          keyboardVisible ? 'pb-composer-kb' : 'pb-3'
         }`}
       >
-        {voiceError ? (
-          <p className="px-1 pb-1.5 font-sans text-[12.5px] text-error leading-snug">
-            {voiceError}
-          </p>
-        ) : voiceInterim ? (
-          <p className="px-1 pb-1.5 font-sans text-[13px] text-muted italic truncate">
-            {voiceInterim}…
-          </p>
-        ) : null}
         <Composer
           value={composerValue}
-          onChange={setComposerValue}
+          onChange={handleComposerChange}
           onSend={() => handleSend()}
-          onAttach={() => setIsAttachOpen(true)}
-          onMic={handleMic}
+          onAttach={() => onOpenEntryPicker?.()}
           onFocus={() => setInputMode('default')}
-          micDisabled={!voice.supported}
-          isRecording={voice.recording}
-          isPreparing={voice.status === 'loading'}
           disabled={ai.isThinking || ai.isStreaming}
         />
       </div>
 
-      {/* Entry picker for attach */}
-      <EntryPickerSheet
-        isOpen={isAttachOpen}
-        onClose={() => setIsAttachOpen(false)}
-        entries={entries}
-        onSelect={handleAttachSelect}
-      />
-
-      {/* Pinned BottomNavigation */}
-      <div className="shrink-0">
-        <BottomNavigation
-          activeTab={activeTab}
-          onTabChange={onTabChange}
-          hideOnKeyboard
-        />
-      </div>
+      {/* Pinned BottomNavigation — hidden while the software keyboard is open:
+          the shell is already the visible viewport, so the Composer sits flush
+          on the keyboard and the nav must not cover the input. */}
+      {!keyboardVisible && (
+        <div className="shrink-0">
+          <BottomNavigation
+            activeTab={activeTab}
+            onTabChange={onTabChange}
+          />
+        </div>
+      )}
     </div>
   );
 };

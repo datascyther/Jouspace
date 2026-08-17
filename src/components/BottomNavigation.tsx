@@ -4,7 +4,6 @@ import { Home, BookOpen } from 'lucide-react';
 import { TbSparkle } from 'react-icons/tb';
 import { PiBrain } from 'react-icons/pi';
 import type { NavTab } from '../utils/nav';
-import { useKeyboard } from '../hooks/useAdaptiveKeyboard';
 
 export type { NavTab } from '../utils/nav';
 
@@ -12,9 +11,6 @@ interface BottomNavigationProps {
   activeTab?: NavTab;
   onTabChange?: (tab: NavTab) => void;
   className?: string;
-  /** When true, the bar collapses/hides while a software keyboard is open
-   *  (used on chat/editor "input" screens; omitted on static list screens). */
-  hideOnKeyboard?: boolean;
 }
 
 interface TabButtonProps {
@@ -50,11 +46,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
   activeTab = 'home',
   onTabChange,
   className = '',
-  hideOnKeyboard = false,
 }) => {
-  const { keyboardVisible } = useKeyboard();
-  // Only input screens opt in; even then, the bar stays put when no keyboard is up.
-  const hidden = hideOnKeyboard && keyboardVisible;
 
   const tabs: { tab: NavTab; label: string; icon: React.ReactNode }[] = [
     { tab: 'home', label: 'Home', icon: <Home className="w-[22px] h-[22px] stroke-[1.7]" /> },
@@ -66,11 +58,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
   return (
     <nav
       aria-label="Bottom Navigation"
-      className={`relative z-30 w-full bg-surface pb-safe shadow-[0_-12px_24px_-16px_var(--color-borderSubtle)] transition-[max-height,opacity,transform] duration-200 ease-out will-change-[max-height,transform] ${
-        hidden
-          ? 'max-h-0 opacity-0 translate-y-20 pointer-events-none overflow-hidden'
-          : 'max-h-[120px] opacity-100 translate-y-0'
-      } ${className}`}
+      className={`relative z-30 w-full bg-surface pb-safe shadow-[0_-12px_24px_-16px_var(--color-borderSubtle)] max-h-[120px] opacity-100 ${className}`}
     >
       {/* Refined top hairline (gradient fade) — replaces the flat border-t */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-borderSubtle to-transparent" />

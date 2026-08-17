@@ -1,26 +1,58 @@
-import { useState, useCallback } from 'react';
-import {
-  loadProfile as loadProfileCloud,
-  saveProfile as saveProfileCloud,
-  hydrateProfile as hydrateProfileCloud,
-  type Profile,
-  DEFAULT_DISPLAY_NAME,
-} from '../lib/supabaseProfile';
+import { useState, useCallback, useEffect } from 'react';
 
-export type { Profile };
-export { DEFAULT_DISPLAY_NAME };
+export interface Profile {
+  displayName: string;
+  joinedDate: string;
+  updatedAt?: number;
+}
+
+export const DEFAULT_DISPLAY_NAME = 'You';
+
+const PROFILE_KEY = 'jouspace:profile';
+
+function defaultJoinedDate(): string {
+  return new Date().toLocaleDateString('en-US', {
+    month: 'long',
+    year: 'numeric',
+  });
+}
 
 export function loadProfile(): Profile {
-  return loadProfileCloud();
+  try {
+    const raw = localStorage.getItem(PROFILE_KEY);
+    if (raw) {
+      const p = JSON.parse(raw) as Partial<Profile>;
+      return {
+        displayName:
+          typeof p.displayName === 'string' && p.displayName.trim()
+            ? p.displayName
+            : DEFAULT_DISPLAY_NAME,
+        joinedDate:
+          typeof p.joinedDate === 'string' && p.joinedDate.trim()
+            ? p.joinedDate
+            : defaultJoinedDate(),
+        updatedAt: typeof p.updatedAt === 'number' ? p.updatedAt : 0,
+      };
+    }
+  } catch {
+    /* corrupt payload → fall back to defaults */
+  }
+  return { displayName: DEFAULT_DISPLAY_NAME, joinedDate: defaultJoinedDate(), updatedAt: 0 };
 }
 
 export function saveProfile(profile: Profile): void {
-  saveProfileCloud(profile);
+  try {
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+    // Notify cloudSync that profile changed locally.
+    window.dispatchEvent(new CustomEvent('jouspace:profile:local-changed'));
+  } catch {
+    /* storage failure — non-fatal */
+  }
 }
 
-/** Cloud-hydrate the profile for the current user (called on sign-in). */
+/** No-op: local-first has nothing to hydrate from. */
 export function hydrateProfile(): Promise<void> {
-  return hydrateProfileCloud();
+  return Promise.resolve();
 }
 
 /** Derive up-to-2-char initials from a display name. */
@@ -42,10 +74,17 @@ export function useProfile(): {
 
   const setDisplayName = useCallback((name: string) => {
     setProfile((prev) => {
-      const next: Profile = { ...prev, displayName: name };
+      const next: Profile = { ...prev, displayName: name, updatedAt: Date.now() };
       saveProfile(next);
       return next;
     });
+  }, []);
+
+  // Re-read from localStorage when cloud sync pushes a remote update.
+  useEffect(() => {
+    const handleRemote = () => setProfile(loadProfile());
+    window.addEventListener('jouspace:profile:remote-changed', handleRemote);
+    return () => window.removeEventListener('jouspace:profile:remote-changed', handleRemote);
   }, []);
 
   return { profile, setDisplayName };

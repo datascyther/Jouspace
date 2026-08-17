@@ -16,7 +16,6 @@ import type { PermissionKey, PermissionState, PermissionResult, PermissionStatus
 import { PERMISSIONS } from './registry';
 import * as native from './nativeBridge';
 import * as web from './webBridge';
-import { queueUserPrefsSync } from '../lib/supabaseUserPrefs';
 
 const STORAGE_KEY = 'jouspace.permissions.v1';
 
@@ -38,7 +37,6 @@ function writeStore(s: Store): void {
   } catch {
     /* ignore quota / privacy-mode errors */
   }
-  void queueUserPrefsSync();
 }
 
 function normalizeMic(raw: string | null, attempted: boolean): PermissionState {
@@ -50,13 +48,19 @@ function normalizeMic(raw: string | null, attempted: boolean): PermissionState {
       // After we've asked once, the platform won't re-prompt without Settings.
       return attempted ? 'deniedPermanently' : 'denied';
     case 'prompt':
+    case 'prompt-with-rationale':
+      // Android re-prompts on these — treat as a fresh, re-promptable prompt.
       return 'prompt';
     case 'unsupported':
       return 'unsupported';
     case 'restricted':
       return 'restricted';
     default:
-      return 'unknown';
+      // On native, a genuinely absent plugin yields `null` → 'unsupported'
+      // (the feature truly can't be provided here). On web a null means
+      // "couldn't determine" → 'unknown' (ask when needed). Crucially this is
+      // never treated as 'denied', so we never fabricate a "blocked" state.
+      return native.isNativePlatform() ? 'unsupported' : 'unknown';
   }
 }
 
@@ -89,9 +93,11 @@ function toResult(key: PermissionKey, state: PermissionState): PermissionResult 
   if (!ok) {
     const title = PERMISSIONS[key].title;
     if (state === 'deniedPermanently') reason = `${title} access is blocked. Enable it in your device Settings.`;
-    else if (state === 'denied') reason = `${title} permission was denied.`;
+    else if (state === 'denied') reason = `${title} permission was denied. Tap to try again.`;
     else if (state === 'unsupported') reason = `${title} is not available on this device.`;
     else if (state === 'restricted') reason = `${title} is restricted on this device.`;
+    else if (state === 'prompt') reason = `Couldn't confirm ${title.toLowerCase()} access. Tap the mic to try again.`;
+    else reason = `Couldn't confirm ${title.toLowerCase()} access. Tap the mic to try again.`;
   }
   return { key, state, ok, reason };
 }
@@ -118,6 +124,9 @@ export async function getStatus(key: PermissionKey): Promise<PermissionStatus> {
 /** Prompt the OS for the permission. Use `ensure` in feature code instead. */
 export async function request(key: PermissionKey): Promise<PermissionResult> {
   const store = readStore();
+  // The PRIOR attempted flag decides whether this denial is the first (still
+  // re-promptable) or a repeat (permanently denied). We then persist attempted.
+  const attemptedBefore = store[key]?.attempted ?? false;
   let raw: string | null = null;
 
   if (key === 'microphone') {
@@ -130,7 +139,7 @@ export async function request(key: PermissionKey): Promise<PermissionResult> {
       : await web.webRequestNotifications();
   }
 
-  const state = normalize(key, raw, true);
+  const state = normalize(key, raw, attemptedBefore);
   writeStore({ ...store, [key]: { attempted: true, last: state } });
   return toResult(key, state);
 }

@@ -104,15 +104,33 @@ existing package").
 
 ### 2.2 Versioning
 
-The CI workflow derives `versionCode` and `versionName` from the git tag:
+Releases use **Semantic Versioning** with a `-beta.N` pre-release tag. The CI
+workflow derives `versionCode` and `versionName` from the git tag (or a manual
+`version` input):
+
+```
+versionCode = MAJ · 10000 + MIN · 1000 + PAT · 100 + iteration
+```
+
+where *iteration* is the beta number for `-beta.N` builds (01–99) and `100`
+for the stable release. Each beta increments the beta number; the stable
+release drops the suffix. `versionCode` is therefore strictly increasing
+across every build, so a later build always upgrades over an earlier one:
 
 | Tag | versionName | versionCode |
 |---|---|---|
-| `v1.0.4` | `1.0.4` | `10004` |
-| `v1.0.5` | `1.0.5` | `10005` |
-| `v2.1.3` | `2.1.3` | `20103` |
+| `v1.1.0-beta.1` | `1.1.0-beta.1` | `11001` |
+| `v1.1.0-beta.2` | `1.1.0-beta.2` | `11002` |
+| `v1.1.0-beta.3` | `1.1.0-beta.3` | `11003` |
+| `v1.1.0` (stable) | `1.1.0` | `11100` |
+| `v1.1.1-beta.1` | `1.1.1-beta.1` | `11101` |
 
-Pass a manual `version` input in the Actions UI to override the tag.
+Keep `package.json`'s `version` in sync with the current beta versionName.
+Pass a manual `version` input in the Actions UI to override the tag (it must
+be ≥ the last released version so the derived versionCode stays increasing).
+`android/app/build.gradle` defaults to the current beta (`11001` /
+`1.1.0-beta.1`) for local/adhoc builds — CI always overrides them via
+`-Pjouspace.versionCode` / `-Pjouspace.versionName`.
 
 ### 2.3 CI build (automated)
 
@@ -135,13 +153,27 @@ No keystore secrets, no debug fallback, no icon/manifest patching steps.
 
 ---
 
-## 3. Current auth status
+## 3. Auth status
 
-Sign-in screens are **mock UI** (they complete without a real account). For a
-private local-first journal this is intentional for now. When accounts/sync are
-needed later:
+**Google sign-in = Firebase Auth (identity only).**
 
-- Add a real auth provider (e.g. Supabase Auth, Firebase Auth) and swap the
-  mock `handleSignIn`/`handleCreateAccount` in `src/App.tsx`.
-- For on-device protection without accounts, add a PIN/biometric lock screen
-  (the app already has the visual shell for it in `SignInScreen`/`WelcomeScreen`).
+The client obtains a verified Google credential from **Firebase Auth**.
+Profile data (display name, joined date) is stored locally in localStorage.
+Email/password flows go through Firebase as well.
+
+Setup (one time):
+
+1. **Firebase Console** → Add project → Build → Authentication → Sign-in
+   method → enable **Google**.
+2. **Add a Web app** → copy the `firebaseConfig` values into `.env`:
+   `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`,
+   `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_APP_ID`.
+3. **Add an Android app** (package `com.jouspace.app`) → register the release
+   SHA-1 (`F5:C0:60:33:0D:02:BC:B6:77:76:67:98:A6:E9:8C:1D:E8:CD:8A:8C`) →
+   download **`google-services.json`** to `android/app/google-services.json`
+   (the gradle build auto-applies the Google Services plugin when present).
+
+On Android, sign-in uses the native Google Sign-In sheet via
+  `@capacitor-firebase/authentication` with `skipNativeAuth: true` (returns the
+  ID token without a redundant Firebase session); on web it falls back to the
+  Firebase JS SDK redirect flow.

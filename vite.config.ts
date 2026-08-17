@@ -16,7 +16,6 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
 
   const RUNTIME_URL = env.VITE_API_BASE_URL || '';
-  const SUPABASE_URL = env.VITE_SUPABASE_URL || '';
 
   // ── Vite env-HTML plugin ────────────────────────────────────────────────────
   // Vite replaces %VITE_*% in index.html only for built-in envs. This tiny
@@ -42,7 +41,6 @@ export default defineConfig(({ mode }) => {
     plugins: [react(), tailwindcss(), viteSingleFile(), htmlEnvPlugin()],
     define: {
       'import.meta.env.VITE_API_BASE_URL': JSON.stringify(RUNTIME_URL),
-      'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(SUPABASE_URL),
     },
   resolve: {
     alias: {

@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { queueUserPrefsSync } from '../lib/supabaseUserPrefs';
 
 export type Theme = 'light' | 'dark' | 'system';
 
@@ -65,7 +64,6 @@ export function useTheme(): {
   const setTheme = useCallback((next: Theme) => {
     localStorage.setItem(THEME_KEY, next);
     setThemeState(next);
-    void queueUserPrefsSync();
   }, []);
 
   return { theme, resolvedTheme, setTheme };

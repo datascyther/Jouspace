@@ -3,9 +3,13 @@ node_modules/
 server/node_modules/
 server/dist/
 
+# Local npm cache (used when the sandbox blocks the global ~/.npm cache)
+.npm-cache/
+
 # Build outputs
 dist/
 build/
+apk-out/
 
 # Android native shell is COMMITTED (icons, manifest, signing config).
 # Only ignore generated build artifacts and local machine state.

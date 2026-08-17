@@ -1,6 +1,4 @@
-import React from 'react';
-import { useState, useEffect, useLayoutEffect, useId, useRef, useCallback, type ReactNode } from 'react';
-import { Shield, LifeBuoy, MessageCircle, Info as InfoIcon } from 'lucide-react';
+import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { AppScreen } from './components/AppScreen';
 import { JouspaceHeader } from './components/JouspaceHeader';
 import { MemoryLabel } from './components/MemoryLabel';
@@ -16,18 +14,20 @@ import { AIScreenContent } from './components/AIScreenContent';
 import { ProfileScreenContent, type InfoSheetKind } from './components/ProfileScreenContent';
 import { SplashScreen } from './components/SplashScreen';
 import { PermissionPrimerScreen } from './components/PermissionPrimerScreen';
-import { WelcomeScreen } from './components/WelcomeScreen';
 import { AuthScreen } from './components/AuthScreen';
 import { SearchScreen } from './components/SearchScreen';
 import { NotificationScreen } from './components/NotificationScreen';
-import { NotificationSettingsSheet } from './components/NotificationSettingsSheet';
+import { NotificationSettingsScreen } from './components/NotificationSettingsSheet';
 import { MemoryThreadScreen } from './components/MemoryThreadScreen';
-import { AIContextPicker, CONTEXT_ITEMS } from './components/AIContextPicker';
+import { AIContextScreen, CONTEXT_ITEMS } from './components/AIContextPicker';
 import { normalizeTheme, themeLabel } from './components/ThemeChipGroup';
-import { ThemeSheet } from './components/ThemeSheet';
-import { InfoSheet } from './components/InfoSheet';
-import { AIHistorySheet } from './components/AIHistorySheet';
-import { AIReflectDrawer, EntryDetailDrawer } from './components/InteractiveDrawers';
+import { ThemeScreen } from './components/ThemeSheet';
+import { InfoScreen } from './components/InfoSheet';
+import { EditProfileScreen } from './components/EditProfileScreen';
+import { AIHistoryScreen } from './components/AIHistorySheet';
+import { AIReflectScreen, EntryDetailScreen } from './components/InteractiveDrawers';
+import { EntryPickerScreen } from './components/EntryPickerSheet';
+import { SpacePickerScreen } from './components/SpacePickerSheet';
 import { useJournalStore } from './hooks/useJournalStore';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
 import { isRuntimeConfigured, useAiInsight } from './hooks/useJouspaceIntelligence';
@@ -38,7 +38,6 @@ import {
   loadPersonalization,
   resetPersonalization,
 } from './lib/personalization';
-import { useFocusTrap } from './hooks/useFocusTrap';
 import { useEscapeKey } from './hooks/useEscapeKey';
 import { useProfile, deriveInitials, DEFAULT_DISPLAY_NAME } from './hooks/useProfile';
 import {
@@ -46,24 +45,61 @@ import {
   clearSession,
   initializeAuth,
   onAuthStateChange,
+  completeGoogleRedirectIfPresent,
   type AuthUser,
   NoAccountUser,
   isNoAccountUser,
 } from './lib/auth';
+import {
+  attachSync,
+  detachSync,
+  onSyncStatusChange,
+  type SyncStatus,
+} from './store/cloudSync';
+import { Capacitor } from '@capacitor/core';
+import { Pencil } from 'lucide-react';
+import { readDraft, clearDraft } from './utils/draft';
 import { useTheme } from './hooks/useTheme';
 import {
   journalStore,
-  loadDemoData,
   downloadJournalExport,
   dateLabel,
 } from './store';
 import type { StoredEntry } from './store/types';
-import { type Screen, type NavTab, readStoredNav, writeStoredNav } from './utils/nav';
-import { loadAiContext, saveAiContext } from './lib/supabaseAiContext';
-import { hydrateAllUserSync } from './lib/supabaseHydrate';
-import { queueUserPrefsSync } from './lib/supabaseUserPrefs';
+import {
+  type Screen,
+  type NavTab,
+  type NavNode,
+  readStoredNav,
+  writeStoredNav,
+  tabToNode,
+} from './utils/nav';
+import { writeAiAttach } from './utils/pickerStore';
+import { findCustomThemeById } from './utils/customThemes';
 
-type Overlay = 'search' | 'memory-thread' | 'notifications' | 'notification-settings' | null;
+/** Load the persisted AI context selection from localStorage. */
+function loadAiContextLocal(): { id: string; label: string } | null {
+  try {
+    const raw = localStorage.getItem('jouspace:ai:context');
+    if (raw) return JSON.parse(raw) as { id: string; label: string };
+  } catch { /* ignore */ }
+  return null;
+}
+
+/** Persist the AI context selection to localStorage. */
+function saveAiContextLocal(selection: { id: string; label: string }): void {
+  try {
+    localStorage.setItem('jouspace:ai:context', JSON.stringify(selection));
+  } catch { /* ignore */ }
+}
+
+// Maps a profile "info sheet" kind to its dedicated full-screen route.
+const INFO_KIND_TO_SCREEN: Record<InfoSheetKind, Screen> = {
+  privacy: 'privacy',
+  help: 'help',
+  feedback: 'feedback',
+  about: 'about',
+};
 
 const DAY_MS = 86_400_000;
 
@@ -140,83 +176,20 @@ function buildContinuePrompt(
   return `You were writing about ${formatThemeList(labels)}. ${nudge}`;
 }
 
-/** Static content for the Profile info sheets (Privacy / Help / Feedback / About). */
-const infoContent: Record<
-  InfoSheetKind,
-  { title: string; icon: ReactNode; body: ReactNode }
-> = {
-  privacy: {
-    title: 'Privacy',
-    icon: <Shield className="w-5 h-5 stroke-[1.8]" />,
-    body: (
-      <div className="flex flex-col gap-2">
-        <p>
-          Your journal is stored entirely on this device (in your browser's local
-          storage). Nothing is uploaded unless you configure an AI runtime URL —
-          in which case the entries you send are shared with that runtime to
-          generate reflections.
-        </p>
-        <p>
-          There is no account, no cloud sync, and no server that can read your
-          journal. Uninstalling the app or clearing site data removes everything.
-        </p>
-      </div>
-    ),
-  },
-  help: {
-    title: 'Help Center',
-    icon: <LifeBuoy className="w-5 h-5 stroke-[1.8]" />,
-    body: (
-      <div className="flex flex-col gap-2">
-        <p>
-          Write a new entry from the Home screen, explore patterns in Memory, and
-          reflect with the AI tab. Change your display name from your Profile, and
-          set a runtime URL in Profile to enable AI reflections.
-        </p>
-        <p>If something looks off, try reloading the app.</p>
-      </div>
-    ),
-  },
-  feedback: {
-    title: 'Send Feedback',
-    icon: <MessageCircle className="w-5 h-5 stroke-[1.8]" />,
-    body: (
-      <p>
-        We'd love to hear how Jouspace is working for you. This is a local-first
-        preview, so there's no live inbox yet — your thoughts help shape what comes
-        next. Thanks for trying it out.
-      </p>
-    ),
-  },
-  about: {
-    title: 'About Jouspace',
-    icon: <InfoIcon className="w-5 h-5 stroke-[1.8]" />,
-    body: (
-      <div className="flex flex-col gap-2">
-        <p>
-          Jouspace is a quiet, local-first journal that gently builds context from
-          your writing over time.
-        </p>
-        <p>Version 1.0 (local preview).</p>
-      </div>
-    ),
-  },
-};
-
 export function App() {
-  // Onboarding: splash → (first run only) permission primer → app.
+  // Onboarding: splash → auth → permission primer → app.
   // Returning users who finished the primer skip straight to the app.
-  // Auth gate — revived as a backend-free local mock so the transition can be
-  // tested in the running app. Once the real backend lands, only lib/localAuth
-  // changes; this gate and the AuthScreen stay the same.
-  // No persisted session (Supabase unconfigured or fresh) -> start as a local
-  // no-account user so the app stays usable. Real Supabase sessions override
-  // this in initializeAuth; a successful sign-in replaces it via handleAuthed.
+  // Auth gate — Firebase is the identity provider (Google + email/password).
+  // A successful sign-in (handleAuthed) overwrites authUser; otherwise the
+  // gate stays up until the user completes a Firebase auth flow.
   const [authUser, setAuthUser] = useState<AuthUser | null>(() => loadSession() ?? NoAccountUser);
 
-  // First-run flow stages: splash -> welcome -> auth -> permissions -> app.
+  /** True when the user should see the app rather than the auth gate. */
+  const showApp = !isNoAccountUser(authUser);
+
+  // First-run flow stages: splash -> auth -> permissions -> app.
   // Returning users (jouspace.onboarded === '1') start straight at 'app'.
-  const [stage, setStage] = useState<'splash' | 'welcome' | 'auth' | 'permissions' | 'app'>(
+  const [stage, setStage] = useState<'splash' | 'auth' | 'permissions' | 'app'>(
     () => {
       try {
         return typeof localStorage !== 'undefined' &&
@@ -232,26 +205,37 @@ export function App() {
 
   // Restore the last-viewed screen/tab so a reload/relaunch returns where the
   // user left off (falls back to Home on first run or if the value is invalid).
-  const [currentScreen, setCurrentScreen] = useState<Screen>(
-    () => readStoredNav().screen
-  );
-  const [activeTab, setActiveTab] = useState<NavTab>(() => readStoredNav().tab);
+  // Native navigation stack. Each node holds the active screen plus the
+  // bottom-nav tab that should stay highlighted. Only the top node renders, so
+  // the previous screen stays frozen exactly where it was (no overlay, no
+  // state toggle, no shared layout — the background does not shift or jitter).
+  const [navStack, setNavStack] = useState<NavNode[]>(() => [
+    tabToNode(readStoredNav().tab),
+  ]);
+  const currentNode = navStack[navStack.length - 1];
+  const currentScreen = currentNode.screen;
+  const activeTab = currentNode.tab;
+
+  const goTo = useCallback((screen: Screen) => {
+    setNavStack((prev) => [
+      ...prev,
+      { screen, tab: prev[prev.length - 1].tab },
+    ]);
+  }, []);
+
+  const goBack = useCallback(() => {
+    setNavStack((prev) => (prev.length > 1 ? prev.slice(0, -1) : prev));
+  }, []);
+
+  const navigateToTab = useCallback((tab: NavTab) => {
+    setNavStack([tabToNode(tab)]);
+  }, []);
 
   // Entry editing / detail state
   const [selectedEntry, setSelectedEntry] = useState<StoredEntry | null>(null);
   const [editingEntry, setEditingEntry] = useState<StoredEntry | null>(null);
   const [threadTheme, setThreadTheme] = useState<string | null>(null);
 
-  // Overlay screen state
-  const [overlayScreen, setOverlayScreen] = useState<Overlay>(null);
-  const [overlayClosing, setOverlayClosing] = useState(false);
-  const [dragY, setDragY] = useState<number | null>(null);
-  const [dragging, setDragging] = useState(false);
-  const dragStartY = useRef(0);
-  const dragStartT = useRef(0);
-  const sheetElRef = useRef<HTMLDivElement>(null);
-  const [isContextPickerOpen, setIsContextPickerOpen] = useState(false);
-  const [isAiReflectOpen, setIsAiReflectOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Profile + theme (persisted to localStorage)
@@ -259,16 +243,22 @@ export function App() {
   const { theme, setTheme } = useTheme();
   const userInitials = deriveInitials(profile.displayName);
 
-  // Profile-sheet state (Appearance / info sheets)
-  const [isThemeSheetOpen, setIsThemeSheetOpen] = useState(false);
-  const [isInfoSheetOpen, setIsInfoSheetOpen] = useState(false);
-  const [infoKind, setInfoKind] = useState<InfoSheetKind>('about');
-  const [isAiHistoryOpen, setIsAiHistoryOpen] = useState(false);
-
   // Persisted AI context selection (from the context picker).
   const [aiContext, setAiContext] = useState<{ id: string; label: string } | null>(
-    () => loadAiContext()
+    () => loadAiContextLocal()
   );
+
+  // Space/theme picker state (lifted from JournalScreenContent so the picker
+  // can be a full-screen route). `spaceTab` tracks the in-progress selection.
+  const [spacePickerTab] = useState<'presets' | 'custom'>(
+    'presets'
+  );
+  const [spacePickerSelectedId, setSpacePickerSelectedId] = useState<string>('');
+  const [spacePickerCustom, setSpacePickerCustom] = useState<{
+    name: string;
+    cTitle: string;
+    cBody: string;
+  }>({ name: '', cTitle: '', cBody: '' });
 
   const journal = useJournalStore();
   const online = useOnlineStatus();
@@ -312,6 +302,14 @@ export function App() {
   const [memoryLoading, setMemoryLoading] = useState(false);
   const memoryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Live mirrors of `stage` / `navStack` so the hardware-back listener (which
+  // closes over a stable effect, not the latest render) can always read the
+  // current onboarding stage and navigation depth.
+  const stageRef = useRef(stage);
+  stageRef.current = stage;
+  const navDepthRef = useRef(navStack.length);
+  navDepthRef.current = navStack.length;
+
   useLayoutEffect(() => {
     if (currentScreen === 'memory' && !memoryLoadedRef.current) {
       memoryLoadedRef.current = true;
@@ -319,12 +317,6 @@ export function App() {
       memoryTimerRef.current = setTimeout(() => setMemoryLoading(false), 700);
     }
   }, [currentScreen]);
-
-  const retryMemory = useCallback(() => {
-    setMemoryLoading(true);
-    if (memoryTimerRef.current) clearTimeout(memoryTimerRef.current);
-    memoryTimerRef.current = setTimeout(() => setMemoryLoading(false), 700);
-  }, []);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -338,10 +330,12 @@ export function App() {
     []
   );
 
-  // Splash screen: auto-advance after 1.5s → permission primer (first run) or app.
+  // Splash screen: auto-advance after 3s → auth (the "Continue writing" screen).
+  // A little extra beat lets first-run users actually read the logo + tagline
+  // before the auth gate replaces it.
   useEffect(() => {
     if (stage !== 'splash') return;
-    const timer = setTimeout(() => setStage('welcome'), 1500);
+    const timer = setTimeout(() => setStage('auth'), 3000);
     return () => clearTimeout(timer);
   }, [stage]);
 
@@ -353,55 +347,84 @@ export function App() {
     } catch {
       /* privacy mode — just advance */
     }
-    void queueUserPrefsSync();
     setStage('app');
   }, []);
 
   // Auth: persist the session and drop the gate so the app shows.
-  const handleAuthed = useCallback((user: AuthUser | null) => {
-    setAuthUser(user ?? NoAccountUser);
-    setStage((prev) => (prev === 'auth' ? 'permissions' : 'app'));
-  }, []);
+  const handleAuthed = useCallback(
+    (user: AuthUser | null) => {
+      const next = user ?? NoAccountUser;
+      setAuthUser(next);
+      if (!isNoAccountUser(next)) {
+        // Real (non-no-account) sign-in: sync the Profile display name so it
+        // matches the authenticated account.
+        setDisplayName(next.displayName);
+      }
+      setStage((prev) => (prev === 'auth' ? 'permissions' : 'app'));
+    },
+    [setDisplayName],
+  );
 
-  // Hydrate the session from the persisted Supabase session on startup, and keep
-  // authUser in sync with any future sign-in / sign-out / token refresh.
+  // Hydrate the session from the persisted Firebase session on startup, and keep
+  // authUser in sync with any future sign-in / sign-out.
   useEffect(() => {
     initializeAuth();
+    // Web: if we just returned from a Google OAuth redirect, finish sign-in and
+    // drop straight into the app. Native handles Google in-process, so skip.
+    if (!Capacitor.isNativePlatform()) {
+      void completeGoogleRedirectIfPresent().then((user) => {
+        if (user) handleAuthed(user);
+      });
+    }
     const off = onAuthStateChange((u) => {
       setAuthUser(u);
-      if (u) void hydrateAllUserSync();
     });
     return off;
+  }, [handleAuthed]);
+
+  // Firestore sync: attach when a real user signs in, detach on sign-out.
+  useEffect(() => {
+    if (authUser && !isNoAccountUser(authUser) && authUser.id) {
+      void attachSync(authUser.id);
+    } else {
+      detachSync();
+    }
+  }, [authUser]);
+
+  // Sync status for UI feedback.
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
+  useEffect(() => onSyncStatusChange(setSyncStatus), []);
+
+  // Re-read personalization when cloud sync pushes a remote update.
+  useEffect(() => {
+    const h = () => setAiMemoryNotes(loadPersonalization().memoryNotes);
+    window.addEventListener('jouspace:personalization:remote-changed', h);
+    return () =>
+      window.removeEventListener('jouspace:personalization:remote-changed', h);
   }, []);
 
   // Show the auth screen on demand (e.g. from Profile -> Sign in / Switch
   // account, or after signing out). Resets to the no-account placeholder so the
-  // auth gate renders, then drops the user into the auth flow at any time — not
-  // just on first run.
+  // gate re-appears and the user can complete a Firebase auth flow.
   const goToAuth = useCallback(() => {
-    // Force the auth gate open by resetting to the no-account placeholder, then
-    // drop the user into the auth flow. We intentionally do NOT clear the real
-    // Supabase session here: that can throw/hang on a misconfigured client and
-    // break the click. A successful sign-in (handleAuthed) overwrites authUser
-    // anyway; choosing "Continue without an account" keeps the placeholder.
     setAuthUser(NoAccountUser);
+    setNavStack([tabToNode('home')]); // land on a fresh root, not a stale Profile
     setStage('auth');
   }, []);
 
   // Sign out: clear the local session and return to the auth screen so the user
-  // can switch accounts or continue without one (no backend yet, so this is
-  // fully local).
+  // can switch accounts (local-first, no cloud session to revoke).
   const handleSignOut = useCallback(() => {
-    // Best-effort clear of any real Supabase session; never let a failure block
-    // returning to the auth screen.
     void clearSession().catch(() => {});
     goToAuth();
   }, [goToAuth]);
 
-  // Persist the active screen/tab so a reload/relaunch returns where you left off.
+  // Persist the stack's root tab so a reload/relaunch returns to the same
+  // bottom-nav section (sub-screens are transient and not restored).
   useEffect(() => {
-    writeStoredNav({ screen: currentScreen, tab: activeTab });
-  }, [currentScreen, activeTab]);
+    const root = navStack[0];
+    writeStoredNav({ screen: root.screen, tab: root.tab });
+  }, [navStack]);
 
   // ── Journal reminders (local notifications) ────────────────────────────────────
   // Arm a gentle, recurring evening reminder (+ a "finish your thought" nudge for an
@@ -416,16 +439,16 @@ export function App() {
   // App lifecycle: foreground refreshes, background arms, tap opens the composer.
   useEffect(() => {
     const openFromReminder = () => {
-      setOverlayScreen(null);
       setEditingEntry(null);
-      setCurrentScreen('journal');
-      setActiveTab('write');
+      setSelectedEntry(null);
+      navigateToTab('write'); // replaces stack → journal/write root; freezes background
     };
     const offTap = ReminderService.onReminderOpen(() => openFromReminder());
 
     const cap = (window as unknown as { Capacitor?: any }).Capacitor;
     let offNative: (() => void) | undefined;
     let offUrlOpen: (() => void) | undefined;
+    let offBack: (() => void) | undefined;
     if (cap?.isNativePlatform?.()) {
       const app = cap.Plugins?.App;
       if (app?.addListener) {
@@ -440,21 +463,48 @@ export function App() {
           typeof handle?.remove === 'function' ? () => handle.remove() : undefined;
 
         // Handle deep links (jouspace://) for OAuth & password-reset callbacks.
-        // When the app is already running and receives a new deep link, supabase-js
-        // needs to process the URL fragment to extract the session token.
         const urlHandle = app.addListener(
           'appUrlOpen',
           (event: { url?: string }) => {
-            if (event?.url) {
-              // supabase-js with detectSessionInUrl processes the current
-              // document URL on the next tick — force it by navigating the
-              // WebView to the deep-link URL so the fragment is visible.
-              void window.location.assign(event.url);
+            if (!event?.url) return;
+            try {
+              // Google OAuth callback: Firebase handles the redirect result
+              // via completeGoogleRedirectIfPresent.
+              void completeGoogleRedirectIfPresent().then((user) => {
+                if (user) handleAuthed(user);
+              });
+            } catch (err) {
+              console.warn('[auth] deep-link processing error:', err);
             }
           },
         );
         offUrlOpen =
           typeof urlHandle?.remove === 'function' ? () => urlHandle.remove() : undefined;
+
+        // Android hardware back button — navigate the in-app stack on every screen.
+        // Registering ANY listener stops Capacitor's native AppPlugin from
+        // calling finish() (it fires the event to JS instead), so we must
+        // always decide what to do here: pop a screen, hold the auth gate, or
+        // minimize. Without this, back does nothing on most screens.
+        const backHandle = app.addListener(
+          'backButton',
+          () => {
+            // Inside the app: pop the navigation stack (composer → home,
+            // detail view → list, overlay → underlying screen). At the root
+            // there is nothing to pop, so let the OS minimize the app.
+            if (stageRef.current === 'app') {
+              if (navDepthRef.current > 1) goBack();
+              return;
+            }
+            // Onboarding stages (splash / auth / permissions): hold the auth
+            // gate rather than letting the WebView exit the activity.
+            if (stageRef.current === 'auth') {
+              setAuthUser(NoAccountUser);
+            }
+          },
+        );
+        offBack =
+          typeof backHandle?.remove === 'function' ? () => backHandle.remove() : undefined;
       }
     }
 
@@ -473,6 +523,7 @@ export function App() {
       offTap();
       offNative?.();
       offUrlOpen?.();
+      offBack?.();
       document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('pagehide', onPageHide);
     };
@@ -507,8 +558,7 @@ export function App() {
   const handleEditEntry = (entry: StoredEntry) => {
     setSelectedEntry(null);
     setEditingEntry(entry);
-    setCurrentScreen('journal');
-    setActiveTab('journal');
+    navigateToTab('journal');
   };
 
   const handleDeleteEntry = (entry: StoredEntry) => {
@@ -518,34 +568,24 @@ export function App() {
     }
   };
 
-  const handleEntryClick = (entry: Entry) => setSelectedEntry(entry as StoredEntry);
+  const handleEntryClick = (entry: Entry) => goToEntry(entry.id);
 
   const handleBackToHome = () => {
-    setCurrentScreen('home');
-    setActiveTab('home');
+    navigateToTab('home');
     setEditingEntry(null);
   };
 
   const handleTabChange = (tab: NavTab) => {
-    // Close any open overlay before switching tabs (prevents stacked/orphaned).
-    setOverlayScreen(null);
-    setActiveTab(tab);
-    if (tab === 'home') setCurrentScreen('home');
-    else if (tab === 'journal' || tab === 'write') {
-      // "New entry" / center write button always opens a blank composer.
-      setEditingEntry(tab === 'write' ? null : editingEntry);
-      setCurrentScreen('journal');
-    } else if (tab === 'memory') setCurrentScreen('memory');
-    else if (tab === 'ai') setCurrentScreen('ai');
+    // Switching tabs replaces the whole stack with that tab's root screen.
+    navigateToTab(tab);
   };
 
   const handleOpenProfile = () => {
-    setCurrentScreen('profile');
+    goTo('profile');
   };
 
   const handleOpenInfo = (kind: InfoSheetKind) => {
-    setInfoKind(kind);
-    setIsInfoSheetOpen(true);
+    goTo(INFO_KIND_TO_SCREEN[kind]);
   };
 
   const handleResetMemory = () => {
@@ -559,85 +599,78 @@ export function App() {
     if (!item) return;
     const next = { id: item.id, label: item.label };
     setAiContext(next);
-    saveAiContext(next);
-    setIsContextPickerOpen(false);
+    saveAiContextLocal(next);
+    goBack();
   };
 
-  const handleReflectWithAI = () => setIsAiReflectOpen(true);
+  const handleReflectWithAI = () => goTo('aiReflect');
+
+  // Draft detection — check if there's an active unsaved draft on mount
+  const [hasDraft, setHasDraft] = useState<boolean>(() => {
+    const draft = readDraft();
+    return draft !== null && (draft.title.trim() !== '' || draft.body.trim() !== '');
+  });
+
+  // Clear the draft and navigate to a fresh new entry
+  const handleNewEntry = useCallback(() => {
+    clearDraft();
+    setHasDraft(false);
+    handleTabChange('write');
+  }, [handleTabChange]);
+
+  // Continue writing with the existing draft
+  const handleContinueWriting = useCallback(() => {
+    handleTabChange('write');
+  }, [handleTabChange]);
+
+  // Refresh draft state when returning to home screen
+  useEffect(() => {
+    if (currentScreen === 'home') {
+      const draft = readDraft();
+      setHasDraft(draft !== null && (draft.title.trim() !== '' || draft.body.trim() !== ''));
+    }
+  }, [currentScreen]);
 
   const handleExploreThread = (themeId: string) => {
     setThreadTheme(themeId);
-    setOverlayScreen('memory-thread');
-  };
-
-  const handleCloseOverlay = () => {
-    if (overlayClosing) return;
-    setOverlayClosing(true); // sheet switches to animate-slideDown
-  };
-
-  const handleOverlayExited = (e: React.AnimationEvent<HTMLDivElement>) => {
-    if (e.target !== e.currentTarget) return; // ignore child animations
-    if (e.animationName !== 'slideDown') return; // only act on close
-    if (overlayClosing) {
-      setOverlayScreen(null);
-      setOverlayClosing(false);
-    }
-  };
-
-  // Drag-to-dismiss: grabber-only, 1:1 finger tracking, flick/threshold to close.
-  const onGrabPointerDown = (e: React.PointerEvent) => {
-    if (overlayClosing) return;
-    dragStartY.current = e.clientY;
-    dragStartT.current = Date.now();
-    setDragging(true);
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-  };
-  const onGrabPointerMove = (e: React.PointerEvent) => {
-    if (!dragging) return;
-    setDragY(Math.max(0, e.clientY - dragStartY.current)); // downward only
-  };
-  const onGrabPointerUp = () => {
-    if (!dragging) return;
-    setDragging(false);
-    const dy = dragY ?? 0;
-    const dt = Math.max(1, Date.now() - dragStartT.current);
-    const velocity = dy / dt; // px/ms
-    if (dy > 120 || velocity > 0.6) {
-      setDragY(null);
-      setOverlayClosing(true); // release past threshold -> slide down & close
-    } else {
-      setDragY(null); // release early -> transition snaps back to 0
-    }
+    goTo('memoryThread');
   };
 
   const goToEntry = (id: string) => {
     const entry = journal.get(id);
     if (entry) {
       setSelectedEntry(entry);
-      setOverlayScreen(null);
+      goTo('entryDetail');
     }
   };
 
-  // ── Focus trap + Escape for the single App-level overlay modal ──────────────
-  const overlayId = useId();
-  const overlayRef = useRef<HTMLDivElement>(null);
-  useFocusTrap({
-    id: overlayId,
-    active: overlayScreen !== null,
-    onClose: handleCloseOverlay,
-    containerRef: overlayRef,
-  });
+  const handleOpenEntryPicker = () => {
+    goTo('entryPicker');
+  };
 
-  // Keyboard: Escape closes every overlay. The sheet/drawer components already
-  // handle Escape via useFocusTrap (topmost-only, capture-phase stopPropagation),
-  // so these calls are a redundant-but-safe fallback that never double-fires.
-  useEscapeKey(handleCloseOverlay, overlayScreen !== null);
-  useEscapeKey(() => setIsContextPickerOpen(false), isContextPickerOpen);
-  useEscapeKey(() => setIsAiReflectOpen(false), isAiReflectOpen);
-  useEscapeKey(() => setIsThemeSheetOpen(false), isThemeSheetOpen);
-  useEscapeKey(() => setIsInfoSheetOpen(false), isInfoSheetOpen);
-  useEscapeKey(() => setIsAiHistoryOpen(false), isAiHistoryOpen);
-  useEscapeKey(() => setSelectedEntry(null), selectedEntry !== null);
+  const handleOpenSpacePicker = (spaceId: string, customThemeId: string | null) => {
+    setSpacePickerSelectedId(spaceId);
+    let seed: { name: string; cTitle: string; cBody: string } = {
+      name: '',
+      cTitle: '',
+      cBody: '',
+    };
+    if (customThemeId) {
+      const ct = findCustomThemeById(customThemeId);
+      if (ct) {
+        seed = {
+          name: ct.label,
+          cTitle: ct.placeholderTitle,
+          cBody: ct.placeholderBody,
+        };
+      }
+    }
+    setSpacePickerCustom(seed);
+    goTo('spacePicker');
+  };
+
+  // Keyboard: Escape returns to the previous screen (no effect at a tab root).
+  useEscapeKey(goBack, navStack.length > 1);
 
   // First-run days-since-last-entry (real data), newest entry first.
   const lastWroteDays = isEmpty
@@ -679,132 +712,6 @@ export function App() {
               </div>
             </Presence>
 
-            {/* Overlay Screens — bottom-anchored sheets that slide up from the bottom */}
-            {overlayScreen && (
-              <div
-                ref={overlayRef}
-                role="dialog"
-                aria-modal="true"
-                aria-label={String(overlayScreen)}
-                className="absolute inset-0 z-50 flex items-end justify-center"
-              >
-                {/* Backdrop — fades in on open, fades out on close.
-                    `gpu-layer` keeps the fade on the compositor (opacity-only
-                    repaint) so it never shimmers over the canvas behind. */}
-                <div
-                  className={`gpu-layer absolute inset-0 bg-primaryText/40 transition-opacity duration-300 ${
-                    overlayClosing ? 'opacity-0' : 'animate-fadeIn'
-                  }`}
-                  onClick={handleCloseOverlay}
-                />
-
-                {/* Sheet — half-screen bottom sheet, bottom-anchored, slides from bottom.
-                    `gpu-layer` keeps it promoted even after the slideUp keyframe
-                    ends (no de-promotion text pop). While closing, the inline
-                    transform pins it at translateY(100%) as the base value so
-                    when the slideDown keyframe ends (fill: none) it does NOT snap
-                    back to translateY(0) for a frame before React unmounts — that
-                    snap is the close "flash". Drag transform (inline style)
-                    overrides during drag for 1:1 tracking. */}
-                <div
-                  ref={sheetElRef}
-                  onAnimationEnd={handleOverlayExited}
-                  className={`gpu-layer relative z-10 flex flex-col w-full max-w-[430px] h-[58%] bg-base rounded-t-[28px] overflow-hidden ${
-                    overlayClosing ? 'animate-slideDown' : 'animate-slideUp'
-                  } ${dragging ? 'transition-none' : 'transition-transform duration-200 ease-out'}`}
-                  style={
-                    dragY != null
-                      ? { transform: `translateY(${dragY}px)` }
-                      : overlayClosing
-                        ? { transform: 'translateY(100%)' }
-                        : undefined
-                  }
-                >
-                  {/* Grabber handle — the ONLY drag target (keeps list scroll intact) */}
-                  <div
-                    className="flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing touch-none select-none"
-                    onPointerDown={onGrabPointerDown}
-                    onPointerMove={onGrabPointerMove}
-                    onPointerUp={onGrabPointerUp}
-                    aria-hidden="true"
-                  >
-                    <span className="w-9 h-1 rounded-full bg-borderSubtle" />
-                  </div>
-
-                  {overlayScreen === 'search' && (
-                    <SearchScreen
-                      entries={journal.entries}
-                      onBack={handleCloseOverlay}
-                      onResultClick={goToEntry}
-                    />
-                  )}
-                  {overlayScreen === 'notifications' && (
-                    <NotificationScreen onBack={handleCloseOverlay} />
-                  )}
-                  {overlayScreen === 'memory-thread' && (
-                    <MemoryThreadScreen
-                      title={threadTheme ? themeLabel(threadTheme) : 'Your memories'}
-                      entries={threadEntries}
-                      onBack={handleCloseOverlay}
-                      onReflectWithAI={handleReflectWithAI}
-                    />
-                  )}
-                  {overlayScreen === 'notification-settings' && (
-                    <NotificationSettingsSheet onClose={handleCloseOverlay} />
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* AI Context Picker Modal */}
-            <AIContextPicker
-              isOpen={isContextPickerOpen}
-              onClose={() => setIsContextPickerOpen(false)}
-              onSelectContext={handleSelectContext}
-              activeId={aiContext?.id ?? null}
-            />
-
-            {/* Profile: Appearance (theme) sheet */}
-            <ThemeSheet
-              isOpen={isThemeSheetOpen}
-              onClose={() => setIsThemeSheetOpen(false)}
-              theme={theme}
-              onSelect={(t) => {
-                setTheme(t);
-                setIsThemeSheetOpen(false);
-              }}
-            />
-
-            {/* Profile: info sheets (Privacy / Help / Feedback / About) */}
-            <InfoSheet
-              isOpen={isInfoSheetOpen}
-              onClose={() => setIsInfoSheetOpen(false)}
-              title={infoContent[infoKind].title}
-              icon={infoContent[infoKind].icon}
-            >
-              {infoContent[infoKind].body}
-            </InfoSheet>
-
-            {/* AI: reflection history sheet */}
-            <AIHistorySheet
-              isOpen={isAiHistoryOpen}
-              onClose={() => setIsAiHistoryOpen(false)}
-            />
-
-            {/* Interactive Overlay Drawers */}
-            <AIReflectDrawer
-              isOpen={isAiReflectOpen}
-              onClose={() => setIsAiReflectOpen(false)}
-            />
-
-            <EntryDetailDrawer
-              entry={selectedEntry as Entry | null}
-              onClose={() => setSelectedEntry(null)}
-              onEdit={selectedEntry ? () => handleEditEntry(selectedEntry) : undefined}
-              onDelete={
-                selectedEntry ? () => handleDeleteEntry(selectedEntry) : undefined
-              }
-            />
           </>
         }
       >
@@ -816,16 +723,10 @@ export function App() {
         <div className="flex-1 flex flex-col min-h-0">
           {stage === 'splash' ? (
             <SplashScreen />
-          ) : stage === 'welcome' ? (
-            <WelcomeScreen onContinue={() => { setAuthUser(NoAccountUser); setStage('auth'); }} />
           ) : stage === 'permissions' ? (
             <PermissionPrimerScreen onComplete={finishOnboarding} />
-          ) : isNoAccountUser(authUser) ? (
-            <AuthScreen
-              onAuthed={handleAuthed}
-              onContinueWithoutAccount={() => handleAuthed(null)}
-            />
-          ) : currentScreen === 'ai' ? (
+          ) : showApp ? (
+            currentScreen === 'ai' ? (
             <AIScreenContent
               activeTab="ai"
               onTabChange={handleTabChange}
@@ -834,8 +735,9 @@ export function App() {
               contextLabel={aiContext?.label ?? null}
               entries={journal.entries}
               onAvatarClick={handleOpenProfile}
-              onOpenHistory={() => setIsAiHistoryOpen(true)}
-              onOpenContextPicker={() => setIsContextPickerOpen(true)}
+              onOpenHistory={() => goTo('aiHistory')}
+              onOpenContextPicker={() => goTo('aiContext')}
+              onOpenEntryPicker={handleOpenEntryPicker}
               onOpenEntry={goToEntry}
             />
           ) : currentScreen === 'memory' ? (
@@ -846,11 +748,10 @@ export function App() {
               entries={journal.entries}
               isNoMemories={isEmpty}
               isLoading={memoryLoading}
-              onRetry={retryMemory}
               onEntryClick={handleEntryClick}
               onExploreThread={handleExploreThread}
               onReflectWithAi={handleReflectWithAI}
-              onOpenSearch={() => setOverlayScreen('search')}
+              onOpenSearch={() => goTo('search')}
               onAvatarClick={handleOpenProfile}
             />
           ) : currentScreen === 'journal' ? (
@@ -865,6 +766,7 @@ export function App() {
               onSaveEntry={handleSaveEntry}
               onOpenEntry={handleEntryClick}
               onExploreThread={handleExploreThread}
+              onOpenSpacePicker={handleOpenSpacePicker}
             />
           ) : currentScreen === 'profile' ? (
             <ProfileScreenContent
@@ -874,23 +776,100 @@ export function App() {
               displayName={profile.displayName}
               email={authUser?.email ?? ''}
               joinedDate={profile.joinedDate}
-              entryCount={journal.entries.length}
-              isEmptyJournal={isEmpty}
               isOffline={!online}
-              onSave={setDisplayName}
-              onOpenNotifications={() => setOverlayScreen('notifications')}
-              onOpenNotificationSettings={() => setOverlayScreen('notification-settings')}
-              onOpenAppearance={() => setIsThemeSheetOpen(true)}
+              onOpenNotifications={() => goTo('notifications')}
+              onOpenNotificationSettings={() => goTo('notificationSettings')}
+              onOpenAppearance={() => goTo('appearance')}
+              onEditProfile={() => goTo('editProfile')}
               onOpenInfo={handleOpenInfo}
               onExport={downloadJournalExport}
-              onLoadDemo={() => {
-                loadDemoData();
-                showToast('Sample data loaded');
-              }}
+
               aiMemoryNotes={aiMemoryNotes || undefined}
               onResetMemory={handleResetMemory}
               onSignIn={goToAuth}
               onSignOut={handleSignOut}
+              syncStatus={syncStatus}
+            />
+          ) : currentScreen === 'editProfile' ? (
+            <EditProfileScreen
+              displayName={profile.displayName}
+              userInitials={userInitials}
+              email={authUser?.email ?? ''}
+              joinedDate={profile.joinedDate}
+              onSave={setDisplayName}
+              onBack={goBack}
+            />
+          ) : currentScreen === 'notifications' ? (
+            <NotificationScreen onBack={goBack} />
+          ) : currentScreen === 'notificationSettings' ? (
+            <NotificationSettingsScreen onBack={goBack} />
+          ) : currentScreen === 'appearance' ? (
+            <ThemeScreen
+              theme={theme}
+              onSelect={setTheme}
+              onBack={goBack}
+            />
+          ) : currentScreen === 'privacy' ? (
+            <InfoScreen kind="privacy" onBack={goBack} />
+          ) : currentScreen === 'help' ? (
+            <InfoScreen kind="help" onBack={goBack} />
+          ) : currentScreen === 'feedback' ? (
+            <InfoScreen kind="feedback" onBack={goBack} />
+          ) : currentScreen === 'about' ? (
+            <InfoScreen kind="about" onBack={goBack} />
+          ) : currentScreen === 'search' ? (
+            <SearchScreen
+              entries={journal.entries}
+              onBack={goBack}
+              onResultClick={goToEntry}
+            />
+          ) : currentScreen === 'memoryThread' ? (
+            <MemoryThreadScreen
+              title={
+                threadTheme
+                  ? journal.entries.find((e) => e.theme === threadTheme)?.theme ?? threadTheme
+                  : 'Memory thread'
+              }
+              entries={threadEntries}
+              onBack={goBack}
+              onReflectWithAI={handleReflectWithAI}
+            />
+          ) : currentScreen === 'aiContext' ? (
+            <AIContextScreen
+              activeId={aiContext?.id ?? null}
+              onSelectContext={handleSelectContext}
+              onBack={goBack}
+            />
+          ) : currentScreen === 'aiHistory' ? (
+            <AIHistoryScreen onBack={goBack} />
+          ) : currentScreen === 'aiReflect' ? (
+            <AIReflectScreen onBack={goBack} />
+          ) : currentScreen === 'entryPicker' ? (
+            <EntryPickerScreen
+              entries={journal.entries}
+              onSelect={(entry) => {
+                writeAiAttach(entry.title);
+                goBack();
+              }}
+              onBack={goBack}
+            />
+          ) : currentScreen === 'entryDetail' ? (
+            selectedEntry ? (
+              <EntryDetailScreen
+                entry={selectedEntry}
+                onBack={goBack}
+                onEdit={() => handleEditEntry(selectedEntry)}
+                onDelete={() => handleDeleteEntry(selectedEntry)}
+              />
+            ) : (
+              <div className="flex flex-col flex-1 min-h-0" />
+            )
+          ) : currentScreen === 'spacePicker' ? (
+            <SpacePickerScreen
+              initialTab={spacePickerTab}
+              initialSelectedId={spacePickerSelectedId}
+              initialCustom={spacePickerCustom}
+              onBack={goBack}
             />
           ) : (
             /* HOME SCREEN VIEW */
@@ -899,8 +878,7 @@ export function App() {
                 <div className="flex flex-col gap-7 w-full">
                   <JouspaceHeader
                     userInitials={userInitials}
-                    hasNotifications={false}
-                    onNotificationClick={() => setOverlayScreen('notifications')}
+                    onSearchClick={() => goTo('search')}
                     onAvatarClick={handleOpenProfile}
                   />
 
@@ -934,9 +912,29 @@ export function App() {
                         {buildContinuePrompt(journal.entries, lastWroteDays)}
                       </p>
                       <div className="pt-2">
-                        <PrimaryButton onClick={() => handleTabChange('write')}>
-                          New entry
-                        </PrimaryButton>
+                        <div className="flex items-center gap-3">
+                          {hasDraft ? (
+                            <PrimaryButton
+                              onClick={handleContinueWriting}
+                              icon={<Pencil className="w-4 h-4 mr-2 stroke-[1.8]" />}
+                            >
+                              Continue Writing
+                            </PrimaryButton>
+                          ) : (
+                            <PrimaryButton onClick={() => handleTabChange('write')}>
+                              New entry
+                            </PrimaryButton>
+                          )}
+                          {hasDraft && (
+                            <button
+                              type="button"
+                              onClick={handleNewEntry}
+                              className="inline-flex items-center min-h-11 px-5 py-3.5 text-[14.5px] font-medium text-accent hover:text-accentAlt transition-colors duration-150 cursor-pointer rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+                            >
+                              New entry
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </PrimaryCard>
                   </section>
@@ -994,6 +992,11 @@ export function App() {
               </div>
             </div>
           )
+        ) : (
+          <AuthScreen
+            onAuthed={handleAuthed}
+          />
+        )
         }
         </div>
       </AppScreen>

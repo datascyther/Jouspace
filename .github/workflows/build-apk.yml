@@ -17,8 +17,14 @@
 # `npx cap sync android` only copies the web build + plugin files into the
 # committed shell; it never touches the branded res/ tree or signing config.
 #
-# Versioning: versionCode/versionName derive from the git tag (v1.0.5 ->
-# versionName 1.0.5, versionCode 10005) or from the manual "version" input.
+# Versioning: SemVer with a pre-release tag. versionCode/versionName derive
+# from the git tag (v1.1.0-beta.1 -> versionName "1.1.0-beta.1", versionCode
+# 11001) or from the manual "version" input. versionCode layout:
+#   MAJ * 10000 + MIN * 1000 + PAT * 100 + iteration
+# where iteration is the beta number (01-99) for -beta.N builds and 100 for a
+# stable release. So versionCode is strictly increasing across beta builds AND
+# when the beta graduates to stable (1.1.0-beta.N -> 1100N, stable 1.1.0 ->
+# 11100), and every later build upgrades over every earlier one.
 
 name: Build Android APK
 
@@ -26,7 +32,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to stamp (e.g. 1.0.5). Defaults to the latest git tag.'
+        description: 'Version to stamp (e.g. 1.1.0-beta.1 or 1.1.0). Defaults to the latest git tag.'
         required: false
         type: string
   push:
@@ -58,8 +64,6 @@ jobs:
         # Falls back to the deployed worker URL when the secret is unset.
         env:
           VITE_API_BASE_URL: ${{ secrets.RUNTIME_URL || 'https://jouspace-runtime.jouspace.workers.dev' }}
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
         run: npm run build
 
       - name: Sync web assets into committed native shell
@@ -72,12 +76,24 @@ jobs:
           if [ -z "$VERSION" ] && [ "${{ github.ref_type }}" = "tag" ]; then
             VERSION="${GITHUB_REF_NAME#v}"
           fi
-          VERSION="${VERSION:-1.0.0}"
-          MAJ="${VERSION%%.*}"; REST="${VERSION#*.}"
-          MIN="${REST%%.*}"; PAT="${REST#*.}"
-          PAT="${PAT%%[^0-9]*}"
-          MAJ="${MAJ:-0}"; MIN="${MIN:-0}"; PAT="${PAT:-0}"
-          VCODE=$(( MAJ * 10000 + MIN * 100 + PAT ))
+          VERSION="${VERSION:-1.1.0-beta.1}"
+          BETA=""
+          if [[ "$VERSION" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)-beta\.([0-9]+)$ ]]; then
+            MAJ="${BASH_REMATCH[1]}"; MIN="${BASH_REMATCH[2]}"; PAT="${BASH_REMATCH[3]}"; BETA="${BASH_REMATCH[4]}"
+          elif [[ "$VERSION" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            MAJ="${BASH_REMATCH[1]}"; MIN="${BASH_REMATCH[2]}"; PAT="${BASH_REMATCH[3]}"
+          else
+            MAJ="${VERSION%%.*}"; REST="${VERSION#*.}"
+            MIN="${REST%%.*}"; PAT="${REST#*.}"
+            PAT="${PAT%%[^0-9]*}"
+            MAJ="${MAJ:-0}"; MIN="${MIN:-0}"; PAT="${PAT:-0}"
+          fi
+          BASE=$(( MAJ * 10000 + MIN * 1000 + PAT * 100 ))
+          if [ -n "$BETA" ]; then
+            VCODE=$(( BASE + BETA ))
+          else
+            VCODE=$(( BASE + 100 ))
+          fi
           echo "versionName=$VERSION" >> "$GITHUB_OUTPUT"
           echo "versionCode=$VCODE" >> "$GITHUB_OUTPUT"
           echo "Derived versionName=$VERSION versionCode=$VCODE"
@@ -102,7 +118,7 @@ jobs:
       - name: Build release APK (signed with committed keystore)
         # The committed keystore + keystore.properties are picked up by
         # android/app/build.gradle. Passing -Pjouspace.versionCode/-Name
-        # stamps the version; defaults are 1 / "1.0.0" if unset.
+        # stamps the version; defaults are 11001 / "1.1.0-beta.1" if unset.
         working-directory: android
         run: |
           chmod +x ./gradlew
