@@ -4,14 +4,11 @@
  * The app imports `journalStore` from here. On first run it starts EMPTY (no
  * fabricated demo entries) so new users get a clean, honest journal. Demo data
  * lives in `mockData` and is only injected on demand via `loadDemoData()`
- * (Profile → "Load sample data"). Swap the implementation (SQLite, cloud-
- * backed, etc.) without touching any caller.
+ * (Profile → "Load sample data").
  */
 
 import { LocalStorageJournalStore } from './JournalStore';
-import { SupabaseJournalStore } from './SupabaseJournalStore';
 import { DEFAULT_RECENT_ENTRIES } from '../mockData';
-import { isSupabaseConfigured } from '../lib/supabaseClient';
 import type { StoredEntry } from './types';
 
 function seedFromDemo(): StoredEntry[] {
@@ -28,13 +25,8 @@ function seedFromDemo(): StoredEntry[] {
   }));
 }
 
-// When Supabase credentials are present we use the cloud-backed store (which
-// still falls back to a local mirror for offline/instant reads). Otherwise we
-// keep the original localStorage store so the app runs without a backend.
-export const journalStore: LocalStorageJournalStore | SupabaseJournalStore =
-  isSupabaseConfigured
-    ? new SupabaseJournalStore()
-    : new LocalStorageJournalStore();
+// Local-first: always use the localStorage store.
+export const journalStore = new LocalStorageJournalStore();
 
 /** Inject the bundled sample entries (Profile → "Load sample data"). */
 export function loadDemoData(): void {

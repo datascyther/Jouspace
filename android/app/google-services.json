@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1090388569312",
+    "project_id": "jouspace-org",
+    "storage_bucket": "jouspace-org.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1090388569312:android:9be9388809d151e1713485",
+        "android_client_info": {
+          "package_name": "com.jouspace.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1090388569312-mabbe62ainuur8hiph5uus05u14j8joe.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.jouspace.app",
+            "certificate_hash": "f5c060330d02bcb677766798a6e98c1de8cd8a8c"
+          }
+        },
+        {
+          "client_id": "1090388569312-lv8bgk1g97v9p3i77sbamgseo73q85uq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCLrB_q_gtKbzlATjLYX_wnmxyslyZmW5w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1090388569312-lv8bgk1g97v9p3i77sbamgseo73q85uq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

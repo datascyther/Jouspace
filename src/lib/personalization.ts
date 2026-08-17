@@ -20,7 +20,6 @@
 import { journalStore } from '../store';
 import { loadProfile, DEFAULT_DISPLAY_NAME } from '../hooks/useProfile';
 import { streamOneShot, loadChatMessages } from '../hooks/useJouspaceIntelligence';
-import { SupabaseSyncStore } from './supabaseSync';
 
 const PERSONALIZATION_KEY = 'jouspace:personalization';
 const ANON_ID_KEY = 'jouspace:anonId';
@@ -30,6 +29,13 @@ const DIGEST_MIN_NEW_ENTRIES = 3;
 const DIGEST_MIN_INTERVAL_MS = 24 * 60 * 60 * 1000;
 const MAX_PERSONALIZATION_CHARS = 2000;
 const MAX_MEMORY_NOTES_CHARS = 600;
+
+const DEFAULT_PERSONALIZATION: PersonalizationStore = {
+  schemaVersion: SCHEMA_VERSION,
+  memoryNotes: '',
+  lastDigestAt: null,
+  lastEntryCount: 0,
+};
 
 export interface PersonalizationStore {
   schemaVersion: number;
@@ -46,27 +52,6 @@ export interface AIProfile {
   topThemes?: string[];
   personalization?: string;
 }
-
-// Cloud mirror for the `personalization` table (camelCase ↔ snake_case).
-const personalizationStore = new SupabaseSyncStore<PersonalizationStore>(
-  'personalization',
-  PERSONALIZATION_KEY,
-  { schemaVersion: SCHEMA_VERSION, memoryNotes: '', lastDigestAt: null, lastEntryCount: 0 },
-  {
-    toRow: (p) => ({
-      schema_version: p.schemaVersion,
-      memory_notes: p.memoryNotes,
-      last_digest_at: p.lastDigestAt,
-      last_entry_count: p.lastEntryCount,
-    }),
-    fromRow: (r) => ({
-      schemaVersion: typeof r.schema_version === 'number' ? r.schema_version : SCHEMA_VERSION,
-      memoryNotes: typeof r.memory_notes === 'string' ? r.memory_notes : '',
-      lastDigestAt: typeof r.last_digest_at === 'number' ? r.last_digest_at : null,
-      lastEntryCount: typeof r.last_entry_count === 'number' ? r.last_entry_count : 0,
-    }),
-  },
-);
 
 // ── Anonymous client identity (X-User-Id) ─────────────────────────────────────
 
@@ -96,22 +81,42 @@ export function getAnonId(): string {
 // ── Personalization store ──────────────────────────────────────────────────────
 
 export function loadPersonalization(): PersonalizationStore {
-  const p = personalizationStore.read();
-  return {
-    schemaVersion: SCHEMA_VERSION,
-    memoryNotes: typeof p.memoryNotes === 'string' ? p.memoryNotes : '',
-    lastDigestAt: typeof p.lastDigestAt === 'number' ? p.lastDigestAt : null,
-    lastEntryCount: typeof p.lastEntryCount === 'number' ? p.lastEntryCount : 0,
-  };
+  try {
+    const raw = localStorage.getItem(PERSONALIZATION_KEY);
+    if (raw) {
+      const p = JSON.parse(raw) as Partial<PersonalizationStore>;
+      return {
+        schemaVersion: SCHEMA_VERSION,
+        memoryNotes: typeof p.memoryNotes === 'string' ? p.memoryNotes : '',
+        lastDigestAt: typeof p.lastDigestAt === 'number' ? p.lastDigestAt : null,
+        lastEntryCount: typeof p.lastEntryCount === 'number' ? p.lastEntryCount : 0,
+      };
+    }
+  } catch {
+    /* corrupt payload → fall back to defaults */
+  }
+  return { ...DEFAULT_PERSONALIZATION };
 }
 
 function savePersonalization(p: PersonalizationStore): void {
-  personalizationStore.write(p);
+  try {
+    localStorage.setItem(PERSONALIZATION_KEY, JSON.stringify(p));
+    // Notify cloudSync that personalization changed locally.
+    window.dispatchEvent(new CustomEvent('jouspace:personalization:local-changed'));
+  } catch {
+    /* storage failure — non-fatal */
+  }
 }
 
 /** Local-first trust: wipe the AI's memory. The next distillation rebuilds it. */
 export function resetPersonalization(): void {
-  personalizationStore.remove();
+  try {
+    localStorage.removeItem(PERSONALIZATION_KEY);
+    // Notify cloudSync that personalization was reset.
+    window.dispatchEvent(new CustomEvent('jouspace:personalization:local-changed'));
+  } catch {
+    /* non-fatal */
+  }
 }
 
 // ── Cheap structural layer (no model call) ────────────────────────────────────

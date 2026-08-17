@@ -166,14 +166,14 @@ Analyse ${ctx.userName}'s recent journal entries and identify the single most in
 
 ${entryContext}
 
-  Output a single insight sentence in the style of Jouspace:
+  Output exactly ONE short insight sentence (10-20 words maximum) in the style of Jouspace:
 - Written in second person ("You...")
 - Observational, not prescriptive
-- 1–2 sentences maximum
+- MUST be a single sentence, very concise and personal
 - Based on patterns actually present in the entries above
-- Example style: "You often return to clarity after stepping away, not while pushing through."
+- Example style: "You return to clarity after stepping away."
 
-Output **plain text only — no markdown, no asterisks, no headings.** Only the insight sentence. No preamble, no explanation.`;
+Output **plain text only — no markdown, no asterisks, no headings.** Only ONE sentence. No preamble, no explanation, no elaboration.`;
 }
 
 function buildSummarizeSystemPrompt(ctx: JouspaceContext): string {

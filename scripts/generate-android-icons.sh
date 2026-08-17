@@ -1,6 +1,7 @@
 #!/bin/bash
 # generate-android-icons.sh
-# Generates Android mipmap launcher icons from the existing PWA source icon.
+# Generates Android mipmap launcher icons directly from the source brand logo
+# (src/assets/Jouspace logo.png).
 # Requires: sips (macOS built-in) or ImageMagick (convert).
 #
 # Usage: ./scripts/generate-android-icons.sh
@@ -10,7 +11,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
-SRC="${REPO_ROOT}/public/icon-192.png"
+SRC="${REPO_ROOT}/src/assets/Jouspace logo.png"
 OUT_DIR="${REPO_ROOT}/android-resources"
 
 if [ ! -f "$SRC" ]; then
@@ -46,4 +47,4 @@ done
 echo ""
 echo "Android launcher icons generated in ${OUT_DIR}/"
 echo "Note: Adaptive icons use vector foreground (ic_launcher_foreground.xml)"
-echo "      with purple background (#7C5CDB). Raster PNGs are fallbacks only."
+echo "      with brand purple background (#664FC4). Raster PNGs are fallbacks only."

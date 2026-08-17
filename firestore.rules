@@ -1,0 +1,54 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ── Helpers ──────────────────────────────────────────────────────────
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+    function validString(v, max) {
+      return v is string && v.size() <= max;
+    }
+    function validEntry() {
+      let d = request.resource.data;
+      return validString(d.date, 32)
+          && validString(d.title, 200)
+          && validString(d.theme, 60)
+          && validString(d.content, 100000)
+          && d.createdAt is number
+          && d.updatedAt is number
+          && (d.deleted == true || d.deleted == false);
+    }
+    function updateIsNewer() {
+      // Prevent a stale device from clobbering newer data (LWW guard).
+      return request.resource.data.updatedAt >= resource.data.updatedAt;
+    }
+
+    // ── User profile ─────────────────────────────────────────────────────
+    match /users/{userId} {
+      allow get:    if isOwner(userId);
+      allow list:   if isOwner(userId);
+      allow create: if isOwner(userId)
+                  && request.resource.data.keys().hasAll(['displayName', 'joinedDate', 'updatedAt']);
+      allow update: if isOwner(userId) && updateIsNewer();
+      allow delete: if false;
+
+      // ── Entries (subcollection) ────────────────────────────────────────
+      match /entries/{entryId} {
+        allow get:    if isOwner(userId);
+        allow list:   if isOwner(userId);
+        allow create: if isOwner(userId) && validEntry();
+        allow update: if isOwner(userId) && validEntry() && updateIsNewer();
+        allow delete: if isOwner(userId);
+      }
+
+      // ── Personalization ────────────────────────────────────────────────
+      match /personalization/{docId} {
+        allow get:    if isOwner(userId);
+        allow list:   if isOwner(userId);
+        allow create: if isOwner(userId);
+        allow update: if isOwner(userId) && updateIsNewer();
+        allow delete: if false;
+      }
+    }
+  }
+}

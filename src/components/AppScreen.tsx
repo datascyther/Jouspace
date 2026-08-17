@@ -27,13 +27,18 @@ export const AppScreen: React.FC<AppScreenProps> = ({
 
       {/* Mobile Prison — single centered column, max 430px.
           Fills the viewport on mobile; floats as a phone on desktop.
-          `h-dvh` pins the frame to the viewport height so it never grows
-          taller than the screen (otherwise the BODY becomes the scroll
-          container and the background can scroll/move behind overlays instead
-          of staying frozen). Screens scroll via their own `flex-1 min-h-0
-          overflow-y-auto` containers. */}
+          Height = the VISIBLE viewport (`--vvh`), driven by useAdaptiveKeyboard.
+          Keyboard avoidance is handled at the SCREEN level (the bottom nav is
+          hidden and the toolbar/composer sits flush while the software keyboard
+          is open), NOT here: resizing the shell with `calc(vvh + kb-height)`
+          collapses to `vvh` on platforms that also shrink window.innerHeight
+          when the keyboard opens (iOS Safari, Capacitor's adjustResize WebView),
+          which made the nav ride up onto the keyboard. Pinning the shell to
+          `--vvh` also keeps the background rock-steady when overlays open.
+          Screens scroll via their own `flex-1 min-h-0 overflow-y-auto`
+          containers. */}
       <div
-        className={`relative isolate w-full max-w-[430px] mx-auto h-(--vvh) bg-base flex flex-col overflow-hidden md:h-[880px] md:rounded-[40px] md:border md:border-borderSubtle md:shadow-2xl ${className}`}
+        className={`relative isolate w-full max-w-[430px] mx-auto h-[var(--vvh)] bg-base flex flex-col overflow-hidden md:h-[880px] md:rounded-[40px] md:border md:border-borderSubtle md:shadow-2xl ${className}`}
       >
         {/* The app's one painted canvas. Everything below must sit at z-10 or
             higher: a positioned z-index:0 layer paints ABOVE in-flow content. */}

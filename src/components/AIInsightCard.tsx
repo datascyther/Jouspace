@@ -22,10 +22,9 @@ export const AIInsightCard: React.FC<AIInsightCardProps> = ({
       {/* Top Label — quiet purple eyebrow with sparkle */}
       <MemoryLabel text={label} className="tracking-wide" />
 
-      {/* Body text — a relaxed observation, not a headline. Sized to match the
-          other card descriptions (e.g. "Continue your journal" body copy).
-          Wraps within a narrower column so it stays off the card's right edge. */}
-      <p className="font-sans text-[14.5px] leading-[1.55] text-secondaryText font-normal max-w-[85%]">
+      {/* Body text — a relaxed observation, not a headline. Serif font for a
+          refined, literary feel. Clamped to 2 lines so insights stay compact. */}
+      <p className="font-serif text-[15px] leading-[1.55] text-primaryText font-normal max-w-[85%] line-clamp-2">
         {insightText}
       </p>
 
