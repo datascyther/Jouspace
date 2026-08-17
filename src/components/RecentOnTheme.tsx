@@ -59,7 +59,7 @@ export const RecentOnTheme: React.FC<RecentOnThemeProps> = ({
   return (
     <section
       aria-labelledby={titleId}
-      className={`gpu-layer flex flex-col gap-3.5 w-full text-left animate-fadeUp ${className}`}
+      className={`flex flex-col gap-3.5 w-full text-left ${className}`}
     >
       <div className="flex items-baseline justify-between gap-3">
         <h3

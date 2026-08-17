@@ -1,27 +1,23 @@
 import React from 'react';
 import { BottomNavigation, NavTab } from './BottomNavigation';
-import { ProfileCard } from './ProfileCard';
-import { WritingSummaryCard } from './WritingSummaryCard';
 import { SectionTitle } from './SectionTitle';
 import { SettingsRow } from './SettingsRow';
-import {
-  isRuntimeConfigured,
-  useAiSummary,
-} from '../hooks/useJouspaceIntelligence';
 import {
   ArrowLeft,
   Bell,
   Eye,
   Shield,
   Download,
-  RefreshCw,
+  Pencil,
   Trash2,
   LifeBuoy,
   MessageCircle,
   Info,
   LogOut,
   UserPlus,
+  Cloud,
 } from 'lucide-react';
+import { type SyncStatus } from '../store/cloudSync';
 
 export type InfoSheetKind = 'privacy' | 'help' | 'feedback' | 'about';
 
@@ -32,28 +28,23 @@ interface ProfileScreenContentProps {
   displayName?: string;
   email?: string;
   joinedDate?: string;
-  avatarUrl?: string | null;
-  entryCount?: number;
-  topThemes?: string[];
   isLoading?: boolean;
-  isNoAvatar?: boolean;
-  isEmptyJournal?: boolean;
   isOffline?: boolean;
-  onSave?: (name: string) => void;
   onOpenNotifications?: () => void;
   onOpenNotificationSettings?: () => void;
   onOpenAppearance?: () => void;
   onOpenInfo?: (kind: InfoSheetKind) => void;
   onExport?: () => void;
-  onLoadDemo?: () => void;
   /** Distilled on-device AI memory notes (empty until first distillation). */
   aiMemoryNotes?: string;
   /** Clears the on-device AI memory. */
-  onResetMemory?: () => void;
-  /** Opens the auth screen (sign in / switch account) on demand. */
+  onResetMemory?: () => void;  /** Opens the edit-profile screen. */
+  onEditProfile?: () => void;  /** Opens the auth screen (sign in / switch account) on demand. */
   onSignIn?: () => void;
   /** Signs the user out (revives the auth screen). */
   onSignOut?: () => void;
+  /** Cloud sync status indicator. */
+  syncStatus?: SyncStatus;
 }
 
 export const ProfileScreenContent: React.FC<ProfileScreenContentProps> = ({
@@ -63,31 +54,20 @@ export const ProfileScreenContent: React.FC<ProfileScreenContentProps> = ({
   displayName = 'VU',
   email = 'vu@example.com',
   joinedDate = 'July 2026',
-  avatarUrl = null,
-  entryCount = 24,
-  topThemes = ['clarity', 'discipline', 'purpose'],
   isLoading = false,
-  isNoAvatar = false,
-  isEmptyJournal = false,
   isOffline = false,
-  onSave,
   onOpenNotifications,
   onOpenNotificationSettings,
   onOpenAppearance,
+  onEditProfile,
   onOpenInfo,
   onExport,
-  onLoadDemo,
   aiMemoryNotes,
   onResetMemory,
   onSignIn,
   onSignOut,
+  syncStatus,
 }) => {
-  // Live AI-written summary of the user's journal. Only streams when a runtime
-  // is configured, the journal is non-empty, and the device is online.
-  const summary = useAiSummary(
-    isRuntimeConfigured() && entryCount > 0 && !isOffline
-  );
-
   if (isLoading) {
     return (
       <div className="flex flex-col flex-1 min-h-0">
@@ -100,12 +80,23 @@ export const ProfileScreenContent: React.FC<ProfileScreenContentProps> = ({
               </div>
               <div className="w-9 h-9 bg-borderSubtle rounded-full" />
             </div>
-            <div className="bg-surface rounded-3xl border border-borderSubtle p-6 flex flex-col items-center gap-4">
-              <div className="w-[72px] h-[72px] rounded-full bg-borderSubtle" />
-              <div className="h-5 bg-borderSubtle rounded w-20" />
-              <div className="h-4 bg-borderSubtle rounded w-32" />
-              <div className="h-3 bg-borderSubtle rounded w-36" />
-              <div className="h-10 bg-borderSubtle rounded-[14px] w-28 mt-1" />
+            <div className="bg-surface rounded-3xl border border-borderSubtle overflow-hidden animate-pulse">
+              <div className="flex items-center gap-4 px-5 py-5">
+                <div className="w-12 h-12 rounded-full bg-borderSubtle shrink-0" />
+                <div className="flex flex-col gap-2">
+                  <div className="h-4 bg-borderSubtle rounded w-20" />
+                  <div className="h-3 bg-borderSubtle rounded w-32" />
+                  <div className="h-3 bg-borderSubtle rounded w-28 mt-0.5" />
+                </div>
+              </div>
+              <div className="h-px bg-borderSubtle mx-4" />
+              <div className="flex items-center py-3">
+                <div className="flex-1 flex justify-center"><div className="h-3 bg-borderSubtle rounded w-16" /></div>
+                <div className="w-px h-5 bg-borderSubtle" />
+                <div className="flex-1 flex justify-center"><div className="h-3 bg-borderSubtle rounded w-20" /></div>
+                <div className="w-px h-5 bg-borderSubtle" />
+                <div className="flex-1 flex justify-center"><div className="h-3 bg-borderSubtle rounded w-14" /></div>
+              </div>
             </div>
             <div className="bg-surface rounded-3xl border border-borderSubtle p-6 flex flex-col gap-4">
               <div className="h-3 bg-borderSubtle rounded w-24" />
@@ -127,7 +118,7 @@ export const ProfileScreenContent: React.FC<ProfileScreenContentProps> = ({
   return (
     <div className="flex flex-col flex-1 min-h-0">
       <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-4 pt-2 pb-4">
-        <div className="flex flex-col gap-7 w-full">
+        <div className="flex flex-col gap-5 w-full">
           <div className="flex flex-col">
             <header className="flex items-center justify-between py-2 bg-base">
               <div className="flex items-center gap-2.5">
@@ -158,61 +149,73 @@ export const ProfileScreenContent: React.FC<ProfileScreenContentProps> = ({
             </p>
           </div>
 
-          <ProfileCard
-            initials={userInitials}
-            displayName={displayName}
-            email={email}
-            joinedDate={joinedDate}
-            avatarUrl={isNoAvatar ? null : avatarUrl}
-            onSave={onSave}
-          />
-
-          {onSignOut && (
-            <div className="flex flex-col">
-              <SectionTitle className="mb-1 px-0">Account</SectionTitle>
-              <div className="flex flex-col bg-surface rounded-3xl border border-borderSubtle overflow-hidden">
-                {onSignIn && (
-                  <SettingsRow
-                    icon={<UserPlus className="w-[18px] h-[18px] text-muted stroke-[1.6]" />}
-                    title="Sign in / Switch account"
-                    onClick={onSignIn}
-                  />
-                )}
-                <SettingsRow
-                  icon={<LogOut className="w-[18px] h-[18px] text-muted stroke-[1.6]" />}
-                  title="Sign out"
-                  onClick={onSignOut}
-                />
+          {/* ── Unified Profile Card ── */}
+          <div className="bg-surface rounded-3xl border border-borderSubtle overflow-hidden">
+            <div className="flex items-center gap-4 px-5 py-5">
+              <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
+                <span className="font-sans text-[17px] font-medium text-accent select-none">{userInitials}</span>
               </div>
+              <div className="flex flex-col min-w-0">
+                <span className="font-sans text-[15px] font-semibold text-primaryText truncate">{displayName}</span>
+                <span className="font-sans text-[12.5px] text-muted truncate leading-tight">{email}</span>
+                <span className="font-sans text-[11px] text-secondaryText mt-0.5">Writing since {joinedDate}</span>
+              </div>
+              {(syncStatus ?? 'idle') !== 'idle' && (
+                <div className="ml-auto flex items-center gap-1 shrink-0">
+                  <Cloud className="w-3.5 h-3.5 text-muted" />
+                  <span className="font-sans text-[11px] text-muted">
+                    {(syncStatus ?? 'idle') === 'syncing'
+                      ? 'Syncing…'
+                      : (syncStatus ?? 'idle') === 'synced'
+                        ? 'Synced'
+                        : 'Error'}
+                  </span>
+                </div>
+              )}
             </div>
-          )}
+            <div className="h-px bg-borderSubtle mx-4" />
+            <div className="flex items-center">
+              <button
+                type="button"
+                onClick={onEditProfile}
+                className="flex-1 flex items-center justify-center gap-1.5 py-3 bg-transparent border-none cursor-pointer text-muted hover:text-accent transition-colors duration-150 font-sans text-[13px] font-medium"
+              >
+                <Pencil className="w-3.5 h-3.5 stroke-[1.8] flex-none" />
+                <span className="truncate">Edit profile</span>
+              </button>
+              <div className="w-px h-5 bg-borderSubtle" aria-hidden="true" />
+              {onSignIn && (
+                <>
+                  <button
+                    type="button"
+                    onClick={onSignIn}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-3 bg-transparent border-none cursor-pointer text-muted hover:text-accent transition-colors duration-150 font-sans text-[13px] font-medium"
+                  >
+                    <UserPlus className="w-3.5 h-3.5 stroke-[1.8] flex-none" />
+                    <span className="truncate">Switch account</span>
+                  </button>
+                  <div className="w-px h-5 bg-borderSubtle" aria-hidden="true" />
+                </>
+              )}
+              <button
+                type="button"
+                onClick={onSignOut}
+                className="flex-1 flex items-center justify-center gap-1.5 py-3 bg-transparent border-none cursor-pointer text-muted hover:text-secondaryText transition-colors duration-150 font-sans text-[13px] font-medium"
+              >
+                <LogOut className="w-3.5 h-3.5 stroke-[1.8] flex-none" />
+                <span className="truncate">Sign out</span>
+              </button>
+            </div>
+          </div>
 
-          {isEmptyJournal ? (
-            <div className="bg-surface rounded-3xl border border-borderSubtle p-6 flex flex-col gap-4">
-              <span className="font-sans text-[12.5px] font-medium text-muted tracking-wide uppercase select-none">
-                ✦ Your journal
-              </span>
-              <p className="font-serif text-[17px] font-normal text-secondaryText leading-[1.65] tracking-tight m-0 italic">
-                Your journal is waiting.
-                <br />
-                Begin writing to see your themes unfold.
-              </p>
-            </div>
-          ) : (
-            <WritingSummaryCard
-              entryCount={entryCount}
-              topThemes={topThemes}
-              summaryText={summary.text || undefined}
-              onExploreMemories={() => onTabChange('memory')}
-            />
-          )}
+
 
           {aiMemoryNotes ? (
             <div className="bg-surface rounded-3xl border border-borderSubtle p-6 flex flex-col gap-3">
               <span className="font-sans text-[12.5px] font-medium text-muted tracking-wide uppercase select-none">
                 ✦ AI memory
               </span>
-              <p className="font-serif text-[15px] font-normal text-primaryText leading-[1.6] tracking-tight m-0">
+              <p className="font-serif text-[14px] font-normal text-primaryText leading-[1.55] tracking-tight m-0">
                 {aiMemoryNotes}
               </p>
               <button
@@ -252,12 +255,6 @@ export const ProfileScreenContent: React.FC<ProfileScreenContentProps> = ({
                 icon={<Download className="w-[18px] h-[18px] text-muted stroke-[1.6]" />}
                 title="Export journal"
                 onClick={onExport}
-              />
-              <div className="h-px bg-borderSubtle ml-10" />
-              <SettingsRow
-                icon={<RefreshCw className="w-[18px] h-[18px] text-muted stroke-[1.6]" />}
-                title="Load sample data"
-                onClick={onLoadDemo}
               />
             </div>
           </div>

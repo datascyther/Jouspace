@@ -76,7 +76,8 @@ single `dist/index.html` which Capacitor syncs into the committed native shell.
 The workflow (`.github/workflows/build-apk.yml`) builds the web app, runs
 `npx cap sync android` into the committed platform directory, and produces a
 **signed release APK** using the committed keystore. Version is stamped from
-the git tag (e.g. `v1.0.5` → versionName `1.0.5`, versionCode `10005`).
+the git tag (e.g. `v1.1.0-beta.1` → versionName `1.1.0-beta.1`, versionCode
+`11001`).
 
 ### Option B — local build (needs JDK 17 + Android SDK)
 
@@ -86,6 +87,28 @@ npx cap sync android
 cd android && ./gradlew assembleRelease
 # → android/app/build/outputs/apk/release/app-release.apk
 ```
+
+### Versioning
+
+The app follows **Semantic Versioning** with a `-beta.N` pre-release tag:
+
+| Tag | versionName | versionCode |
+|---|---|---|
+| `v1.1.0-beta.1` | `1.1.0-beta.1` | `11001` |
+| `v1.1.0-beta.2` | `1.1.0-beta.2` | `11002` |
+| `v1.1.0` (stable) | `1.1.0` | `11100` |
+
+- `versionCode = MAJ·10000 + MIN·1000 + PAT·100 + iteration`, where *iteration*
+  is the beta number for `-beta.N` builds (01–99) and `100` for the stable
+  release. This keeps `versionCode` **strictly increasing on every release** so
+  Android/Play always orders a newer build over an older one.
+- Bump the beta number for each beta iteration (`1.1.0-beta.1` → `-beta.2` → …).
+- When ready for stable, **drop the `-beta.N` suffix** (`1.1.0`) — it maps to a
+  higher versionCode than any beta of that version.
+- Keep `package.json`'s `version` in sync with the current beta versionName.
+- Builds are triggered by pushing a tag like `v1.1.0-beta.1` (the workflow's
+  `v*` filter matches it) or by the Actions UI "Build Android APK" manual
+  `version` input. See `DEPLOYMENT.md` §2.2 for the full scheme.
 
 ### Production notes
 
@@ -101,9 +124,11 @@ cd android && ./gradlew assembleRelease
   with every AI request. The server falls back to seed data only when the
   client sends none. A future cloud sync can be added behind the
   `JournalStore` interface without touching the AI pipeline.
-- **Auth:** sign-in screens are currently mock UI (they complete without a
-  real account) — intentional for this private local-first pass. See
-  `DEPLOYMENT.md` §3 for the path to real auth / PIN lock.
+- **Auth:** Google sign-in is wired through **Firebase Auth** (identity only).
+  Email/password also goes through Firebase. Profile data (display name, join
+  date) is stored locally in localStorage. Requires Firebase web-app config in
+  `.env` (`VITE_FIREBASE_*`) and, for Android, a `google-services.json` at
+  `android/app/google-services.json`. See `DEPLOYMENT.md` §3.
 
 ## Scripts
 

@@ -1,22 +1,38 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import * as svc from './PermissionService';
 
 /**
  * jsdom has no real permission APIs, so we install minimal mocks for
  * navigator.mediaDevices.getUserMedia, navigator.permissions, and Notification.
- * The native path is exercised separately by mocking window.Capacitor.
+ * The mic permission is driven through the web APIs on every platform in
+ * tests; the native path (MicPermission plugin → RECORD_AUDIO) is covered in
+ * PermissionService.native.test.ts.
  */
+
+function resetWebMocks() {
+  const nav = navigator as any;
+  try {
+    nav.mediaDevices = undefined;
+  } catch {
+    /* ignore */
+  }
+  try {
+    nav.permissions = undefined;
+  } catch {
+    /* ignore */
+  }
+}
+
 function installWebMocks(overrides: {
   getUserMedia?: (() => Promise<MediaStream>) | null;
   permissionState?: string;
   notificationPermission?: string;
 }) {
   const nav = navigator as any;
-  if ('mediaDevices' in nav) {
-    nav.mediaDevices.getUserMedia = overrides.getUserMedia ?? (async () => ({ getTracks: () => [] }) as any);
-  } else {
-    nav.mediaDevices = { getUserMedia: overrides.getUserMedia ?? (async () => ({ getTracks: () => [] }) as any) };
-  }
+  nav.mediaDevices = {
+    getUserMedia:
+      overrides.getUserMedia ?? (async () => ({ getTracks: () => [] }) as any),
+  };
   nav.permissions = {
     query: async () => ({ state: overrides.permissionState ?? 'prompt' }),
   };
@@ -31,12 +47,17 @@ function installWebMocks(overrides: {
 beforeEach(() => {
   localStorage.clear();
   delete (window as any).Capacitor;
+  resetWebMocks();
 });
 afterEach(() => {
   vi.restoreAllMocks();
+  resetWebMocks();
 });
 
 describe('PermissionService (web)', () => {
+  beforeEach(() => {
+    vi.unmock('./nativeBridge');
+  });
   it('grants the microphone when getUserMedia resolves', async () => {
     installWebMocks({ getUserMedia: async () => ({ getTracks: () => [] }) as any });
     const res = await svc.ensure('microphone');
@@ -44,7 +65,7 @@ describe('PermissionService (web)', () => {
     expect(res.state).toBe('granted');
   });
 
-  it('reports denied when getUserMedia rejects with NotAllowedError', async () => {
+  it('reports denied (re-promptable) on the first NotAllowedError', async () => {
     installWebMocks({
       getUserMedia: async () => {
         throw Object.assign(new Error('blocked'), { name: 'NotAllowedError' });
@@ -52,7 +73,7 @@ describe('PermissionService (web)', () => {
     });
     const res = await svc.ensure('microphone');
     expect(res.ok).toBe(false);
-    expect(res.state).toBe('deniedPermanently'); // attempted once → permanent
+    expect(res.state).toBe('denied');
   });
 
   it('treats an earlier denial as permanently denied without re-prompting', async () => {
@@ -77,41 +98,5 @@ describe('PermissionService (web)', () => {
   it('does not open OS settings on the web (returns false)', async () => {
     installWebMocks({});
     expect(await svc.openSettings('microphone')).toBe(false);
-  });
-});
-
-describe('PermissionService (native)', () => {
-  it('uses Capacitor plugins when window.Capacitor is present', async () => {
-    const requestPermissions = vi.fn(async () => ({ permission: 'granted' }));
-    const checkPermissions = vi.fn(async () => ({ permission: 'prompt' }));
-    const openSettings = vi.fn(async () => {});
-    (window as any).Capacitor = {
-      isNativePlatform: () => true,
-      Plugins: {
-        Microphone: { requestPermissions, checkPermissions },
-        App: { openSettings },
-      },
-    };
-
-    const res = await svc.ensure('microphone');
-    expect(checkPermissions).toHaveBeenCalled();
-    expect(requestPermissions).toHaveBeenCalled();
-    expect(res.ok).toBe(true);
-
-    const opened = await svc.openSettings('microphone');
-    expect(opened).toBe(true);
-    expect(openSettings).toHaveBeenCalled();
-  });
-
-  it('maps a native denial to deniedPermanently after a request', async () => {
-    (window as any).Capacitor = {
-      isNativePlatform: () => true,
-      Plugins: {
-        Microphone: { requestPermissions: async () => ({ permission: 'denied' }) },
-      },
-    };
-    const res = await svc.request('microphone');
-    expect(res.ok).toBe(false);
-    expect(res.state).toBe('deniedPermanently');
   });
 });

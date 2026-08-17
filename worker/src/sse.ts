@@ -6,6 +6,7 @@
  *   data: {"text":"token"}\n\n
  *   data: [DONE]\n\n
  *   data: {"error":"..."}\n\n
+ *   data: {"transcript":"..."}\n\n   (voice chat — first event, via initialEvents)
  */
 
 import type { GatewayStreamChunk } from '../../server/types.js';
@@ -17,11 +18,16 @@ const SSE_HEADERS: Record<string, string> = {
   'X-Accel-Buffering': 'no',
 };
 
-/** Build a streaming Response that pipes a gateway stream to the client as SSE. */
+/**
+ * Build a streaming Response that pipes a gateway stream to the client as SSE.
+ * `initialEvents` are raw SSE payloads enqueued before the first model token —
+ * voice chat uses it to emit the `transcript` event first.
+ */
 export function streamToResponse(
   source: AsyncIterable<GatewayStreamChunk>,
   request: Request,
-  extraHeaders: Record<string, string> = {}
+  extraHeaders: Record<string, string> = {},
+  initialEvents: string[] = []
 ): Response {
   const encoder = new TextEncoder();
 
@@ -44,6 +50,9 @@ export function streamToResponse(
       const ceiling = setTimeout(() => upstream.abort(), 9 * 60 * 1000);
 
       try {
+        for (const evt of initialEvents) {
+          controller.enqueue(encoder.encode(evt));
+        }
         for await (const chunk of source) {
           if (request.signal.aborted) break;
           if (chunk.done) {

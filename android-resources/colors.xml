@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Jouspace brand purple for adaptive icon background (midpoint of #8B6AE8 → #6C4DCA gradient) -->
-    <color name="ic_launcher_background">#7C5CDB</color>
+    <!-- Jouspace brand purple, taken verbatim from src/assets/Jouspace logo.png -->
+    <color name="ic_launcher_background">#664FC4</color>
 </resources>

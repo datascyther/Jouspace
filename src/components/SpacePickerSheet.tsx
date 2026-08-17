@@ -1,15 +1,14 @@
-import React, { useId, useRef, useState } from 'react';
-import { BookOpen, Heart, Palette, X } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowLeft, BookOpen, Heart, Palette } from 'lucide-react';
 import { TbFileTextSpark } from 'react-icons/tb';
 import { CgRowFirst } from 'react-icons/cg';
-import { useFocusTrap } from '../hooks/useFocusTrap';
-import { useEscapeKey } from '../hooks/useEscapeKey';
-import { useAnimatedPresence } from '../hooks/useAnimatedPresence';
 import {
   type CustomTheme,
   slugifyTheme,
   isReservedThemeId,
-} from '../lib/supabaseCustomThemes';
+  saveCustomTheme,
+} from '../utils/customThemes';
+import { writeSpaceSelection } from '../utils/pickerStore';
 
 export interface Space {
   id: string;
@@ -81,55 +80,35 @@ export function spaceForTheme(theme: string): Space {
 /** Sentinel space id used when a custom theme is active. */
 export const CUSTOM_SPACE_ID = 'custom';
 
-interface SpacePickerSheetProps {
-  isOpen: boolean;
-  onClose: () => void;
-  selectedSpaceId: string;
-  onSelectSpace: (space: Space) => void;
-  /** Active custom theme (when selectedSpaceId === CUSTOM_SPACE_ID). */
-  customTheme?: CustomTheme | null;
-  /** Called with a created/edited custom theme. */
-  onCreateCustomTheme: (theme: CustomTheme) => void;
+interface SpacePickerScreenProps {
+  initialTab?: 'presets' | 'custom';
+  initialSelectedId?: string;
+  /** Seed for the create-your-own-theme form (active custom theme, if any). */
+  initialCustom?: { name?: string; cTitle?: string; cBody?: string };
+  onBack: () => void;
 }
 
-export const SpacePickerSheet: React.FC<SpacePickerSheetProps> = ({
-  isOpen,
-  onClose,
-  selectedSpaceId,
-  onSelectSpace,
-  customTheme = null,
-  onCreateCustomTheme,
+/**
+ * Full-screen route for choosing the writing Space (and creating a custom
+ * theme). Writes a one-shot selection to the transient picker store and returns
+ * to the previous screen — the journal composer reads the selection on remount.
+ */
+export const SpacePickerScreen: React.FC<SpacePickerScreenProps> = ({
+  initialTab = 'presets',
+  initialSelectedId = '',
+  initialCustom,
+  onBack,
 }) => {
-  const sheetId = useId();
-  const sheetRef = useRef<HTMLDivElement>(null);
-  useFocusTrap({ id: sheetId, active: isOpen, onClose, containerRef: sheetRef });
-  useEscapeKey(onClose, isOpen);
-
   // --- Inline "create your own theme" form --------------------------------
-  const [creating, setCreating] = useState(false);
-  const [name, setName] = useState('');
-  const [cTitle, setCTitle] = useState('');
-  const [cBody, setCBody] = useState('');
+  const [creating, setCreating] = useState(initialTab === 'custom');
+  const [name, setName] = useState(initialCustom?.name ?? '');
+  const [cTitle, setCTitle] = useState(initialCustom?.cTitle ?? '');
+  const [cBody, setCBody] = useState(initialCustom?.cBody ?? '');
   const [error, setError] = useState<string | null>(null);
 
-  // Reset/seed the form whenever the sheet reopens so a stale partial edit
-  // never leaks into a fresh pick.
-  React.useEffect(() => {
-    if (isOpen) {
-      setCreating(false);
-      setError(null);
-      setName(customTheme?.label ?? '');
-      setCTitle(customTheme?.placeholderTitle ?? '');
-      setCBody(customTheme?.placeholderBody ?? '');
-    }
-  }, [isOpen, customTheme]);
-
-  const openCreateForm = () => {
-    setError(null);
-    setName(customTheme?.label ?? '');
-    setCTitle(customTheme?.placeholderTitle ?? '');
-    setCBody(customTheme?.placeholderBody ?? '');
-    setCreating(true);
+  const handleSelect = (space: Space) => {
+    writeSpaceSelection({ spaceId: space.id, customThemeId: null });
+    onBack();
   };
 
   const handleCreate = () => {
@@ -147,181 +126,129 @@ export const SpacePickerSheet: React.FC<SpacePickerSheetProps> = ({
       setError('Pick a different name');
       return;
     }
-    onCreateCustomTheme({
+    const theme: CustomTheme = {
       id,
       label,
       placeholderTitle: cTitle.trim(),
       placeholderBody: cBody.trim(),
-    });
-    setCreating(false);
-    setError(null);
+    };
+    saveCustomTheme(theme);
+    writeSpaceSelection({ spaceId: CUSTOM_SPACE_ID, customThemeId: theme.id });
+    onBack();
   };
 
-  // Exit-safe: the sheet stays mounted through its 300ms exit transition so it
-  // never disappears instantly (that instant unmount is what caused flicker).
-  const { present, closing, entered } = useAnimatedPresence(isOpen, 300);
-  if (!present) return null;
-
-  const customActive = selectedSpaceId === CUSTOM_SPACE_ID && customTheme !== null;
-
-  const backdropClass = closing
-    ? 'gpu-layer backdrop-exit backdrop-exit-active transition-exit'
-    : entered
-      ? 'gpu-layer backdrop-enter backdrop-enter-active transition-enter'
-      : 'gpu-layer backdrop-enter transition-enter';
-
-  const panelClass = closing
-    ? 'sheet-exit sheet-exit-active transition-exit gpu-layer'
-    : entered
-      ? 'sheet-enter-active transition-enter gpu-layer'
-      : 'sheet-enter transition-enter gpu-layer';
+  const customActive = initialSelectedId === CUSTOM_SPACE_ID && !!initialCustom?.name;
 
   return (
-    <div
-      ref={sheetRef}
-      className="absolute inset-0 z-50 flex items-end justify-center"
-    >
-      <div
-        className={`absolute inset-0 bg-primaryText/30 ${backdropClass}`}
-        onClick={onClose}
-      />
-      <div
-        role="dialog"
-        aria-modal={!closing}
-        aria-label={creating ? 'Create your own theme' : 'Choose a space'}
-        className={`relative w-full max-w-[430px] bg-surface rounded-t-[28px] px-6 pt-4 pb-8 ${panelClass}`}
-      >
-        <div className="w-9 h-1 rounded-full bg-borderSubtle mx-auto mb-4" />
+    <div className="flex flex-col w-full flex-1 min-h-0 bg-base">
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 pt-3 pb-2 shrink-0">
+        <button
+          type="button"
+          onClick={onBack}
+          aria-label="Back"
+          className="w-9 h-9 rounded-full bg-base flex items-center justify-center text-secondaryText hover:bg-borderSubtle transition-all duration-150 active:scale-95 cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4" />
+        </button>
+        <h1 className="font-serif font-medium text-[18px] text-primaryText">
+          {creating ? 'Create your own theme' : 'Spaces'}
+        </h1>
+        <div className="w-9 h-9" aria-hidden="true" />
+      </div>
 
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-6 pb-4 pb-safe">
         {creating ? (
           /* ── Custom theme creation form ─────────────────────────────── */
-          <div className="flex flex-col">
-            <div className="flex items-center justify-between mb-5">
-              <div>
-                <h2 className="font-serif font-medium text-[20px] text-primaryText">
-                  Create your own theme
-                </h2>
-                <p className="font-sans text-[13px] text-muted mt-0.5">
-                  Set the tone and placeholders for this space
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={onClose}
-                aria-label="Close"
-                className="w-8 h-8 rounded-full bg-base flex items-center justify-center text-secondaryText hover:bg-borderSubtle transition-all duration-150 active:scale-95 cursor-pointer"
+          <div className="flex flex-col gap-4 mt-4">
+            <p className="font-sans text-[13px] text-muted">
+              Set the tone and placeholders for this space
+            </p>
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor="custom-theme-name"
+                className="font-sans text-[13px] font-medium text-primaryText"
               >
-                <X className="w-4 h-4" />
-              </button>
+                Theme name
+              </label>
+              <input
+                id="custom-theme-name"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. My Morning Pages"
+                className="w-full bg-base border border-borderSubtle rounded-[12px] px-3.5 py-2.5 text-[14px] font-sans text-primaryText placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-accent/20"
+              />
             </div>
 
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1.5">
-                <label
-                  htmlFor="custom-theme-name"
-                  className="font-sans text-[13px] font-medium text-primaryText"
-                >
-                  Theme name
-                </label>
-                <input
-                  id="custom-theme-name"
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. My Morning Pages"
-                  className="w-full bg-base border border-borderSubtle rounded-[12px] px-3.5 py-2.5 text-[14px] font-sans text-primaryText placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-accent/20"
-                />
-              </div>
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor="custom-theme-title"
+                className="font-sans text-[13px] font-medium text-primaryText"
+              >
+                Title placeholder
+              </label>
+              <input
+                id="custom-theme-title"
+                type="text"
+                value={cTitle}
+                onChange={(e) => setCTitle(e.target.value)}
+                placeholder="Where your thoughts begin..."
+                className="w-full bg-base border border-borderSubtle rounded-[12px] px-3.5 py-2.5 text-[14px] font-sans text-primaryText placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-accent/20"
+              />
+            </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label
-                  htmlFor="custom-theme-title"
-                  className="font-sans text-[13px] font-medium text-primaryText"
-                >
-                  Title placeholder
-                </label>
-                <input
-                  id="custom-theme-title"
-                  type="text"
-                  value={cTitle}
-                  onChange={(e) => setCTitle(e.target.value)}
-                  placeholder="Where your thoughts begin..."
-                  className="w-full bg-base border border-borderSubtle rounded-[12px] px-3.5 py-2.5 text-[14px] font-sans text-primaryText placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-accent/20"
-                />
-              </div>
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor="custom-theme-body"
+                className="font-sans text-[13px] font-medium text-primaryText"
+              >
+                Body placeholder
+              </label>
+              <input
+                id="custom-theme-body"
+                type="text"
+                value={cBody}
+                onChange={(e) => setCBody(e.target.value)}
+                placeholder="Let the words come..."
+                className="w-full bg-base border border-borderSubtle rounded-[12px] px-3.5 py-2.5 text-[14px] font-sans text-primaryText placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-accent/20"
+              />
+            </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label
-                  htmlFor="custom-theme-body"
-                  className="font-sans text-[13px] font-medium text-primaryText"
-                >
-                  Body placeholder
-                </label>
-                <input
-                  id="custom-theme-body"
-                  type="text"
-                  value={cBody}
-                  onChange={(e) => setCBody(e.target.value)}
-                  placeholder="Let the words come..."
-                  className="w-full bg-base border border-borderSubtle rounded-[12px] px-3.5 py-2.5 text-[14px] font-sans text-primaryText placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-accent/20"
-                />
-              </div>
+            {error && (
+              <p className="font-sans text-[12.5px] text-error" role="alert">
+                {error}
+              </p>
+            )}
 
-              {error && (
-                <p className="font-sans text-[12.5px] text-error" role="alert">
-                  {error}
-                </p>
-              )}
-
-              <div className="flex items-center gap-3 pt-1">
-                <button
-                  type="button"
-                  onClick={() => setCreating(false)}
-                  className="flex-1 bg-base hover:bg-borderSubtle border border-borderSubtle text-primaryText font-sans font-medium text-[14px] px-5 py-2.5 rounded-[14px] transition-all duration-150 active:scale-[0.97] cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent/20"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCreate}
-                  className="flex-1 bg-accent hover:bg-accentHover active:bg-accentActive text-white font-sans font-medium text-[14px] px-5 py-2.5 rounded-[14px] transition-all duration-150 active:scale-[0.97] shadow-xs cursor-pointer focus:outline-none"
-                >
-                  Create
-                </button>
-              </div>
+            <div className="flex items-center gap-3 pt-1">
+              <button
+                type="button"
+                onClick={() => setCreating(false)}
+                className="flex-1 bg-base hover:bg-borderSubtle border border-borderSubtle text-primaryText font-sans font-medium text-[14px] px-5 py-2.5 rounded-[14px] transition-all duration-150 active:scale-[0.97] cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent/20"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleCreate}
+                className="flex-1 bg-accent hover:bg-accentHover active:bg-accentActive text-white font-sans font-medium text-[14px] px-5 py-2.5 rounded-[14px] transition-all duration-150 active:scale-[0.97] shadow-xs cursor-pointer focus:outline-none"
+              >
+                Create
+              </button>
             </div>
           </div>
         ) : (
           /* ── Space list ─────────────────────────────────────────────── */
-          <>
-            <div className="flex items-center justify-between mb-5">
-            <div>
-              <h2 className="font-serif font-medium text-[20px] text-primaryText">
-                Spaces
-              </h2>
-              <p className="font-sans text-[13px] text-muted mt-0.5">
-                Each space sets the tone for your writing
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Close"
-              className="w-8 h-8 rounded-full bg-base flex items-center justify-center text-secondaryText hover:bg-borderSubtle transition-colors cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 mt-4">
             {SPACES.map((space) => {
               const Icon = space.icon;
-              const selected = selectedSpaceId === space.id;
+              const selected = initialSelectedId === space.id;
               return (
                 <button
                   key={space.id}
                   type="button"
-                  onClick={() => onSelectSpace(space)}
+                  onClick={() => handleSelect(space)}
                   aria-pressed={selected}
                   className={`flex items-center gap-3.5 w-full text-left rounded-[14px] px-4 py-3.5 transition-all duration-150 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-accent/20 cursor-pointer ${
                     selected ? 'bg-accentSoft' : 'bg-base hover:bg-accentSoft'
@@ -350,7 +277,10 @@ export const SpacePickerSheet: React.FC<SpacePickerSheetProps> = ({
             {/* Create your own theme — doubles as the active custom theme's row */}
             <button
               type="button"
-              onClick={openCreateForm}
+              onClick={() => {
+                setError(null);
+                setCreating(true);
+              }}
               aria-pressed={customActive}
               className={`flex items-center gap-3.5 w-full text-left rounded-[14px] px-4 py-3.5 transition-all duration-150 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-accent/20 cursor-pointer ${
                 customActive ? 'bg-accentSoft' : 'bg-base hover:bg-accentSoft'
@@ -365,10 +295,10 @@ export const SpacePickerSheet: React.FC<SpacePickerSheetProps> = ({
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-sans text-[14px] font-medium text-primaryText">
-                  {customTheme ? customTheme.label : 'Create your own theme'}
+                  {customActive ? initialCustom?.name : 'Create your own theme'}
                 </p>
                 <p className="font-sans text-[12px] text-muted">
-                  {customTheme
+                  {customActive
                     ? 'Your custom space — tap to edit'
                     : 'Set your own tone & placeholders'}
                 </p>
@@ -378,7 +308,6 @@ export const SpacePickerSheet: React.FC<SpacePickerSheetProps> = ({
               )}
             </button>
           </div>
-          </>
         )}
       </div>
     </div>

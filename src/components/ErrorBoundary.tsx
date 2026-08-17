@@ -21,12 +21,10 @@ export class ErrorBoundary extends React.Component<
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error('[ErrorBoundary]', error, info);
-    // TODO: surface the error to an error-monitoring service (e.g. Sentry)
-    // once one is wired up, instead of only logging to the console.
   }
 
-  handleReload = () => {
-    window.location.reload();
+  handleReturnToApp = () => {
+    this.setState({ error: null });
   };
 
   render() {
@@ -38,14 +36,14 @@ export class ErrorBoundary extends React.Component<
               Something went wrong
             </h1>
             <p className="font-sans text-[14px] text-secondaryText leading-relaxed">
-              Please reload the app to continue.
+              Return to the app to continue.
             </p>
             <button
               type="button"
-              onClick={this.handleReload}
+              onClick={this.handleReturnToApp}
               className="bg-accent hover:bg-accentHover text-white font-sans text-sm font-medium px-5 py-2.5 rounded-[14px] transition-all cursor-pointer"
             >
-              Reload
+              Return to app
             </button>
           </div>
         </div>

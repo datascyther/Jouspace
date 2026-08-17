@@ -1,8 +1,10 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { OverlayStackProvider } from '../hooks/useFocusTrap';
 import { JournalScreenContent } from './JournalScreenContent';
 import { readDraft } from '../utils/draft';
+import { writeSpaceSelection } from '../utils/pickerStore';
+import { saveCustomTheme } from '../utils/customThemes';
 
 function renderComposer(props = {}) {
   return render(
@@ -15,6 +17,11 @@ function renderComposer(props = {}) {
       />
     </OverlayStackProvider>
   );
+}
+
+function typeBody(result: ReturnType<typeof renderComposer>, value: string) {
+  const body = result.container.querySelector('#journal-body') as HTMLTextAreaElement;
+  fireEvent.change(body, { target: { value } });
 }
 
 describe('JournalScreenContent — Spaces selector', () => {
@@ -30,16 +37,17 @@ describe('JournalScreenContent — Spaces selector', () => {
     expect(screen.getByPlaceholderText('Write your thoughts quietly...')).toBeTruthy();
   });
 
-  it('selecting a preset space updates placeholders, theme, and the draft', () => {
-    renderComposer();
-    const titleInput = screen.getByPlaceholderText(
-      "What I'm trying to understand"
-    );
-    fireEvent.change(titleInput, { target: { value: 'A note' } });
-
+  it('opens the Space picker route with the current selection', () => {
+    const onOpenSpacePicker = vi.fn();
+    renderComposer({ onOpenSpacePicker });
     fireEvent.click(screen.getByLabelText('Choose a space'));
-    const dialog = screen.getByRole('dialog', { name: 'Choose a space' });
-    fireEvent.click(within(dialog).getByText('Gratitude'));
+    expect(onOpenSpacePicker).toHaveBeenCalledWith('journal', null);
+  });
+
+  it('applying a preset space selection from the transient store updates placeholders, theme, and the draft', () => {
+    writeSpaceSelection({ spaceId: 'gratitude', customThemeId: null });
+    const result = renderComposer();
+    typeBody(result, 'A note');
 
     expect(screen.getByPlaceholderText("Today I'm grateful for")).toBeTruthy();
     expect(screen.getByPlaceholderText('Even the smallest thing...')).toBeTruthy();
@@ -47,24 +55,21 @@ describe('JournalScreenContent — Spaces selector', () => {
     const draft = readDraft();
     expect(draft?.theme).toBe('purpose');
     expect(draft?.spaceId).toBe('gratitude');
+
+    // The one-shot selection is cleared after being consumed.
+    expect(localStorage.getItem('jouspace:space:selection')).toBeNull();
   });
 
-  it('creating a custom theme sets its placeholders and persists it', () => {
-    renderComposer();
-    const titleInput = screen.getByPlaceholderText(
-      "What I'm trying to understand"
-    );
-    fireEvent.change(titleInput, { target: { value: 'X' } });
-
-    fireEvent.click(screen.getByLabelText('Choose a space'));
-    fireEvent.click(screen.getByText('Create your own theme'));
-    fireEvent.change(screen.getByLabelText('Theme name'), {
-      target: { value: 'My Morning' },
+  it('applying a custom theme selection from the transient store sets its placeholders and persists it', () => {
+    saveCustomTheme({
+      id: 'my_morning',
+      label: 'My Morning',
+      placeholderTitle: 'Sunrise thoughts',
+      placeholderBody: 'The day begins...',
     });
-    fireEvent.change(screen.getByLabelText('Title placeholder'), {
-      target: { value: 'Sunrise thoughts' },
-    });
-    fireEvent.click(screen.getByText('Create'));
+    writeSpaceSelection({ spaceId: 'custom', customThemeId: 'my_morning' });
+    const result = renderComposer();
+    typeBody(result, 'X');
 
     expect(screen.getByPlaceholderText('Sunrise thoughts')).toBeTruthy();
     const draft = readDraft();

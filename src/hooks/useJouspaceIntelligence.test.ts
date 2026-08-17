@@ -6,6 +6,7 @@ import {
   useJouspaceIntelligence,
   useAiInsight,
   useAiSummary,
+  parseSSELine,
   clearInsightSummaryCache,
 } from './useJouspaceIntelligence';
 import { journalStore } from '../store';
@@ -102,6 +103,27 @@ describe('useJouspaceIntelligence.send', () => {
       '/api/ai/chat',
       expect.objectContaining({ method: 'POST' })
     );
+  });
+});
+
+// ── SSE event parsing ─────────────────────────────────────────────────────────
+
+describe('parseSSELine', () => {
+  it('parses text, transcript, and error events', () => {
+    expect(parseSSELine('data: {"text":"hi"}')).toEqual({ text: 'hi' });
+    expect(parseSSELine('data: {"transcript":"hello"}')).toEqual({
+      transcript: 'hello',
+    });
+    expect(parseSSELine('data: {"error":"boom"}')).toEqual({ error: 'boom' });
+  });
+
+  it('returns the done sentinel for [DONE]', () => {
+    expect(parseSSELine('data: [DONE]')).toEqual({ done: true });
+  });
+
+  it('ignores non-data lines and malformed JSON', () => {
+    expect(parseSSELine('event: message')).toBeNull();
+    expect(parseSSELine('data: not json')).toBeNull();
   });
 });
 

@@ -8,17 +8,20 @@
  *   POST /api/ai/insight    → SSE stream
  *   POST /api/ai/summarize  → SSE stream
  *   POST /api/ai/memory     → SSE stream
+ *   POST /api/ai/voice-chat → SSE stream (transcript event first)
  *
  * Config comes from the Worker `env` binding (wrangler.toml [vars] / secrets),
  * not process.env / .env.
  */
 
-import { runCapability } from './handler.js';
+import { runCapability, runVoiceChat } from './handler.js';
 
 export interface Env {
   NVIDIA_API_KEY: string;
   GATEWAY_PROVIDER?: string;
   CORS_ORIGINS?: string;
+  /** ASR model override for voice chat (defaults to the Parakeet NIM). */
+  NVIDIA_ASR_MODEL?: string;
   /** Set to "false" to disable rate limiting (e.g. local dev). */
   RATE_LIMIT_ENABLED?: string;
 }
@@ -69,15 +72,16 @@ export default {
       return res;
     }
 
-    const aiMatch = url.pathname.match(/^\/api\/ai\/([a-z]+)$/);
+    const aiMatch = url.pathname.match(/^\/api\/ai\/([a-z-]+)$/);
     if (aiMatch && request.method === 'POST') {
       const cap = aiMatch[1];
       const opts = {
         apiKey: env.NVIDIA_API_KEY,
         enabledRateLimit: env.RATE_LIMIT_ENABLED !== 'false',
         corsOrigin: cors['Access-Control-Allow-Origin'] ?? '*',
+        asrModel: env.NVIDIA_ASR_MODEL,
       };
-      const res = await runCapability(cap, request, opts);
+      const res = cap === 'voice-chat' ? await runVoiceChat(request, opts) : await runCapability(cap, request, opts);
       for (const [k, v] of Object.entries(cors)) res.headers.set(k, v);
       return res;
     }
