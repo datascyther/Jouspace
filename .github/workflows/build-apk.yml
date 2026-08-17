@@ -58,8 +58,6 @@ jobs:
         # Falls back to the deployed worker URL when the secret is unset.
         env:
           VITE_API_BASE_URL: ${{ secrets.RUNTIME_URL || 'https://jouspace-runtime.jouspace.workers.dev' }}
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
         run: npm run build
 
       - name: Sync web assets into committed native shell

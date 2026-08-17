@@ -24,6 +24,7 @@ import { reflectRouter } from './routes/reflect.js';
 import { insightRouter } from './routes/insight.js';
 import { summarizeRouter } from './routes/summarize.js';
 import { memoryRouter } from './routes/memory.js';
+import { voiceChatRouter } from './routes/voiceChat.js';
 import { normalizeKey } from './rateLimit.js';
 
 const app = express();
@@ -81,7 +82,10 @@ app.use(
 // Raised from 64kb → 256kb so 20 capped entries + a profile fit comfortably
 // without hitting the express.json body limit (413). Each entry content is now
 // capped at 8000 chars (see schemas.ts), so this is generous headroom.
-app.use(express.json({ limit: '256kb' }));
+// Voice chat pushes it further: a 45s 16kHz WAV clip arrives as ~1.9MB of
+// base64 JSON. The audio is schema-capped at 2.5MB (voiceChat.ts), so 2.5mb
+// here matches that contract exactly.
+app.use(express.json({ limit: '2.5mb' }));
 
 // ── Structured request logger ──────────────────────────────────────────────────
 // Tiny JSON-to-stdout logger (no new dependency, no PII, no bodies). Records one
@@ -130,6 +134,7 @@ app.use('/api/ai', reflectRouter);
 app.use('/api/ai', insightRouter);
 app.use('/api/ai', summarizeRouter);
 app.use('/api/ai', memoryRouter);
+app.use('/api/ai', voiceChatRouter);
 
 // ── Global Error Handler ──────────────────────────────────────────────────────
 // Never leak stack traces or provider details to the frontend.

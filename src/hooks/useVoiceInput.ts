@@ -12,9 +12,25 @@ const FATAL_ERRORS = new Set([
   'not-allowed',
   'service-not-allowed',
   'audio-capture',
-  'whisper-unavailable',
-  'whisper-audio-unavailable',
+  'speech-unavailable',
+  'not-supported',
 ]);
+
+/** Engine error codes we recognize and pass through verbatim (else 'voice-failed'). */
+const KNOWN_ERRORS = new Set([
+  'network',
+  'not-allowed',
+  'service-not-allowed',
+  'audio-capture',
+  'speech-unavailable',
+  'not-supported',
+  'aborted',
+  'no-speech',
+  'voice-failed',
+]);
+
+/** Max consecutive silent sessions before auto-listening gives up. */
+const MAX_EMPTY_SESSIONS = 3;
 
 interface UseVoiceInputOptions {
   /** Receives each newly *finalized* transcript segment exactly once. The
@@ -28,7 +44,7 @@ interface UseVoiceInputOptions {
   /** Fired when dictation ends (explicit stop, natural end, or error). */
   onStop?: () => void;
   /** Fired with an engine error code when recognition fails (e.g. 'network',
-   *  'not-allowed', 'whisper-unavailable'). Use it to inform the user. */
+   *  'not-allowed', 'speech-unavailable'). Use it to inform the user. */
   onError?: (error: string) => void;
   /** BCP-47 language tag for recognition. Defaults to 'en-US'. */
   lang?: string;
@@ -47,7 +63,7 @@ export interface UseVoiceInputResult {
   recording: boolean;
   /** Begin a recognition session (no-op if unsupported or already running). */
   start: () => void;
-  /** End the active recognition session (no-op if idle). */
+  /** End the active session. */
   stop: () => void;
   /** Convenience: start if idle, stop if recording. */
   toggle: () => void;
@@ -56,25 +72,25 @@ export interface UseVoiceInputResult {
 }
 
 /**
- * Privacy-first voice-to-text. Uses a pluggable `SttEngine`:
- *   - The default engine is on-device Whisper (WASM): audio never leaves the
- *     device, so dictation works offline and cannot be interrupted by a network
- *     failure — exactly the "no interruption when voice typing" requirement.
- *   - An optional Web Speech fallback exists for local/dev only (it is NOT
- *     private; it ships audio to the browser vendor).
+ * Voice-to-text. Uses a pluggable `SttEngine`:
+ *   - On Android the native OS recognizer (`NativeSpeechEngine`) transcribes
+ *     speech via the device's speech service.
+ *   - On the desktop web build (and as a fallback) the browser Web Speech API
+ *     (`WebSpeechEngine`) is used.
  *
  * Behaviour:
  * - `onFinal` receives each finalized segment exactly once (deduped by index).
  * - `onInterim` streams a live preview.
  * - In continuous mode the engine may end on silence; benign ends are resumed
- *   automatically so a single tap keeps capturing across natural pauses.
- * - Fatal errors (network/permission/model-missing) stop cleanly without a loop.
+ *   automatically so a single tap keeps capturing across natural pauses — but
+ *   only up to `MAX_EMPTY_SESSIONS` consecutive silent sessions, after which
+ *   listening settles to idle (emitting 'idle-timeout') so it never loops
+ *   forever. A fatal error or an explicit stop never resumes.
  * - Latest callbacks are kept in refs so a long-lived session never calls a stale
  *   handler. The session is stopped and released on unmount.
  *
  * The public API (`supported`, `recording`, `start`, `stop`, `toggle`) is
- * unchanged from the previous Web-Speech-only version, so existing callers keep
- * working.
+ * unchanged, so existing callers keep working.
  */
 export function useVoiceInput(
   options: UseVoiceInputOptions = {},
@@ -105,6 +121,10 @@ export function useVoiceInput(
   // True while starting or actively recording (prevents double start).
   const activeRef = useRef(false);
   const recordingRef = useRef(false);
+  // Whether the current session committed at least one final segment.
+  const sessionHadResultRef = useRef(false);
+  // Count of consecutive silent (no-result) sessions; resets to 0 on a result.
+  const emptySessionsRef = useRef(0);
 
   const getEngine = useCallback((): SttEngine | null => {
     if (!engineRef.current) engineRef.current = engineFactory();
@@ -116,8 +136,8 @@ export function useVoiceInput(
     setRecording(v);
   }, []);
 
-  const startRef = useRef<() => void>(() => {});
-
+  // The benign auto-restart path calls THIS (not the public `start`), so it does
+  // NOT reset the empty-session counter — only a real user press does (see start).
   const startAsync = useCallback(async () => {
     const engine = getEngine();
     if (!engine || !engine.supported) {
@@ -130,6 +150,7 @@ export function useVoiceInput(
     manualStopRef.current = false;
     fatalRef.current = false;
     lastFinalIndexRef.current = -1;
+    sessionHadResultRef.current = false;
 
     const callbacks: SttEngineCallbacks = {
       onStart: () => {
@@ -151,14 +172,26 @@ export function useVoiceInput(
         if (manual || fatal) {
           onStopRef.current?.();
         } else {
-          // Benign end (silence / no-speech) → resume listening.
-          startRef.current();
+          // Benign end (silence / no-speech) → maybe resume listening.
+          if (sessionHadResultRef.current) {
+            emptySessionsRef.current = 0;
+          } else {
+            emptySessionsRef.current += 1;
+          }
+          if (emptySessionsRef.current >= MAX_EMPTY_SESSIONS) {
+            emptySessionsRef.current = 0;
+            onErrorRef.current?.('idle-timeout');
+            onStopRef.current?.();
+          } else {
+            startAsync();
+          }
         }
       },
       onInterim: (t) => onInterimRef.current?.(t),
       onResult: (text, isFinal, index) => {
         if (isFinal && index > lastFinalIndexRef.current) {
           lastFinalIndexRef.current = index;
+          sessionHadResultRef.current = true;
           onFinalRef.current?.(text);
         }
       },
@@ -176,22 +209,24 @@ export function useVoiceInput(
       setStatus('loading');
       await engine.load();
       setStatus('ready');
-      await engine.start({ lang: options.lang ?? 'en-US' });
+      await engine.start({ lang: options.lang ?? voiceConfig.lang });
     } catch (err: any) {
       activeRef.current = false;
       setStatus('error');
-      const code =
-        err && typeof err.message === 'string' && err.message.startsWith('whisper')
-          ? err.message
-          : 'audio-capture';
+      const msg = err && typeof err.message === 'string' ? err.message : '';
+      const code = KNOWN_ERRORS.has(msg) ? msg : 'voice-failed';
       onErrorRef.current?.(code);
     }
   }, [getEngine, options.lang, setRecordingState]);
 
   const start = useCallback(() => {
+    // A fresh user press always restarts the silent-session budget.
+    emptySessionsRef.current = 0;
     void startAsync();
   }, [startAsync]);
-  startRef.current = start;
+  // The auto-restart path uses startAsync directly (no counter reset).
+  const startRef = useRef<() => void>(() => {});
+  startRef.current = startAsync;
 
   const stop = useCallback(() => {
     manualStopRef.current = true;
@@ -220,11 +255,11 @@ export function useVoiceInput(
       });
   }, [getEngine]);
 
-  // Warm the model in the background so the first tap is instant (configurable).
+  // Warm the engine in the background so the first tap is instant (configurable).
   useEffect(() => {
     if (!voiceConfig.preloadOnMount) return;
     const engine = getEngine();
-    if (engine?.supported && engine.id === 'local-whisper') {
+    if (engine?.supported) {
       engine
         .load()
         .then(() => setStatus('ready'))

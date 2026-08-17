@@ -1,18 +1,20 @@
 /**
  * Runtime bridge to Capacitor's native permission plugins.
  *
- * We talk to Capacitor through its injected `window.Capacitor.Plugins` global
- * rather than statically importing the plugin packages. That keeps the web build
- * working even when the optional native packages are not installed in this
- * environment, and automatically activates the native path once they are present
- * inside a Capacitor shell (after `npm install` + `npx cap sync`).
+ * We talk to Capacitor through its injected `window.Capacitor` global. The mic
+ * permission is owned by the local `MicPermission` plugin (registered in
+ * MainActivity) which requests RECORD_AUDIO through the real Android
+ * permission API — the same path OS Settings uses, which persists to
+ * com.jouspace.app. The web build works because the plugin is only imported
+ * inside a native shell.
  *
  * Packages that provide these plugins (add to package.json, then `npx cap sync`):
  *   @capacitor/core
- *   @capacitor/microphone           → Plugins.Microphone
- *   @capacitor/local-notifications  → Plugins.LocalNotifications
- *   @capacitor/app                  → Plugins.App (openSettings)
+ *   @capacitor/local-notifications           → Plugins.LocalNotifications
+ *   @capacitor/app                           → Plugins.App (openSettings)
  */
+
+import { registerPlugin } from '@capacitor/core';
 
 type AnyPlugin = { [method: string]: (...args: any[]) => Promise<any> };
 type CapacitorGlobal = {
@@ -33,24 +35,49 @@ function plugin(name: string): AnyPlugin | undefined {
   return capacitor()?.Plugins?.[name];
 }
 
-// ── Microphone ──────────────────────────────────────────────────────────────
+// Lazily resolved so the MicPermission plugin is only looked up when actually
+// called — tests can mock @capacitor/core before the first mic call, and the
+// web build never triggers this path.
+type MicPlugin = {
+  checkPermissions: () => Promise<{ microphone?: string }>;
+  requestPermissions: () => Promise<{ microphone?: string }>;
+};
+let mic: MicPlugin | null = null;
+function getMicPermission(): MicPlugin {
+  if (!mic) {
+    mic = registerPlugin<MicPlugin>('MicPermission');
+  }
+  return mic;
+}
+
+// ── Microphone (RECORD_AUDIO) ────────────────────────────────────────────────
+//
+// @capacitor-community/speech-recognition's checkPermissions / requestPermissions
+// are NOT implemented on Android, and WebView getUserMedia does not persist a
+// grant to the app's native RECORD_AUDIO on this device. MicPermission drives
+// the permission through the real Android API instead.
+
+/**
+ * Read the microphone permission from the OS. Returns `null` only when the
+ * platform genuinely can't report it (never a false "blocked").
+ */
 export async function nativeCheckMicrophone(): Promise<string | null> {
-  const m = plugin('Microphone');
-  if (!m?.checkPermissions) return null;
   try {
-    const r = await m.checkPermissions();
-    return (r?.permission as string) ?? null;
+    const r = await getMicPermission().checkPermissions();
+    return r?.microphone ?? null;
   } catch {
     return null;
   }
 }
 
+/**
+ * Prompt the OS for the microphone permission. Resolves with the new state
+ * ('granted' | 'denied' | 'prompt-with-rationale' | …) after the dialog.
+ */
 export async function nativeRequestMicrophone(): Promise<string | null> {
-  const m = plugin('Microphone');
-  if (!m?.requestPermissions) return null;
   try {
-    const r = await m.requestPermissions();
-    return (r?.permission as string) ?? null;
+    const r = await getMicPermission().requestPermissions();
+    return r?.microphone ?? null;
   } catch {
     return null;
   }

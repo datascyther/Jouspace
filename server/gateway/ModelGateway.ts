@@ -32,6 +32,16 @@ export interface ModelGateway {
     messages: ModelMessage[],
     opts?: { reasoning?: ReasoningProfile; signal?: AbortSignal }
   ): AsyncIterable<GatewayStreamChunk>;
+
+  /**
+   * Transcribe a short audio clip (mono 16-bit PCM WAV) into text via the
+   * provider's speech-recognition model. Used by the voice chat route so the
+   * recorded clip becomes a regular user message before the model answers.
+   *
+   * @param audio  Raw WAV bytes (16-bit PCM, mono).
+   * @throws       When transcription fails or yields no text.
+   */
+  transcribeAudio(audio: Buffer): Promise<string>;
 }
 
 // Re-export types so consumers only need to import from gateway/

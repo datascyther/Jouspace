@@ -101,9 +101,12 @@ cd android && ./gradlew assembleRelease
   with every AI request. The server falls back to seed data only when the
   client sends none. A future cloud sync can be added behind the
   `JournalStore` interface without touching the AI pipeline.
-- **Auth:** sign-in screens are currently mock UI (they complete without a
-  real account) — intentional for this private local-first pass. See
-  `DEPLOYMENT.md` §3 for the path to real auth / PIN lock.
+- **Auth:** Google sign-in is wired through **Firebase Auth** (identity only).
+  Email/password also goes through Firebase. Profile data (display name, join
+  date) is stored locally in localStorage. "Continue without an account" remains
+  for the local-first pass. Requires Firebase web-app config in `.env`
+  (`VITE_FIREBASE_*`) and, for Android, a `google-services.json` at
+  `android/app/google-services.json`. See `DEPLOYMENT.md` §3.
 
 ## Scripts
 

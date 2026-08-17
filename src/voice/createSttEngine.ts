@@ -1,26 +1,32 @@
 import type { SttEngine } from './types';
-import { LocalWhisperEngine } from './LocalWhisperEngine';
+import { NativeSpeechEngine } from './NativeSpeechEngine';
 import { WebSpeechEngine } from './WebSpeechEngine';
 import { NullEngine } from './NullEngine';
 import { voiceConfig } from './voiceConfig';
+import { isNativeRuntime } from '../lib/speechRecognitionPlugin';
 
 export type SttEngineFactory = () => SttEngine;
 
 /** Build the STT engine for the current environment based on `voiceConfig`. */
 export const defaultSttEngineFactory: SttEngineFactory = () => {
-  if (voiceConfig.engine === 'local-whisper') {
-    const eng = new LocalWhisperEngine(voiceConfig.whisper);
+  const want = voiceConfig.engine;
+
+  if (want === 'native') {
+    const eng = new NativeSpeechEngine();
+    return eng.supported ? eng : new NullEngine();
+  }
+  if (want === 'web-speech') {
+    const eng = new WebSpeechEngine();
+    return eng.supported ? eng : new NullEngine();
+  }
+
+  // 'auto': prefer the native recognizer on Android, else Web Speech.
+  if (isNativeRuntime()) {
+    const eng = new NativeSpeechEngine();
     if (eng.supported) return eng;
-    if (voiceConfig.allowWebSpeechFallback) return new WebSpeechEngine();
-    return new NullEngine();
   }
-  // Explicit web-speech engine.
-  if (
-    typeof window !== 'undefined' &&
-    ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition)
-  ) {
-    return new WebSpeechEngine();
-  }
+  const web = new WebSpeechEngine();
+  if (web.supported) return web;
   return new NullEngine();
 };
 

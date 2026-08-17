@@ -61,6 +61,18 @@ export const KeyboardProvider: React.FC<{ children: React.ReactNode }> = ({
   const [state, setState] = useState<KeyboardState>(DEFAULT_STATE);
   const inputModeRef = useRef<InputMode>('default');
 
+  // Full (keyboard-free) layout viewport height in CSS px. On iOS Safari and
+  // Capacitor's adjustResize Android WebView, `window.innerHeight` itself
+  // shrinks when the software keyboard opens, so `innerHeight - vvH` collapses
+  // to ~0 and the keyboard would otherwise go undetected. Track the largest
+  // visual-viewport height observed as the baseline instead — a keyboard only
+  // ever shrinks it — and re-baseline on orientation change.
+  const fullHeightRef = useRef<number>(
+    typeof window !== 'undefined'
+      ? (window.visualViewport?.height ?? window.innerHeight)
+      : 0
+  );
+
   useEffect(() => {
     const root = document.documentElement;
     const vv =
@@ -89,7 +101,14 @@ export const KeyboardProvider: React.FC<{ children: React.ReactNode }> = ({
       const offsetTop = vv ? vv.offsetTop : 0;
       // Space below the visible viewport == on-screen keyboard height.
       const kb = Math.max(0, winH - vvH - offsetTop);
-      const visible = kb > 50; // ignore sub-50px fluctuations / toolbars
+      // Re-baseline to the tallest visual viewport seen so far (see the
+      // fullHeightRef note above) — keyboard-open states only ever shrink it.
+      if (vvH > fullHeightRef.current) fullHeightRef.current = vvH;
+      // Visible when the keyboard clearly occupies space below the visible
+      // viewport (kb), OR the visible viewport shrank against the keyboard-free
+      // baseline (platforms that resize innerHeight with the keyboard). The 50px
+      // floor ignores sub-50px fluctuations / collapsing toolbars.
+      const visible = kb > 50 || vvH < fullHeightRef.current - 50;
 
       root.style.setProperty('--vvh', `${vvH}px`);
       root.style.setProperty('--kb-height', `${kb}px`);
@@ -113,14 +132,23 @@ export const KeyboardProvider: React.FC<{ children: React.ReactNode }> = ({
         };
       });
     };
-
+    // Run once on mount to establish the baseline and any initial offsets.
     compute();
+    // visualViewport resize/scroll fire as the on-screen keyboard animates in
+    // and out — the web equivalent of keyboardWillShow / keyboardDidShow.
     if (vv) {
       vv.addEventListener('resize', compute);
       vv.addEventListener('scroll', compute);
     }
     window.addEventListener('resize', compute);
-    window.addEventListener('orientationchange', compute);
+    // Rotating changes the full viewport height, so re-establish the baseline
+    // (the keyboard is dismissed before rotation) before recomputing. Without
+    // this, an old, taller baseline would read as "keyboard open" forever.
+    const onOrientationChange = () => {
+      fullHeightRef.current = vv ? vv.height : window.innerHeight;
+      compute();
+    };
+    window.addEventListener('orientationchange', onOrientationChange);
 
     return () => {
       if (vv) {
@@ -128,7 +156,7 @@ export const KeyboardProvider: React.FC<{ children: React.ReactNode }> = ({
         vv.removeEventListener('scroll', compute);
       }
       window.removeEventListener('resize', compute);
-      window.removeEventListener('orientationchange', compute);
+      window.removeEventListener('orientationchange', onOrientationChange);
     };
   }, []);
 

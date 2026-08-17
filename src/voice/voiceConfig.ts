@@ -1,53 +1,33 @@
 /**
- * Voice configuration. Everything here is about keeping voice input PRIVATE:
- * the default engine runs Whisper fully on-device (WASM) and the model is served
- * from your own infrastructure, so audio never leaves the user's device.
+ * Voice configuration.
+ *
+ * Voice input uses the best engine available on the current platform:
+ *  - On Android (inside the Capacitor shell) it uses the OS speech recognizer
+ *    via `@capacitor-community/speech-recognition`.
+ *  - On the desktop web build (and as a fallback) it uses the browser's Web
+ *    Speech API.
+ *
+ * Honest privacy note: on Android the audio is sent to the device's own
+ * speech-recognition service (typically Google's) for transcription — it is
+ * used only to turn your speech into text for the entry. No audio or transcript
+ * is sent to any Jouspace server.
  */
-export interface WhisperConfig {
-  /** HuggingFace model name used as a fallback (e.g. 'base.en'). */
-  model: string;
-  /** Self-hosted model URL (PRIVATE). If set, it takes precedence over `model`.
-   *  Serve this from your own runtime/CDN you control — do not point at a public
-   *  third-party CDN if you want to stay private. */
-  modelUrl?: string;
-  /** Self-hosted path/dir for the wasm binaries (PRIVATE). */
-  wasmUrl?: string;
-  multilingual: boolean;
-}
+export type VoiceEngineChoice = 'auto' | 'native' | 'web-speech';
 
 export interface VoiceConfig {
-  /** Preferred engine. 'local-whisper' keeps audio on-device. */
-  engine: 'local-whisper' | 'web-speech';
-  whisper: WhisperConfig;
+  /** Which engine to use. 'auto' picks native on Android, else Web Speech. */
+  engine: VoiceEngineChoice;
   /**
-   * If the preferred engine cannot be created, fall back to Web Speech.
-   * Web Speech is NOT private (sends audio to the browser vendor). Keep `false`
-   * for strict privacy; enable only for local/dev convenience and disable before
-   * shipping.
-   */
-  allowWebSpeechFallback: boolean;
-  /**
-   * Preload the local model in the background once the voice hook mounts, so the
+   * Preload the engine in the background once the voice hook mounts, so the
    * first tap is instant. Set `false` to load lazily on first use instead.
    */
   preloadOnMount: boolean;
+  /** BCP-47 language tag for recognition (e.g. 'en-US'). */
+  lang: string;
 }
 
 export const voiceConfig: VoiceConfig = {
-  engine: 'local-whisper',
-  whisper: {
-    model: 'base.en',
-    // Host these on YOUR OWN runtime/infra so audio never leaves your control.
-    // Example: serve the ggml model + wasm from `server/public/models/`.
-    modelUrl: '/models/whisper-base-en.wasm',
-    wasmUrl: '/models/',
-    multilingual: false,
-  },
-  allowWebSpeechFallback: false,
+  engine: 'auto',
   preloadOnMount: true,
+  lang: 'en-US',
 };
-
-/** One-time setup hint shown when the private model can't be loaded. */
-export const VOICE_MODEL_MISSING_HINT =
-  'Private voice model is unavailable. Host the Whisper model on your runtime ' +
-  '(see src/voice/voiceConfig.ts) and reload.';

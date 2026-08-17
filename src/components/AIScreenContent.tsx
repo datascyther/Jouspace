@@ -1,23 +1,21 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Mic, ArrowUp, X } from 'lucide-react';
 import { AIHeader } from './AIHeader';
 import { MemoryContextCard } from './MemoryContextCard';
 import { SuggestionRow } from './SuggestionRow';
 import { UserMessageBubble, AssistantMessageBubble } from './MessageBubbles';
 import { Composer } from './Composer';
 import { BottomNavigation, NavTab } from './BottomNavigation';
-import { EntryPickerSheet } from './EntryPickerSheet';
 import { Skeleton, useLoadGuard } from './Skeleton';
 import { ErrorState } from './ErrorState';
 import {
   useJouspaceIntelligence,
-  RUNTIME_UNAVAILABLE_MESSAGE,
   loadChatMessages,
 } from '../hooks/useJouspaceIntelligence';
 import { journalStore } from '../store';
-import { useEscapeKey } from '../hooks/useEscapeKey';
 import { useKeyboard } from '../hooks/useAdaptiveKeyboard';
-import { useVoiceInput } from '../hooks/useVoiceInput';
-import { usePermission } from '../permissions/usePermissions';
+import { readAiAttach, clearAiAttach } from '../utils/pickerStore';
+import { useVoiceRecorder } from '../hooks/useVoiceRecorder';
 import type { Entry } from './EntryRow';
 
 export interface AIMessage {
@@ -49,6 +47,8 @@ interface AIScreenContentProps {
   onOpenHistory?: () => void;
   onOpenContextPicker?: () => void;
   onOpenEntry?: (id: string) => void;
+  /** Opens the entry picker as a separate route (AI "attach" action). */
+  onOpenEntryPicker?: () => void;
 }
 
 /** Real themes present in the journal, used as AI memory context. */
@@ -56,6 +56,14 @@ function realContextThreads(): string[] {
   const set = new Set<string>();
   for (const e of journalStore.list()) set.add(e.theme);
   return Array.from(set);
+}
+
+/** Format ms as m:ss for the voice-note chip. */
+function formatDuration(ms: number): string {
+  const totalSeconds = Math.max(0, Math.round(ms / 1000));
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
 }
 
 export const AIScreenContent: React.FC<AIScreenContentProps> = ({
@@ -69,24 +77,34 @@ export const AIScreenContent: React.FC<AIScreenContentProps> = ({
   onOpenHistory,
   onOpenContextPicker,
   onOpenEntry,
+  onOpenEntryPicker,
 }) => {
   const [composerValue, setComposerValue] = useState('');
-  const [isAttachOpen, setIsAttachOpen] = useState(false);
-  // Keyboard: Escape closes the attach entry-picker sheet.
-  useEscapeKey(() => setIsAttachOpen(false), isAttachOpen);
 
   // Restore persisted chat history on mount so navigation doesn't lose it.
   const [initialMessages] = useState(() => loadChatMessages());
   const ai = useJouspaceIntelligence('chat', initialMessages);
 
-  // Never let the "waiting for AI" state hang forever — after 8s, surface an
-  // error so the user can retry instead of staring at a frozen skeleton.
-  const chatTimedOut = useLoadGuard(ai.isThinking, 8000);
+  // Voice recording — records a clip (WAV, 16kHz mono) so the AI runtime can
+  // transcribe and answer it. Tap the mic to start/stop capture; stopping
+  // produces a preview chip with Send / Discard.
+  const recorder = useVoiceRecorder();
 
-  const handleChatRetry = () => {
-    // Cancel the hung request; the composer re-enables so the user can resend.
-    ai.abort();
-  };
+  // Apply any pending "attach" selected in the entry-picker route (one-shot
+  // transient store). Runs after mount so it composes with the restored chat.
+  useEffect(() => {
+    const title = readAiAttach();
+    if (title) {
+      setComposerValue((prev) => (prev ? `${prev}\n` : '') + `Re: ${title}`);
+      // An attach composes a text message, so any pending voice chip goes too.
+      recorder.clear();
+      clearAiAttach();
+    }
+  }, []);
+
+  // Never let the "waiting for AI" state hang forever — after 8s, surface an
+  // error so the composer re-enables and the user can resend.
+  const chatTimedOut = useLoadGuard(ai.isThinking, 8000);
 
   // ── Adaptive keyboard (web/Capacitor) ──────────────────────────────────────
   // The app shell height follows window.visualViewport (set by KeyboardProvider
@@ -134,78 +152,46 @@ export const AIScreenContent: React.FC<AIScreenContentProps> = ({
     if (atBottomRef.current) scrollToBottom(false);
   }, [keyboardVisible]);
 
-  // Voice input — shared Web Speech API hook (gracefully disabled if
-  // unsupported). It commits finalized transcript segments to the composer and
-  // streams a live interim preview so the user sees words as they speak.
-  const [voiceInterim, setVoiceInterim] = useState('');
-  const [voiceError, setVoiceError] = useState<string | null>(null);
+  // Pin to the bottom whenever the thread grows — a new text message, the user
+  // bubble inserted on the voice-transcript SSE event, or streamed tokens — so a
+  // streaming reply stays in view. Only auto-scrolls while the user is already
+  // at the bottom (reading history is never yanked).
+  useEffect(() => {
+    if (!atBottomRef.current) return;
+    scrollToBottom(false);
+  }, [ai.messages, ai.isThinking, ai.isStreaming]);
 
-  const voice = useVoiceInput({
-    onFinal: (text) => {
-      setComposerValue((prev) => {
-        const sep = prev.length > 0 && !/\s$/.test(prev) ? ' ' : '';
-        return prev + sep + text;
-      });
-    },
-    onInterim: (text) => setVoiceInterim(text ?? ''),
-    onError: (code) => {
-      setVoiceInterim('');
-      setVoiceError(
-        code === 'not-allowed' || code === 'service-not-allowed'
-          ? 'Microphone permission blocked for voice input.'
-          : code === 'audio-capture'
-            ? 'No microphone found for voice input.'
-            : 'Voice input unavailable — could not reach the speech service. Check your connection or mic permission.',
-      );
-      // Auto-dismiss the notice after a few seconds.
-      window.setTimeout(() => setVoiceError(null), 5000);
-    },
-    onStop: () => setVoiceInterim(''),
-  });
-
-  // Gate the mic behind the unified permission system. We always call `ensure`
-  // (which requests in-context on first use and never re-prompts once denied),
-  // then start voice input only when permitted. On the web the actual mic grant
-  // is shared with the Web Speech API, so this single prompt covers both.
-  const mic = usePermission('microphone');
-
-  const handleMic = useCallback(async () => {
-    if (!voice.supported) {
-      setVoiceError('Voice input isn’t supported on this device or browser.');
-      window.setTimeout(() => setVoiceError(null), 5000);
-      return;
+  const handleMicPress = () => {
+    if (recorder.recording) {
+      recorder.stop();
+    } else {
+      void recorder.start();
     }
-    const res = await mic.ensure();
-    if (!res.ok) {
-      if (res.state === 'deniedPermanently' || res.state === 'restricted') {
-        const opened = await mic.openSettings();
-        if (!opened) {
-          setVoiceError(
-            'Microphone access is blocked. Enable it in your browser or device Settings, then return here.',
-          );
-          window.setTimeout(() => setVoiceError(null), 5000);
-        }
-      } else {
-        setVoiceError(
-          res.state === 'unsupported'
-            ? 'No microphone found for voice input.'
-            : 'Microphone permission blocked for voice input.',
-        );
-        window.setTimeout(() => setVoiceError(null), 5000);
-      }
-      return;
-    }
-    // Warm the on-device model right after the mic is granted so the first tap
-    // is instant (no interruption). The toggle below then loads if still pending.
-    voice.preload?.();
-    voice.toggle();
-  }, [mic.ensure, mic.openSettings, voice.supported, voice.toggle, voice.preload, setVoiceError]);
+  };
+
+  const handleSendVoice = () => {
+    const clip = recorder.result;
+    if (!clip) return;
+    ai.sendVoice({ dataUrl: clip.dataUrl, durationMs: clip.durationMs });
+    recorder.clear();
+  };
 
   const handleSend = (overrideText?: string) => {
     const text = (overrideText ?? composerValue).trim();
     if (!text) return;
     setComposerValue('');
+    // Sending text supersedes any pending voice note — the chip is no longer
+    // the next message to send.
+    recorder.clear();
     ai.send(text);
+  };
+
+  // Typing supersedes a pending voice note: without this the chip would sit
+  // alongside typed text, ambiguous about what Send actually sends. The first
+  // non-empty keystroke dismisses it (Send/Discard are gone with it).
+  const handleComposerChange = (value: string) => {
+    setComposerValue(value);
+    if (value.trim()) recorder.clear();
   };
 
   const handleSuggestion = (question: string) => handleSend(question);
@@ -218,11 +204,6 @@ export const AIScreenContent: React.FC<AIScreenContentProps> = ({
     const match =
       list.find((e) => msg.citationDates!.includes(e.date)) ?? list[0];
     onOpenEntry?.(match.id);
-  };
-
-  const handleAttachSelect = (entry: Entry) => {
-    setComposerValue((prev) => (prev ? `${prev}\n` : '') + `Re: ${entry.title}`);
-    setIsAttachOpen(false);
   };
 
   return (
@@ -302,7 +283,6 @@ export const AIScreenContent: React.FC<AIScreenContentProps> = ({
                     <ErrorState
                       title="Couldn't load"
                       message="Jouspace is taking too long to respond."
-                      onRetry={handleChatRetry}
                     />
                   ) : (
                     <Skeleton
@@ -315,9 +295,7 @@ export const AIScreenContent: React.FC<AIScreenContentProps> = ({
 
                 {ai.error && (
                   <p className="font-sans text-[13px] text-muted py-1">
-                    {ai.error === RUNTIME_UNAVAILABLE_MESSAGE
-                      ? RUNTIME_UNAVAILABLE_MESSAGE
-                      : 'Jouspace Intelligence is unavailable. Please try again.'}
+                    {ai.error || 'Jouspace Intelligence is unavailable. Please try again.'}
                   </p>
                 )}
               </>
@@ -332,45 +310,71 @@ export const AIScreenContent: React.FC<AIScreenContentProps> = ({
           keyboardVisible ? 'pb-composer-kb' : 'pb-2'
         }`}
       >
-        {voiceError ? (
+        {recorder.error ? (
           <p className="px-1 pb-1.5 font-sans text-[12.5px] text-error leading-snug">
-            {voiceError}
+            {recorder.error}
+            {recorder.canOpenSettings ? (
+              <button
+                type="button"
+                onClick={() => void recorder.openSettings()}
+                className="ml-1 underline underline-offset-2"
+              >
+                Open Settings
+              </button>
+            ) : null}
           </p>
-        ) : voiceInterim ? (
-          <p className="px-1 pb-1.5 font-sans text-[13px] text-muted italic truncate">
-            {voiceInterim}…
-          </p>
+        ) : null}
+        {recorder.result && !ai.isThinking && !ai.isStreaming ? (
+          <div className="flex items-center gap-2 px-1 pb-1.5">
+            <span className="flex items-center gap-1.5 font-sans text-[13px] text-secondary bg-surface border border-borderSubtle rounded-full px-3 py-1.5">
+              <Mic className="w-3.5 h-3.5 text-accent" />
+              Voice note · {formatDuration(recorder.result.durationMs)}
+            </span>
+            <button
+              type="button"
+              onClick={handleSendVoice}
+              aria-label="Send voice note"
+              className="flex items-center gap-1 rounded-full bg-accent px-3 py-1.5 font-sans text-[12.5px] text-white hover:bg-accentHover transition-colors cursor-pointer focus:outline-none"
+            >
+              <ArrowUp className="w-3.5 h-3.5 stroke-2" />
+              Send
+            </button>
+            <button
+              type="button"
+              onClick={recorder.clear}
+              aria-label="Discard voice note"
+              className="flex items-center rounded-full border border-borderSubtle p-1.5 text-secondary hover:text-primaryText transition-colors cursor-pointer focus:outline-none"
+            >
+              <X className="w-4 h-4 stroke-[1.8]" />
+            </button>
+          </div>
         ) : null}
         <Composer
           value={composerValue}
-          onChange={setComposerValue}
+          onChange={handleComposerChange}
           onSend={() => handleSend()}
-          onAttach={() => setIsAttachOpen(true)}
-          onMic={handleMic}
+          onAttach={() => onOpenEntryPicker?.()}
+          onMic={handleMicPress}
           onFocus={() => setInputMode('default')}
-          micDisabled={!voice.supported}
-          isRecording={voice.recording}
-          isPreparing={voice.status === 'loading'}
+          micDisabled={!recorder.supported || ai.isThinking || ai.isStreaming}
+          isRecording={recorder.recording}
+          isPreparing={recorder.starting}
+          recordingSec={Math.floor(recorder.elapsedMs / 1000)}
           disabled={ai.isThinking || ai.isStreaming}
         />
       </div>
 
-      {/* Entry picker for attach */}
-      <EntryPickerSheet
-        isOpen={isAttachOpen}
-        onClose={() => setIsAttachOpen(false)}
-        entries={entries}
-        onSelect={handleAttachSelect}
-      />
-
-      {/* Pinned BottomNavigation */}
-      <div className="shrink-0">
-        <BottomNavigation
-          activeTab={activeTab}
-          onTabChange={onTabChange}
-          hideOnKeyboard
-        />
-      </div>
+      {/* Pinned BottomNavigation — hidden while the software keyboard is open:
+          the shell is already the visible viewport, so the Composer sits flush
+          on the keyboard and the nav must not cover the input. */}
+      {!keyboardVisible && (
+        <div className="shrink-0">
+          <BottomNavigation
+            activeTab={activeTab}
+            onTabChange={onTabChange}
+          />
+        </div>
+      )}
     </div>
   );
 };

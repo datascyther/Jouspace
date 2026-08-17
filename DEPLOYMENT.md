@@ -135,13 +135,27 @@ No keystore secrets, no debug fallback, no icon/manifest patching steps.
 
 ---
 
-## 3. Current auth status
+## 3. Auth status
 
-Sign-in screens are **mock UI** (they complete without a real account). For a
-private local-first journal this is intentional for now. When accounts/sync are
-needed later:
+**Google sign-in = Firebase Auth (identity only).**
 
-- Add a real auth provider (e.g. Supabase Auth, Firebase Auth) and swap the
-  mock `handleSignIn`/`handleCreateAccount` in `src/App.tsx`.
-- For on-device protection without accounts, add a PIN/biometric lock screen
-  (the app already has the visual shell for it in `SignInScreen`/`WelcomeScreen`).
+The client obtains a verified Google credential from **Firebase Auth**.
+Profile data (display name, joined date) is stored locally in localStorage.
+Email/password flows go through Firebase as well.
+
+Setup (one time):
+
+1. **Firebase Console** → Add project → Build → Authentication → Sign-in
+   method → enable **Google**.
+2. **Add a Web app** → copy the `firebaseConfig` values into `.env`:
+   `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`,
+   `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_APP_ID`.
+3. **Add an Android app** (package `com.jouspace.app`) → register the release
+   SHA-1 (`F5:C0:60:33:0D:02:BC:B6:77:76:67:98:A6:E9:8C:1D:E8:CD:8A:8C`) →
+   download **`google-services.json`** to `android/app/google-services.json`
+   (the gradle build auto-applies the Google Services plugin when present).
+
+On Android, sign-in uses the native Google Sign-In sheet via
+`@capacitor-firebase/authentication` with `skipNativeAuth: true` (returns the
+ID token without a redundant Firebase session); on web it falls back to the
+Firebase JS SDK redirect flow. "Continue without an account" still works locally.

@@ -206,4 +206,79 @@ describe('useVoiceInput (engine-driven)', () => {
     expect(engine.startCallCount).toBe(0);
     expect(result.current.recording).toBe(false);
   });
+
+  it('gives up after 3 consecutive silent sessions (idle-timeout)', async () => {
+    const engine = new FakeEngine();
+    const onError = vi.fn();
+    const { result } = renderWithEngine(engine, { onError });
+
+    await act(async () => {
+      result.current.toggle();
+    });
+    await flush();
+    expect(engine.startCallCount).toBe(1);
+
+    engine.emitEnd();
+    await flush();
+    expect(engine.startCallCount).toBe(2);
+    engine.emitEnd();
+    await flush();
+    expect(engine.startCallCount).toBe(3);
+    engine.emitEnd();
+    await flush();
+
+    // No 4th restart — listening settles to idle.
+    expect(engine.startCallCount).toBe(3);
+    expect(onError).toHaveBeenCalledWith('idle-timeout');
+    expect(result.current.recording).toBe(false);
+  });
+
+  it('resets the silent-session counter when a result arrives', async () => {
+    const engine = new FakeEngine();
+    const { result } = renderWithEngine(engine);
+
+    await act(async () => {
+      result.current.toggle();
+    });
+    await flush();
+    expect(engine.startCallCount).toBe(1);
+
+    engine.emitEnd();
+    await flush();
+    expect(engine.startCallCount).toBe(2);
+
+    // A session that produces a result clears the silent counter.
+    engine.emitResult('hello', 0);
+    engine.emitEnd();
+    await flush();
+    expect(engine.startCallCount).toBe(3);
+
+    // So the next silent session is only the first again, not a "third".
+    engine.emitEnd();
+    await flush();
+    expect(engine.startCallCount).toBe(4);
+  });
+
+  it('does not resume after a manual stop', async () => {
+    const engine = new FakeEngine();
+    const { result } = renderWithEngine(engine);
+
+    await act(async () => {
+      result.current.toggle();
+    });
+    await flush();
+    expect(engine.startCallCount).toBe(1);
+
+    await act(async () => {
+      result.current.stop();
+    });
+    await flush();
+    expect(engine.startCallCount).toBe(1);
+
+    // A late benign end from the engine must NOT restart a manual stop.
+    engine.emitEnd();
+    await flush();
+    expect(engine.startCallCount).toBe(1);
+    expect(result.current.recording).toBe(false);
+  });
 });

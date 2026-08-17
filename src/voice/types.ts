@@ -8,7 +8,7 @@
  * network round-trip that can fail mid-dictation).
  */
 
-export type SttEngineId = 'local-whisper' | 'web-speech' | 'none';
+export type SttEngineId = 'native-speech' | 'web-speech' | 'none';
 
 export interface SttEngineCallbacks {
   /** A finalized transcript segment. `index` lets the consumer de-duplicate. */

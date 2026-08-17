@@ -38,7 +38,7 @@ export const WritingSummaryCard: React.FC<WritingSummaryCardProps> = ({
       </span>
 
       {/* Body */}
-      <p className="font-serif text-[17px] font-normal text-primaryText leading-[1.65] tracking-tight whitespace-pre-line m-0">
+      <p className="font-serif text-[15px] font-normal text-primaryText leading-[1.6] tracking-tight whitespace-pre-line m-0">
         {bodyText}
       </p>
 

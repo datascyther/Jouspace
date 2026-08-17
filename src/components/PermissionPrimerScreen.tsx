@@ -5,7 +5,7 @@ import { PrimaryButton } from './PrimaryButton';
 import { usePermissions } from '../permissions/usePermissions';
 import { ReminderService } from '../notifications';
 import { PERMISSIONS, PERMISSION_ORDER } from '../permissions/registry';
-import type { PermissionKey } from '../permissions/types';
+import type { PermissionKey, PermissionResult } from '../permissions/types';
 
 const ICONS: Record<PermissionKey, React.ReactNode> = {
   microphone: <Mic className="w-6 h-6" />,
@@ -31,13 +31,11 @@ function Toggle({
   onChange,
   disabled,
   ariaLabel,
-  busy,
 }: {
   checked: boolean;
   onChange: () => void;
   disabled?: boolean;
   ariaLabel: string;
-  busy?: boolean;
 }) {
   return (
     <button
@@ -57,35 +55,21 @@ function Toggle({
                     ${checked ? 'bg-accent' : 'bg-baseTint'}`}
       />
       <span
-        className={`absolute top-1/2 left-1 -translate-y-1/2 w-7 h-7 rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.2)]
+        className={`absolute top-1/2 left-1 -translate-y-1/2 w-7 h-7 rounded-full bg-surface shadow-[0_1px_3px_rgba(0,0,0,0.2)]
                     transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]
                     ${checked ? 'translate-x-5' : 'translate-x-0'}`}
       />
-      {busy && (
-        <span className="absolute inset-0 flex items-center justify-center">
-          <svg className="w-4 h-4 animate-spin text-accent" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" opacity="0.3" />
-            <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-          </svg>
-        </span>
-      )}
-    </button>
+      </button>
   );
 }
 
 /**
- * First-run permission primer. Shown once after the splash for new users.
- *
- * This is the store-compliant way to "ask on first open": each permission is
- * explained and requested *in context* (the user explicitly flips its toggle),
- * so it satisfies Apple 5.1.1 / Google Play while still feeling automatic.
- * Nothing is forced — the user can Skip and the app works fully by typing.
- *
- * The primer is the single interactive onboarding step, so a thin top progress
- * bar reads "almost done" rather than a step counter.
+ * Post-auth permission primer. Shown after successful email/Google
+ * authentication; required step (each permission individually optional via its
+ * toggle). The "Continue" button enters the app; there is no "Skip for now".
  */
 export const PermissionPrimerScreen: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
-  const { states, ensure, openSettings } = usePermissions();
+  const { states, ensure, openSettings, refresh } = usePermissions();
   const [busy, setBusy] = useState<PermissionKey | null>(null);
   // Local opt-out so a granted permission can be switched back off without
   // revoking it at the OS level (the app just stops using it).
@@ -119,14 +103,33 @@ export const PermissionPrimerScreen: React.FC<{ onComplete: () => void }> = ({ o
     else if (isBlocked(key)) {
       await openSettings(key);
     }
-    // Off → request it.
+    // Off → request it. A hard timeout guarantees the toggle can never get
+    // stuck on a slow/unresolved native permission promise, and we always
+    // reconcile with the live OS status so a granted permission (even one the
+    // native call didn't report back) is reflected on the toggle.
     else {
       setBusy(key);
       try {
-        const res = await ensure(key);
-        if (res.ok) nextOn = true;
-        else if (res.state === 'deniedPermanently' || res.state === 'restricted') {
-          await openSettings(key);
+        const result = await Promise.race<PermissionResult | null>([
+          ensure(key),
+          new Promise<PermissionResult | null>((resolve) =>
+            setTimeout(() => resolve(null), 5000),
+          ),
+        ]);
+        if (result) {
+          // Definitive answer — `ensure` already updated `states`, so trust it.
+          if (result.ok) nextOn = true;
+          else if (
+            result.state === 'deniedPermanently' ||
+            result.state === 'restricted'
+          ) {
+            await openSettings(key);
+          }
+        } else {
+          // Timed out — reconcile with the live OS status (a grant may have
+          // landed after the native promise went quiet).
+          const freshState = await refresh(key);
+          nextOn = freshState === 'granted' ? true : null;
         }
       } finally {
         setBusy(null);
@@ -141,7 +144,7 @@ export const PermissionPrimerScreen: React.FC<{ onComplete: () => void }> = ({ o
   };
 
   return (
-    <div className="relative flex-1 flex flex-col min-h-0 bg-base overflow-y-auto overflow-x-hidden overscroll-contain">
+      <div className="relative flex-1 flex flex-col min-h-0 w-full bg-base overflow-y-auto overflow-x-hidden overscroll-contain">
       {/* Localised depth orb — light theme only, hidden on dark (see index.css). */}
       <div aria-hidden="true" className="onboarding-orb" />
 
@@ -196,7 +199,6 @@ export const PermissionPrimerScreen: React.FC<{ onComplete: () => void }> = ({ o
                         checked={on}
                         onChange={() => void handleToggle(key)}
                         disabled={busy !== null}
-                        busy={busy === key}
                         ariaLabel={`Enable ${meta.title} for ${PURPOSE[key]}`}
                       />
                     </div>
@@ -224,21 +226,11 @@ export const PermissionPrimerScreen: React.FC<{ onComplete: () => void }> = ({ o
                 gradient
                 size="lg"
                 disabled={busy !== null}
-                isLoading={busy !== null}
                 icon={<ArrowRight className="w-[18px] h-[18px] mr-2.5 stroke-[1.8]" />}
                 className="w-full"
               >
                 Continue
               </PrimaryButton>
-
-              <button
-                type="button"
-                onClick={onComplete}
-                className="mt-4 w-full inline-flex items-center justify-center text-[16px] font-medium text-secondary
-                           hover:text-primary active:text-primary transition-colors min-h-12"
-              >
-                Skip for now
-              </button>
             </div>
           </div>
         </div>

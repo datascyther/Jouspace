@@ -1,17 +1,15 @@
 import React from 'react';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 
 interface ErrorStateProps {
   title?: string;
   message?: string;
-  onRetry?: () => void;
   className?: string;
 }
 
 export const ErrorState: React.FC<ErrorStateProps> = ({
   title = 'Something went wrong',
   message = 'Please try again.',
-  onRetry,
   className = '',
 }) => {
   return (
@@ -25,16 +23,6 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
       <p className="font-sans text-[14px] text-secondaryText leading-relaxed mb-5 max-w-[260px]">
         {message}
       </p>
-      {onRetry && (
-        <button
-          type="button"
-          onClick={onRetry}
-          className="inline-flex items-center gap-2 text-accent hover:text-accentAlt font-sans font-medium text-[14px] transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 rounded-lg px-3 py-2 min-h-11"
-        >
-          <RefreshCw className="w-4 h-4 stroke-[1.8]" />
-          Try again
-        </button>
-      )}
     </div>
   );
 };

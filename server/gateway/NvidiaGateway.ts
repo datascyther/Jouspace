@@ -27,6 +27,12 @@ import type { ReasoningProfile } from '../reasoning.js';
 const NVIDIA_BASE_URL = 'https://integrate.api.nvidia.com/v1';
 const LIGHTNING_MODEL = 'nvidia/nemotron-3.5-lightning-30b-a3b';
 const FAST_MODEL = 'nvidia/nemotron-3-nano-30b-a3b';
+// Hosted ASR model for voice chat. NVIDIA serves speech NIMs (Parakeet family,
+// Whisper, Canary) from the same integrate.api.nvidia.com base + key used for
+// LLM inference. Parakeet is English-first and low-latency; override with
+// NVIDIA_ASR_MODEL to switch (e.g. nvidia/whisper-large-v3 for multilingual).
+const ASR_MODEL =
+  process.env.NVIDIA_ASR_MODEL ?? 'nvidia/parakeet-tdt-0.6b-v3';
 
 /**
  * Custom undici dispatcher used for every runtime → NVIDIA call.
@@ -215,5 +221,28 @@ export class NvidiaGateway implements ModelGateway {
 
     // Signal stream completion exactly once, after a successful attempt.
     yield { text: '', done: true };
+  }
+
+  /**
+   * Transcribe a mono 16-bit PCM WAV clip via the hosted NVIDIA ASR NIM.
+   * The OpenAI SDK posts multipart form data (file + model) to
+   * /v1/audio/transcriptions — the same OpenAI-compatible surface NVIDIA
+   * exposes for its speech models. Returns the trimmed transcript text.
+   */
+  async transcribeAudio(audio: Buffer): Promise<string> {
+    const file = await OpenAI.toFile(new Uint8Array(audio), 'recording.wav', {
+      type: 'audio/wav',
+    });
+    const response = await this.client.audio.transcriptions.create({
+      model: ASR_MODEL,
+      file,
+      response_format: 'json',
+    });
+
+    const text = (response.text ?? '').trim();
+    if (!text) {
+      throw new Error('No speech detected in the recording.');
+    }
+    return text;
   }
 }

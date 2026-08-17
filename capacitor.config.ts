@@ -26,7 +26,6 @@ const config: CapacitorConfig = {
     // android/app/src/main/AndroidManifest.xml.
     allowMixedContent: false,
     // Use a custom URI scheme for OAuth callbacks (jouspace://).
-    // Registered in Supabase Dashboard → Auth → URL Configuration.
     backgroundColor: '#F5F3EF',
   },
 
@@ -39,8 +38,16 @@ const config: CapacitorConfig = {
 
   plugins: {
     App: {
-      // Handle deep links for OAuth callbacks (jouspace://)
-      // The supabase-js client detects the session from the URL fragment.
+      // Handle deep links for OAuth callbacks (jouspace://).
+    },
+    FirebaseAuthentication: {
+      // Google sign-in through @capacitor-firebase/authentication.
+      // skipNativeAuth: false keeps the native Firebase session so it persists
+      // across app restarts and the `authStateChange` listener fires
+      // symmetrically with the web SDK. Firebase is the identity provider only
+      // (Google + email/password); the journal stays local-first on-device.
+      skipNativeAuth: false,
+      providers: ['google.com'],
     },
   },
 };
@@ -57,13 +64,18 @@ export default config;
  *
  * 1) Plugins are installed via package.json — run `npm install && npx cap sync android`.
  *
- * 2) iOS — ios/App/App/Info.plist (purpose strings are REQUIRED or the app
- *    crashes on first request):
- *      <key>NSMicrophoneUsageDescription</key>
- *      <string>Jouspace uses your microphone to transcribe voice journal entries.</string>
- *      <key>NSLocalNotificationUsageDescription</key>
- *      <string>Jouspace sends gentle reminders to help you build a journaling habit.</string>
- *
- * The primer screen (PermissionPrimerScreen) requests these in-context, which
- * keeps the app compliant with Apple Guideline 5.1.1 and Google Play policies.
+   * 2) iOS — ios/App/App/Info.plist (purpose strings are REQUIRED or the app
+   *    crashes on first request):
+   *      <key>NSMicrophoneUsageDescription</key>
+   *      <string>Jouspace uses your microphone to transcribe voice journal entries.</string>
+   *      <key>NSSpeechRecognitionUsageDescription</key>
+   *      <string>Jouspace sends your speech to Apple’s speech recognition service to transcribe voice journal entries.</string>
+   *      <key>NSLocalNotificationUsageDescription</key>
+   *      <string>Jouspace sends gentle reminders to help you build a journaling habit.</string>
+   *
+   * NOTE: there is no `ios/` target in this repo yet (Android only). These
+   * purpose strings are documented for when iOS support is added.
+   *
+   * The primer screen (PermissionPrimerScreen) requests these in-context, which
+   * keeps the app compliant with Apple Guideline 5.1.1 and Google Play policies.
  */

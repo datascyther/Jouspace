@@ -36,10 +36,10 @@ export const JournalMetadata: React.FC<JournalMetadataProps> = ({
 
   return (
     <div
-      className={`flex items-start justify-between w-full font-sans text-[12.5px] text-muted tracking-normal select-none ${className}`}
+      className={`flex items-start justify-between w-full font-sans text-[12px] text-muted tracking-normal select-none ${className}`}
     >
       {/* Left: Today & Timestamp */}
-      <div className="flex flex-col gap-0.5">
+      <div className="flex flex-col gap-px">
         <span className="font-medium text-muted">{dateLabel}</span>
         <span className="text-muted">{timeLabel}</span>
       </div>

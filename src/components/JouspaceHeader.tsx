@@ -1,21 +1,18 @@
 import React from 'react';
-import { Bell } from 'lucide-react';
+import { Search } from 'lucide-react';
 import logoSrc from '../assets/Jouspace logo.png';
-import { IconButton } from './IconButton';
 
 interface JouspaceHeaderProps {
   userName?: string;
   userInitials?: string;
-  hasNotifications?: boolean;
-  onNotificationClick?: () => void;
+  onSearchClick?: () => void;
   onAvatarClick?: () => void;
   className?: string;
 }
 
 export const JouspaceHeader: React.FC<JouspaceHeaderProps> = ({
   userInitials = 'VU',
-  hasNotifications = false,
-  onNotificationClick,
+  onSearchClick,
   onAvatarClick,
   className = '',
 }) => {
@@ -34,14 +31,16 @@ export const JouspaceHeader: React.FC<JouspaceHeaderProps> = ({
         </span>
       </div>
 
-      {/* Right Controls: Bell Icon + Circular Avatar */}
+      {/* Right Controls: Search Icon + Circular Avatar */}
       <div className="flex items-center gap-2">
-        <IconButton
-          icon={<Bell className="w-[21px] h-[21px] text-primaryText stroke-[1.75]" />}
-          onClick={onNotificationClick}
-          ariaLabel="Notifications"
-          badge={hasNotifications}
-        />
+        <button
+          type="button"
+          onClick={onSearchClick}
+          aria-label="Search"
+          className="p-2 text-primaryText hover:text-accent rounded-full transition-colors cursor-pointer focus:outline-none"
+        >
+          <Search className="w-[21px] h-[21px] stroke-[1.75]" />
+        </button>
 
         {/* User Avatar */}
         <button

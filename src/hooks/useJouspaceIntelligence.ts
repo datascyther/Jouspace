@@ -8,7 +8,7 @@
  * - Sends requests to /api/ai/<capability>
  * - Reads the SSE stream and accumulates tokens into message state
  * - Drives the isThinking and isStreaming UI states that already exist
- *   in AIScreenContent and AIReflectDrawer
+ *   in AIScreenContent and AIReflectScreen
  * - Supports abort (user can cancel mid-stream)
  *
  * The frontend never sees the model, the API key, or provider details.
@@ -18,11 +18,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { journalStore } from '../store';
 import { getAIProfilePayload, getAnonId } from '../lib/personalization';
-import {
-  loadChatMessages as loadChatMessagesCloud,
-  saveChatMessages as saveChatMessagesCloud,
-  clearChatMessages as clearChatMessagesCloud,
-} from '../lib/supabaseChatHistory';
 
 // ── Runtime endpoint ──────────────────────────────────────────────────────────
 // The Intelligence Runtime base URL is read LAZILY on every request so the
@@ -67,15 +62,29 @@ export const RUNTIME_UNAVAILABLE_MESSAGE =
 export const CHAT_STORAGE_KEY = 'jouspace:ai:chat:messages';
 
 export function loadChatMessages(): IntelligenceMessage[] {
-  return loadChatMessagesCloud();
+  try {
+    const raw = localStorage.getItem(CHAT_STORAGE_KEY);
+    if (raw) return JSON.parse(raw) as IntelligenceMessage[];
+  } catch {
+    /* corrupt JSON → start clean */
+  }
+  return [];
 }
 
 function saveChatMessages(messages: IntelligenceMessage[]): void {
-  saveChatMessagesCloud(messages);
+  try {
+    localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
+  } catch {
+    /* storage failure → non-fatal */
+  }
 }
 
 function clearChatMessages(): void {
-  clearChatMessagesCloud();
+  try {
+    localStorage.removeItem(CHAT_STORAGE_KEY);
+  } catch {
+    /* non-fatal */
+  }
 }
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -99,6 +108,13 @@ export interface ChatSendOptions {
   context?: { entryId?: string };
 }
 
+export interface VoiceSendInput {
+  /** Base64 WAV data URL from the voice recorder. */
+  dataUrl: string;
+  /** Clip length in ms (UI + server validation only). */
+  durationMs?: number;
+}
+
 export interface ReflectSendOptions {
   /** The insight being reflected on — required for reflect capability */
   insight: string;
@@ -118,6 +134,10 @@ export interface UseJouspaceIntelligenceReturn {
   error: string | null;
   /** Send a user message and start streaming the response */
   send: (userText: string, options?: SendOptions) => void;
+  /** Send a recorded voice clip (transcribed server-side) and stream the
+   *  response. The user bubble is inserted when the runtime returns the
+   *  transcript — only the server knows what was heard. */
+  sendVoice: (audio: VoiceSendInput, options?: SendOptions) => void;
   /** Cancel the in-flight stream */
   abort: () => void;
   /** Clear message history */
@@ -153,15 +173,134 @@ export type ClientEntry = ReturnType<typeof clientEntriesPayload>[number];
 
 export function parseSSELine(
   line: string
-): { text?: string; error?: string; done?: boolean } | null {
+): { text?: string; transcript?: string; error?: string; done?: boolean } | null {
   if (!line.startsWith('data: ')) return null;
   const payload = line.slice(6).trim();
   if (payload === '[DONE]') return { done: true };
   try {
-    return JSON.parse(payload) as { text?: string; error?: string };
+    const obj = JSON.parse(payload) as {
+      text?: string;
+      transcript?: string;
+      error?: string;
+    };
+    return {
+      ...(obj.text !== undefined ? { text: obj.text } : {}),
+      ...(obj.transcript !== undefined ? { transcript: obj.transcript } : {}),
+      ...(obj.error !== undefined ? { error: obj.error } : {}),
+    };
   } catch {
     return null;
   }
+}
+
+// ── Shared stream reader ──────────────────────────────────────────────────────
+// Both `send` (text chat) and `sendVoice` (recorded chat) consume the same SSE
+// wire format, so the read loop + transient retry live here once.
+
+type SSEMessage =
+  | { kind: 'done' }
+  | { kind: 'error'; message: string }
+  | { kind: 'text'; text: string }
+  | { kind: 'transcript'; text: string };
+
+async function readSSE(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+  onEvent: (event: SSEMessage) => void
+): Promise<void> {
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+
+    // Process complete SSE lines, keeping the last (possibly incomplete) line
+    const lines = buffer.split('\n');
+    buffer = lines.pop() ?? '';
+
+    for (const line of lines) {
+      const parsed = parseSSELine(line);
+      if (!parsed) continue;
+
+      if (parsed.done) {
+        onEvent({ kind: 'done' });
+        return;
+      }
+      if (parsed.error) {
+        onEvent({ kind: 'error', message: parsed.error });
+        return;
+      }
+      if (parsed.transcript !== undefined) {
+        onEvent({ kind: 'transcript', text: parsed.transcript });
+      }
+      if (parsed.text !== undefined) {
+        onEvent({ kind: 'text', text: parsed.text });
+      }
+    }
+  }
+}
+
+/**
+ * POST an AI request body and pipe the SSE response to `onEvent`.
+ * On transient failure (network error or 5xx) retries exactly once — but ONLY
+ * before the first event has arrived. Retrying after a mid-stream failure would
+ * append a second assistant bubble (or re-transcribe a voice clip).
+ */
+async function streamChatResponse(options: {
+  base: string;
+  path: string;
+  body: Record<string, unknown>;
+  controller: AbortController;
+  onEvent: (event: SSEMessage) => void;
+}): Promise<void> {
+  const { base, path, body, controller, onEvent } = options;
+
+  const doFetch = async (): Promise<Response> => {
+    const resp = await fetch(`${base}${path}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-User-Id': getAnonId(),
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    if (!resp.ok) {
+      const errBody = await resp.json().catch(() => ({}));
+      const message =
+        (errBody as { error?: string }).error ?? `HTTP ${resp.status}`;
+      throw Object.assign(new Error(message), { status: resp.status });
+    }
+    return resp;
+  };
+
+  let receivedEvent = false;
+  const track: typeof onEvent = (event) => {
+    receivedEvent = true;
+    onEvent(event);
+  };
+
+  let response: Response;
+  try {
+    response = await doFetch();
+  } catch (err) {
+    const status = (err as { status?: number }).status;
+    const transient =
+      (err as Error).name !== 'AbortError' &&
+      (status === undefined || status >= 500);
+    if (!receivedEvent && transient) {
+      await new Promise((r) => setTimeout(r, 800));
+      response = await doFetch();
+    } else {
+      throw err;
+    }
+  }
+
+  const reader = response.body?.getReader();
+  if (!reader) throw new Error('No response stream');
+  await readSSE(reader, track);
 }
 
 // ── Hook ──────────────────────────────────────────────────────────────────────
@@ -256,91 +395,21 @@ export function useJouspaceIntelligence(
       const assistantId = `a-${Date.now()}`;
       let firstChunk = true;
 
-      // One initial request; on transient failure (network error or 5xx), retry
-      // exactly once — but ONLY before the first token has arrived. Retrying
-      // after a mid-stream failure would append a second assistant bubble.
-      const doFetch = async (): Promise<Response> => {
-        const resp = await fetch(`${base}/api/ai/${capability}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-User-Id': getAnonId(),
-          },
-          body: JSON.stringify(body),
-          signal: controller.signal,
-        });
-        if (!resp.ok) {
-          const errBody = await resp.json().catch(() => ({}));
-          const message =
-            (errBody as { error?: string }).error ?? `HTTP ${resp.status}`;
-          throw Object.assign(new Error(message), { status: resp.status });
-        }
-        return resp;
-      };
-
-      const fetchWithRetry = async (): Promise<Response> => {
-        try {
-          return await doFetch();
-        } catch (err) {
-          const status = (err as { status?: number }).status;
-          const transient =
-            (err as Error).name !== 'AbortError' &&
-            (status === undefined || status >= 500);
-          if (firstChunk && transient) {
-            await new Promise((r) => setTimeout(r, 800));
-            return await doFetch();
-          }
-          throw err;
-        }
-      };
-
       (async () => {
-        let response: Response;
         try {
-          response = await fetchWithRetry();
-        } catch (err) {
-          if ((err as Error).name === 'AbortError') return; // User cancelled
-          console.error('[useJouspaceIntelligence]', err);
-          setError(
-            (err as Error).message ||
-              'Jouspace Intelligence is unavailable. Please try again.'
-          );
-          return;
-        }
-
-        try {
-          const reader = response.body?.getReader();
-          if (!reader) throw new Error('No response stream');
-
-          const decoder = new TextDecoder();
-          let buffer = '';
-
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            buffer += decoder.decode(value, { stream: true });
-
-            // Process complete SSE lines
-            const lines = buffer.split('\n');
-            // Keep the last (possibly incomplete) line in the buffer
-            buffer = lines.pop() ?? '';
-
-            for (const line of lines) {
-              const parsed = parseSSELine(line);
-              if (!parsed) continue;
-
-              if (parsed.done) {
-                setIsStreaming(false);
+          await streamChatResponse({
+            base,
+            path: `/api/ai/${capability}`,
+            body,
+            controller,
+            onEvent: (event) => {
+              if (event.kind === 'done') return;
+              if (event.kind === 'error') {
+                setError(event.message);
                 return;
               }
-
-              if (parsed.error) {
-                setError(parsed.error);
-                return;
-              }
-
-              if (parsed.text) {
+              if (event.kind === 'transcript') return; // text chat never emits these
+              if (event.kind === 'text') {
                 if (firstChunk) {
                   // Transition from thinking → streaming on the first real token
                   firstChunk = false;
@@ -352,7 +421,7 @@ export function useJouspaceIntelligence(
                     {
                       id: assistantId,
                       role: 'assistant' as const,
-                      text: parsed.text ?? '',
+                      text: event.text,
                     },
                   ]);
                 } else {
@@ -360,18 +429,21 @@ export function useJouspaceIntelligence(
                   setMessages((prev) =>
                     prev.map((m) =>
                       m.id === assistantId
-                        ? { ...m, text: m.text + (parsed.text ?? '') }
+                        ? { ...m, text: m.text + event.text }
                         : m
                     )
                   );
                 }
               }
-            }
-          }
+            },
+          });
         } catch (err) {
           if ((err as Error).name === 'AbortError') return; // User cancelled
           console.error('[useJouspaceIntelligence]', err);
-          setError('Jouspace Intelligence is unavailable. Please try again.');
+          setError(
+            (err as Error).message ||
+              'Jouspace Intelligence is unavailable. Please try again.'
+          );
         } finally {
           // Unconditionally settle the UI so an abrupt close (proxy kill,
           // 9-min ceiling, mid-stream upstream error) never freezes it on
@@ -382,6 +454,124 @@ export function useJouspaceIntelligence(
       })();
     },
     [capability, messages]
+  );
+
+  const sendVoice = useCallback(
+    (audio: VoiceSendInput, options?: SendOptions) => {
+      const dataUrl = audio?.dataUrl?.trim();
+      if (!dataUrl) return;
+
+      // Cancel any in-flight request
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+
+      // No user bubble yet — it is inserted when the runtime returns the
+      // transcript (only the server knows what was heard).
+      setIsThinking(true);
+      setIsStreaming(false);
+      setError(null);
+
+      // No runtime configured (and no build-time URL, and not dev) → degrade
+      // gracefully instead of firing a doomed request. In dev an empty base
+      // means a relative /api/... call handled by the Vite proxy.
+      const base = getApiBaseUrl();
+      if (!base && !import.meta.env.DEV) {
+        setIsThinking(false);
+        setError(RUNTIME_UNAVAILABLE_MESSAGE);
+        return;
+      }
+
+      // The audio clip travels as base64 in the JSON body; the runtime
+      // transcribes it server-side and answers with the transcript as context.
+      const body: Record<string, unknown> = {
+        audio: dataUrl,
+        durationMs: audio.durationMs,
+        messages: [
+          // Prior conversation (the transcript becomes the newest user message
+          // on the server)
+          ...messages
+            .filter((m) => m.role === 'user' || m.role === 'assistant')
+            .map((m) => ({ role: m.role, content: m.text })),
+        ],
+        context: (options as ChatSendOptions)?.context,
+        entries: clientEntriesPayload(),
+        profile: getAIProfilePayload(),
+      };
+
+      const assistantId = `a-${Date.now()}`;
+      let firstChunk = true;
+      let userMsgId: string | null = null;
+
+      (async () => {
+        try {
+          await streamChatResponse({
+            base,
+            path: '/api/ai/voice-chat',
+            body,
+            controller,
+            onEvent: (event) => {
+              if (event.kind === 'done') return;
+              if (event.kind === 'error') {
+                setError(event.message);
+                return;
+              }
+              if (event.kind === 'transcript') {
+                if (userMsgId) return; // guard against duplicate transcript events
+                userMsgId = `u-${Date.now()}`;
+                setMessages((prev) => [
+                  ...prev,
+                  {
+                    id: userMsgId as string,
+                    role: 'user' as const,
+                    text: event.text,
+                    timestamp: new Date().toLocaleTimeString([], {
+                      hour: 'numeric',
+                      minute: '2-digit',
+                    }),
+                  },
+                ]);
+                return;
+              }
+              if (event.kind === 'text') {
+                if (firstChunk) {
+                  firstChunk = false;
+                  setIsThinking(false);
+                  setIsStreaming(true);
+                  setMessages((prev) => [
+                    ...prev,
+                    {
+                      id: assistantId,
+                      role: 'assistant' as const,
+                      text: event.text,
+                    },
+                  ]);
+                } else {
+                  setMessages((prev) =>
+                    prev.map((m) =>
+                      m.id === assistantId
+                        ? { ...m, text: m.text + event.text }
+                        : m
+                    )
+                  );
+                }
+              }
+            },
+          });
+        } catch (err) {
+          if ((err as Error).name === 'AbortError') return; // User cancelled
+          console.error('[useJouspaceIntelligence]', err);
+          setError(
+            (err as Error).message ||
+              'Jouspace Intelligence is unavailable. Please try again.'
+          );
+        } finally {
+          setIsThinking(false);
+          setIsStreaming(false);
+        }
+      })();
+    },
+    [messages]
   );
 
   // Persist the 'chat' conversation whenever it is idle (never mid-stream),
@@ -398,6 +588,7 @@ export function useJouspaceIntelligence(
     isStreaming,
     error,
     send,
+    sendVoice,
     abort,
     reset,
   };

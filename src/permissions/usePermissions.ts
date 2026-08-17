@@ -81,5 +81,12 @@ export function usePermissions() {
     return ok;
   }, []);
 
-  return { states, ensure, openSettings };
+  // Re-read a single permission's live status from the OS and update state.
+  const refresh = useCallback(async (key: PermissionKey): Promise<PermissionState> => {
+    const s = await svc.getStatus(key);
+    setStates((m) => ({ ...m, [s.key]: s.state }));
+    return s.state;
+  }, []);
+
+  return { states, ensure, openSettings, refresh };
 }

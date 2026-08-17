@@ -1,23 +1,32 @@
 /**
- * auth — real Supabase-backed authentication.
+ * auth — Firebase-first authentication.
  *
- * This replaces the backend-free mock in `lib/localAuth.ts`. The public surface
- * (AuthUser shape + signUp/signIn/requestVerificationCode/verifyEmail/
- * requestPasswordReset/loadSession/saveSession/clearSession) is intentionally
- * identical so AuthScreen and App need almost no changes. New capabilities
- * (magic link, OAuth, auth-state subscription) are added alongside.
- *
- * Security notes:
- *  - Only the publishable anon key + the user's JWT are used here. No secret key.
- *  - All DB access is gated by RLS on auth.uid(); this module never bypasses it.
- *  - Email confirmation / magic-link / OAuth complete via the URL the user is
- *    redirected back to (detectSessionInUrl), which fires onAuthStateChange.
+ * All authentication (Google + email/password) goes through Firebase.
+ * Profile data (display name, joined date) is stored locally in localStorage
+ * and managed by useProfile. There is no cloud database layer — the app is
+ * local-first by design.
  */
 
-import { supabase, isSupabaseConfigured, getSupabaseRedirectUrl } from './supabaseClient';
+import {
+  isFirebaseConfigured,
+  getGoogleIdentity,
+  startWebGoogleSignIn,
+  getWebGoogleRedirectIdentity,
+  signOutFirebase,
+  firebaseSignUp,
+  firebaseSignIn,
+  firebaseSendPasswordReset,
+  firebaseSendVerification,
+  onFirebaseAuthStateChanged,
+  Capacitor,
+  FirebaseAuthentication,
+  firebaseAuth,
+  type GoogleIdentity,
+  type FirebaseCredentials,
+} from './firebaseClient';
 
 // Re-export so UI modules can import auth concerns from a single module.
-export { isSupabaseConfigured } from './supabaseClient';
+export { isFirebaseConfigured } from './firebaseClient';
 
 export interface AuthUser {
   id: string;
@@ -29,10 +38,7 @@ export interface AuthUser {
 
 /**
  * Local, no-account placeholder user. The app is fully usable without a real
- * cloud sign-in (journaling is local-first). When Supabase is unconfigured, or
- * the user has never signed in, the app seeds this so the experience is seamless.
- * `noAccount` is the runtime flag callers check to decide whether cloud sync /
- * account-aware UI should appear.
+ * cloud sign-in (journaling is local-first).
  */
 export const NoAccountUser: AuthUser = {
   id: '',
@@ -88,38 +94,20 @@ function monthYear(d: Date = new Date()): string {
   return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 }
 
-/** Build an AuthUser from the supabase user + profile row. */
+/** Build an AuthUser from a Firebase user + optional display name. */
 function toAuthUser(
-  u: { id: string; email?: string | null },
-  profile?: { display_name?: string | null; joined_date?: string | null } | null,
-  verified = false,
+  u: { uid: string; email?: string | null; displayName?: string | null },
+  displayName?: string,
+  joinedDate?: string,
+  emailVerified?: boolean,
 ): AuthUser {
   return {
-    id: u.id,
+    id: u.uid,
     email: u.email ?? currentUser?.email ?? '',
-    displayName: profile?.display_name || currentUser?.displayName || 'You',
-    joinedDate: profile?.joined_date || currentUser?.joinedDate || monthYear(),
-    verified,
+    displayName: displayName || currentUser?.displayName || 'You',
+    joinedDate: joinedDate || currentUser?.joinedDate || monthYear(),
+    verified: emailVerified ?? false,
   };
-}
-
-/** Pull the latest profile + confirmation state and refresh the cached user. */
-async function refreshCurrentUser(): Promise<void> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    setCurrent(null);
-    return;
-  }
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('display_name, joined_date')
-    .eq('id', user.id)
-    .maybeSingle();
-  const verified =
-    Boolean(user.email_confirmed_at) || Boolean(user.phone_confirmed_at);
-  setCurrent(toAuthUser(user, profile, verified));
 }
 
 // ── Public API ──────────────────────────────────────────────────────────────────
@@ -136,10 +124,16 @@ export function saveSession(user: AuthUser): void {
 
 /** Sign out everywhere and clear the local mirror. */
 export async function clearSession(): Promise<void> {
-  if (isSupabaseConfigured) {
-    await supabase.auth.signOut();
-  }
+  // Clear local state immediately so the UI transitions without waiting.
   setCurrent(null);
+  // Also drop the local-mode bypass flag so the gate re-appears on next launch.
+  try {
+    localStorage.removeItem('jouspace:auth:bypass');
+  } catch {
+    /* storage disabled — in-memory only */
+  }
+  // Fire-and-forget remote sign-out — errors are non-fatal.
+  void signOutFirebase().catch(() => {});
 }
 
 /** Subscribe to auth-state changes (fires on sign-in, sign-out, token refresh). */
@@ -150,8 +144,11 @@ export function onAuthStateChange(
   return () => listeners.delete(cb);
 }
 
-/** Create a new account. If email confirmation is on, the session is null and the
- *  caller should prompt the user to check their email. */
+// ── Email / Password (Firebase-first) ─────────────────────────────────────────
+
+/**
+ * Create a new account via Firebase. Profile data is stored locally.
+ */
 export async function signUp(
   displayName: string,
   email: string,
@@ -165,125 +162,232 @@ export async function signUp(
   if (password.length < 6)
     return { ok: false, error: 'Password must be at least 6 characters.' };
 
-  const { data, error } = await supabase.auth.signUp({
-    email: mail,
-    password,
-    options: {
-      data: { display_name: name },
-      emailRedirectTo: getSupabaseRedirectUrl(),
-    },
-  });
-  if (error) return { ok: false, error: error.message };
-  if (!data.user) return { ok: false, error: 'Unable to create account.' };
+  if (isFirebaseConfigured) {
+    try {
+      const fb: FirebaseCredentials = await firebaseSignUp(mail, password);
+      const user = toAuthUser(
+        { uid: fb.uid, email: fb.email },
+        name,
+        undefined,
+        fb.emailVerified,
+      );
+      setCurrent(user);
+      // Fire-and-forget email verification — non-fatal if it fails.
+      void firebaseSendVerification().catch(() => {});
+      return { ok: true, user };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (/already|exists|email-already-in-use/i.test(msg)) {
+        return { ok: false, error: 'An account with this email already exists.' };
+      }
+      return { ok: false, error: msg || 'Unable to create account.' };
+    }
+  }
 
-  // Ensure a profile row exists (trigger handles it; upsert is idempotent).
-  await supabase
-    .from('profiles')
-    .upsert(
-      { id: data.user.id, display_name: name, joined_date: monthYear() },
-      { onConflict: 'id' },
-    )
-    .throwOnError();
-
-  const user = toAuthUser(
-    data.user,
-    { display_name: name, joined_date: monthYear() },
-    false,
-  );
-  // Only treat as signed-in if a session was issued (confirmation not required).
-  if (data.session) await refreshCurrentUser();
-  else setCurrent(user);
-  return { ok: true, user };
+  return { ok: false, error: 'Authentication is not configured.' };
 }
 
-/** Sign in with email + password. */
+/**
+ * Sign in with email + password via Firebase.
+ */
 export async function signIn(
   email: string,
   password: string,
 ): Promise<AuthResult> {
   const mail = email.trim().toLowerCase();
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email: mail,
-    password,
-  });
-  if (error) return { ok: false, error: error.message };
-  if (!data.user) return { ok: false, error: 'Sign in failed.' };
-  await refreshCurrentUser();
-  return { ok: true, user: currentUser! };
+
+  if (isFirebaseConfigured) {
+    try {
+      const fb: FirebaseCredentials = await firebaseSignIn(mail, password);
+      const user = toAuthUser(
+        { uid: fb.uid, email: fb.email },
+        undefined,
+        undefined,
+        fb.emailVerified,
+      );
+      setCurrent(user);
+      return { ok: true, user };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (
+        /user-not-found|wrong-password|invalid-credential|invalid-email/i.test(msg)
+      ) {
+        return { ok: false, error: 'Invalid email or password.' };
+      }
+      if (/too-many-requests/i.test(msg)) {
+        return {
+          ok: false,
+          error: 'Too many attempts. Please try again later.',
+        };
+      }
+      return { ok: false, error: msg || 'Sign in failed.' };
+    }
+  }
+
+  return { ok: false, error: 'Authentication is not configured.' };
 }
 
-/** Passwordless magic link (email). Completes via the emailed link. */
-export async function signInWithMagicLink(
-  email: string,
-): Promise<AuthActionResult> {
-  const mail = email.trim().toLowerCase();
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail))
-    return { ok: false, error: 'Enter a valid email address.' };
-  const { error } = await supabase.auth.signInWithOtp({
-    email: mail,
-    options: { emailRedirectTo: getSupabaseRedirectUrl() },
-  });
-  return error ? { ok: false, error: error.message } : { ok: true };
-}
+// ── Google Sign-In (Firebase) ─────────────────────────────────────────────────
 
-export type OAuthProvider = 'google' | 'apple';
-
-/** OAuth sign-in (Google / Apple). Redirects to the provider. */
-export async function signInWithOAuth(
-  provider: OAuthProvider,
-): Promise<AuthActionResult> {
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider,
-    options: { redirectTo: getSupabaseRedirectUrl() },
-  });
-  return error ? { ok: false, error: error.message } : { ok: true };
-}
-
-/** Resend the confirmation / magic email (UI calls this "request code"). */
-export async function requestVerificationCode(
-  _email: string,
-): Promise<{ ok: true }> {
-  // Real Supabase confirms via email link rather than a 6-digit code, so this is
-  // a no-op acknowledgment that lets the UI advance to its "check your email" state.
-  return { ok: true };
-}
-
-/** Compatibility shim: with link-based verification, confirmation completes via
- *  onAuthStateChange. If a session is already active we return the current user. */
-export async function verifyEmail(
-  _user: AuthUser,
-  _code: string,
+/**
+ * Handle a verified Google identity: create a local session from the Firebase
+ * credentials. Shared by the native (in-process) and web (post-redirect) paths.
+ */
+async function handleGoogleIdentity(
+  identity: GoogleIdentity,
 ): Promise<AuthResult> {
-  if (currentUser) return { ok: true, user: currentUser };
-  return { ok: false, error: 'Open the link we emailed to finish signing in.' };
+  try {
+    const user = toAuthUser(
+      { uid: identity.uid, email: identity.email, displayName: identity.displayName },
+      identity.displayName || undefined,
+      undefined,
+      identity.emailVerified,
+    );
+    setCurrent(user);
+    return { ok: true, user };
+  } catch (err) {
+    return {
+      ok: false,
+      error:
+        err instanceof Error
+          ? err.message
+          : 'Unable to start Google sign-in. Please try again.',
+    };
+  }
 }
 
-/** Send a password-reset email. */
+/**
+ * Google Sign-In entry point.
+ * - Native: the OS sheet returns the identity in-process (no redirect).
+ * - Web: we start the Firebase **redirect** flow (not popup). The page navigates
+ *   to Google and back; the result is finalized on return via
+ *   `completeGoogleRedirectIfPresent()`.
+ */
+export async function signInWithGoogle(): Promise<AuthResult> {
+  if (!isFirebaseConfigured) {
+    return { ok: false, error: 'Google sign-in is not configured yet.' };
+  }
+  if (Capacitor.isNativePlatform()) {
+    return handleGoogleIdentity(await getGoogleIdentity());
+  }
+  await startWebGoogleSignIn();
+  return { ok: false, error: 'Redirecting to Google…' };
+}
+
+/**
+ * Web-only. Call once on app load. If the page was reached via a Google OAuth
+ * redirect, finish sign-in and return the resolved user (null when there is no
+ * pending redirect).
+ */
+export async function completeGoogleRedirectIfPresent(): Promise<AuthUser | null> {
+  if (Capacitor.isNativePlatform()) return null;
+  if (!isFirebaseConfigured) return null;
+  const identity = await getWebGoogleRedirectIdentity();
+  if (!identity) return null;
+  const res = await handleGoogleIdentity(identity);
+  return res.ok ? res.user : null;
+}
+
+// ── Email Verification (soft gate) ──────────────────────────────────────────────
+
+/**
+ * Re-send the Firebase email-verification email to the currently signed-in
+ * user. Non-fatal — the app stays usable (soft gate) if this fails.
+ */
+export async function resendVerificationEmail(): Promise<AuthActionResult> {
+  if (!isFirebaseConfigured) {
+    return { ok: false, error: 'Email verification is not configured.' };
+  }
+  try {
+    await firebaseSendVerification();
+    return { ok: true };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return { ok: false, error: msg || 'Could not send verification email.' };
+  }
+}
+
+/**
+ * Reload the current Firebase user and report whether their email is now
+ * verified. Used by the "I've verified — continue" button on the verify screen.
+ */
+export async function reloadAndCheckVerified(): Promise<boolean> {
+  if (!isFirebaseConfigured) return false;
+  try {
+    if (Capacitor.isNativePlatform()) {
+      const res = await FirebaseAuthentication.getCurrentUser();
+      return Boolean(res.user?.emailVerified);
+    }
+    if (!firebaseAuth) return false;
+    const user = firebaseAuth.currentUser;
+    if (!user) return false;
+    await user.reload();
+    return user.emailVerified;
+  } catch {
+    return false;
+  }
+}
+
+// ── Password Reset ─────────────────────────────────────────────────────────────
+
+/** Send a password-reset email via Firebase. */
 export async function requestPasswordReset(
   email: string,
 ): Promise<AuthActionResult> {
   const mail = email.trim().toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail))
     return { ok: false, error: 'Enter a valid email address.' };
-  const { error } = await supabase.auth.resetPasswordForEmail(mail, {
-    redirectTo: `${getSupabaseRedirectUrl()}reset`,
-  });
-  return error ? { ok: false, error: error.message } : { ok: true };
+
+  if (isFirebaseConfigured) {
+    try {
+      await firebaseSendPasswordReset(mail);
+      return { ok: true };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return { ok: false, error: msg || 'Password reset failed.' };
+    }
+  }
+
+  return { ok: false, error: 'Password reset is not configured.' };
 }
 
-/** Hydrate the cached user from the persisted session (call once at startup). */
+// ── Initialization ─────────────────────────────────────────────────────────────
+
+// Guards the very first auth-state emit so a transient null (Firebase resolves
+// the persisted session asynchronously) doesn't clobber a restored mirror.
+let firstAuthEmit = true;
+// Ensures we subscribe to Firebase at most once (initializeAuth is called from
+// an effect that StrictMode may invoke twice in development).
+let authInitialized = false;
+
+/**
+ * Wire Firebase auth-state into the local session mirror. When Firebase is
+ * configured it is the authoritative session source; every change maps to an
+ * AuthUser (carrying `emailVerified`) and notifies local listeners. The
+ * localStorage mirror is retained for the no-Firebase / local / bypass modes.
+ */
 export function initializeAuth(): void {
-  if (!isSupabaseConfigured) return;
-  void refreshCurrentUser();
-}
-
-// Wire the global auth listener once at module load.
-if (isSupabaseConfigured) {
-  supabase.auth.onAuthStateChange((_event, session) => {
-    if (!session?.user) {
+  if (!isFirebaseConfigured || authInitialized) return;
+  authInitialized = true;
+  onFirebaseAuthStateChanged((fbUser) => {
+    if (!fbUser) {
+      // Genuine sign-out (or initial null with no session). Don't overwrite the
+      // restored mirror on the very first emit — a persisted session resolves
+      // asynchronously and would otherwise be wiped before it arrives.
+      if (firstAuthEmit) {
+        firstAuthEmit = false;
+        return;
+      }
       setCurrent(null);
       return;
     }
-    void refreshCurrentUser();
+    firstAuthEmit = false;
+    const user = toAuthUser(
+      fbUser,
+      fbUser.displayName || undefined,
+      undefined,
+      fbUser.emailVerified,
+    );
+    setCurrent(user);
   });
 }

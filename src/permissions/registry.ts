@@ -14,8 +14,9 @@ export const PERMISSIONS: Record<PermissionKey, PermissionMeta> = {
     benefit: 'Speak your entries out loud — voice journaling with live transcription.',
     rationale:
       'Jouspace uses your microphone only to transcribe your voice into text. ' +
-      'Audio stays on your device (or your chosen private runtime) and is never ' +
-      'used for anything else.',
+      'On Android the transcription is performed by the device’s own speech-' +
+      'recognition service (typically Google’s), so the audio is sent to that ' +
+      'service to be turned into text for your entry — it is used for nothing else.',
     required: false,
     usedBy: ['AI composer mic', 'Journal writing-toolbar mic'],
   },
