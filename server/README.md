@@ -2,6 +2,11 @@
 
 A provider-agnostic AI orchestration layer that powers all intelligence features in Jouspace. The frontend communicates with `/api/ai/*` endpoints only. API keys, provider identity, and model details are confined to this process.
 
+> **Versioning:** the runtime has its **own** `package.json` version, independent
+> of the app release. It does **not** drive the Android `versionCode`/`versionName`
+> — those come from the git tag / `version` input in `.github/workflows/build-apk.yml`
+> (see `README.md` → Versioning and `DEPLOYMENT.md` §2.2).
+
 ---
 
 ## Architecture

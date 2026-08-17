@@ -15,9 +15,12 @@ if (keystorePropertiesFile.exists()) {
 
 // versionCode/versionName are injected from the CLI/tag so releases can be
 // upgraded over each other, e.g.:
-//   ./gradlew assembleRelease -Pjouspace.versionCode=1004 -Pjouspace.versionName=1.0.4
-def jouspaceVersionCode = (project.findProperty('jouspace.versionCode') ?: '1') as Integer
-def jouspaceVersionName = project.findProperty('jouspace.versionName') ?: '1.0.0'
+//   ./gradlew assembleRelease -Pjouspace.versionCode=11001 -Pjouspace.versionName=1.1.0-beta.1
+// The CI workflow derives these from the git tag (SemVer beta scheme —
+// versionCode = MAJ*10000 + MIN*1000 + PAT*100 + beta-N, stable = +100).
+// Defaults stamp the current beta so local/adhoc builds are labeled correctly.
+def jouspaceVersionCode = (project.findProperty('jouspace.versionCode') ?: '11001') as Integer
+def jouspaceVersionName = project.findProperty('jouspace.versionName') ?: '1.1.0-beta.1'
 
 android {
     namespace "com.jouspace.app"

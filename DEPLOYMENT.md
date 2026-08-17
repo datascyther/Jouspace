@@ -104,15 +104,33 @@ existing package").
 
 ### 2.2 Versioning
 
-The CI workflow derives `versionCode` and `versionName` from the git tag:
+Releases use **Semantic Versioning** with a `-beta.N` pre-release tag. The CI
+workflow derives `versionCode` and `versionName` from the git tag (or a manual
+`version` input):
+
+```
+versionCode = MAJ · 10000 + MIN · 1000 + PAT · 100 + iteration
+```
+
+where *iteration* is the beta number for `-beta.N` builds (01–99) and `100`
+for the stable release. Each beta increments the beta number; the stable
+release drops the suffix. `versionCode` is therefore strictly increasing
+across every build, so a later build always upgrades over an earlier one:
 
 | Tag | versionName | versionCode |
 |---|---|---|
-| `v1.0.4` | `1.0.4` | `10004` |
-| `v1.0.5` | `1.0.5` | `10005` |
-| `v2.1.3` | `2.1.3` | `20103` |
+| `v1.1.0-beta.1` | `1.1.0-beta.1` | `11001` |
+| `v1.1.0-beta.2` | `1.1.0-beta.2` | `11002` |
+| `v1.1.0-beta.3` | `1.1.0-beta.3` | `11003` |
+| `v1.1.0` (stable) | `1.1.0` | `11100` |
+| `v1.1.1-beta.1` | `1.1.1-beta.1` | `11101` |
 
-Pass a manual `version` input in the Actions UI to override the tag.
+Keep `package.json`'s `version` in sync with the current beta versionName.
+Pass a manual `version` input in the Actions UI to override the tag (it must
+be ≥ the last released version so the derived versionCode stays increasing).
+`android/app/build.gradle` defaults to the current beta (`11001` /
+`1.1.0-beta.1`) for local/adhoc builds — CI always overrides them via
+`-Pjouspace.versionCode` / `-Pjouspace.versionName`.
 
 ### 2.3 CI build (automated)
 
@@ -156,6 +174,6 @@ Setup (one time):
    (the gradle build auto-applies the Google Services plugin when present).
 
 On Android, sign-in uses the native Google Sign-In sheet via
-`@capacitor-firebase/authentication` with `skipNativeAuth: true` (returns the
-ID token without a redundant Firebase session); on web it falls back to the
-Firebase JS SDK redirect flow. "Continue without an account" still works locally.
+  `@capacitor-firebase/authentication` with `skipNativeAuth: true` (returns the
+  ID token without a redundant Firebase session); on web it falls back to the
+  Firebase JS SDK redirect flow.
