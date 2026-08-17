@@ -2,368 +2,363 @@
 
 <div align="center">
 
-<img src="https://capsule-render.vercel.app/api?type=waving&height=250&color=0:0f0f23,30:1e1b4b,60:4c1d95,100:8b5cf6&text=Jouspace&fontColor=f8fafc&fontSize=80&fontAlignY=40&desc=AI-Native%20Private%20Journal&descColor=c7d2fe&descSize=24&descAlignY=60&section=header" width="100%" alt="Jouspace — AI-Native Private Journal" />
+<img src="https://capsule-render.vercel.app/api?type=waving&height=210&color=0:111827,45:4c1d95,100:8b5cf6&text=Jouspace&fontColor=f8fafc&fontSize=72&fontAlignY=38&desc=AI-Native%20Private%20Journal&descColorddd6fe&descSize=22&descAlignY=58" width="100%" alt="Jouspace — AI-Native Private Journal" />
 
 <br />
 
-# 📖 **Jouspace**
+**A calm, local-first journaling experience with thoughtful AI reflection.**
 
-### ✨ AI-Native Private Journal
-
-> *A calm place to write. Local-first storage. Opt-in AI reflection.*
->
-> **Web · PWA · Android**
+Built with **React**, powered by the **Jouspace Intelligence Runtime**, and available for **Web**, **PWA**, and **Android**.
 
 <br />
 
-<p>
-  <a href="https://github.com/datascyther/Jouspace/releases">
-    <img src="https://img.shields.io/github/v/release/datascyther/Jouspace?include_prereleases&style=for-the-badge&label=RELEASE&labelColor=0f0f23&color=8b5cf6" alt="Latest Release" />
-  </a>
-  <a href="https://github.com/datascyther/Jouspace/actions/workflows/build-apk.yml">
-    <img src="https://img.shields.io/github/actions/workflow/status/datascyther/Jouspace/build-apk.yml?style=for-the-badge&label=ANDROID%20APK&labelColor=0f0f23&color=22c55e&logo=android&logoColor=white" alt="Android APK" />
-  </a>
-  <a href="./LICENSE">
-    <img src="https://img.shields.io/github/license/datascyther/Jouspace?style=for-the-badge&label=LICENSE&labelColor=0f0f23&color=3b82f6" alt="MIT License" />
-  </a>
-</p>
-
-<p>
-  <img src="https://img.shields.io/badge/React-19-0f0f23?style=flat-square&logo=react&logoColor=61dafb" alt="React 19" />
-  <img src="https://img.shields.io/badge/TypeScript-5-0f0f23?style=flat-square&logo=typescript&logoColor=3178c6" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Vite-7-0f0f23?style=flat-square&logo=vite&logoColor=ffd028" alt="Vite 7" />
-  <img src="https://img.shields.io/badge/Tailwind-4-0f0f23?style=flat-square&logo=tailwindcss&logoColor=38bdf8" alt="Tailwind 4" />
-  <img src="https://img.shields.io/badge/Express-4-0f0f23?style=flat-square&logo=express&logoColor=ffffff" alt="Express 4" />
-  <img src="https://img.shields.io/badge/Capacitor-6-0f0f23?style=flat-square&logo=capacitor&logoColor=53b9ff" alt="Capacitor" />
-  <img src="https://img.shields.io/badge/Cloudflare-Workers-0f0f23?style=flat-square&logo=cloudflare&logoColor=f38020" alt="Cloudflare Workers" />
-  <img src="https://img.shields.io/badge/NVIDIA-NIM-0f0f23?style=flat-square&logo=nvidia&logoColor=76b900" alt="NVIDIA NIM" />
-</p>
+[![MIT License](https://img.shields.io/github/license/datascyther/Jouspace?style=for-the-badge&color=8b5cf6)](./LICENSE)
+[![Latest Release](https://img.shields.io/github/v/release/datascyther/Jouspace?include_prereleases&style=for-the-badge&color=6366f1)](https://github.com/datascyther/Jouspace/releases)
+[![Android APK](https://img.shields.io/github/actions/workflow/status/datascyther/Jouspace/build-apk.yml?style=for-the-badge&logo=android&label=Android%20APK&color=22c55e)](https://github.com/datascyther/Jouspace/actions/workflows/build-apk.yml)
+[![React 19](https://img.shields.io/badge/React-19-149eca?style=for-the-badge&logo=react&logoColor=white)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Ready-3178c6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Vite 7](https://img.shields.io/badge/Vite-7-646cff?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
 
 <br />
 
-<p>
-  <a href="#-quick-start"><b>🚀 Quick Start</b></a>
-  &nbsp;·&nbsp;
-  <a href="#-features"><b>✨ Features</b></a>
-  &nbsp;·&nbsp;
-  <a href="#-architecture"><b>🏗️ Architecture</b></a>
-  &nbsp;·&nbsp;
-  <a href="#-android-build"><b>📱 Android Build</b></a>
-  &nbsp;·&nbsp;
-  <a href="#-privacy"><b>🔒 Privacy</b></a>
-  &nbsp;·&nbsp;
-  <a href="./DEPLOYMENT.md"><b>📖 Deployment</b></a>
-</p>
+[Repository](https://github.com/datascyther/Jouspace)
+&nbsp;·&nbsp;
+[Download APK](https://github.com/datascyther/Jouspace/releases)
+&nbsp;·&nbsp;
+[Live AI Runtime](https://jouspace-runtime.jouspace.workers.dev)
+&nbsp;·&nbsp;
+[Deployment Guide](./DEPLOYMENT.md)
 
 <br />
-
----
-
-<div align="center">
-
-> ### 💭 **"Your journal should feel personal, quiet, and yours."**
->
-> Entries stay on your device by default.
-> **Nothing is sent anywhere until you ask the AI a question.**
 
 </div>
 
 ---
 
-## ☀️ **At a Glance**
-
 <div align="center">
 
-| **Aspect**       | **Detail**                                                                 |
-|------------------|---------------------------------------------------------------------------|
-| **Purpose**      | Private journaling with optional AI reflection                            |
-| **Storage**      | `localStorage` on your device — no account, no cloud DB                   |
-| **AI Flow**      | Client → Runtime → NVIDIA NIM → **SSE Stream**                            |
-| **Platforms**    | Browser · PWA · Signed Android APK                                         |
-| **Backend**      | Stateless Express server — **no database required**                     |
+### Quiet writing. Private reflection. Intentional AI.
+
+```text
+Your journal should feel personal, calm, and yours.
+```
 
 </div>
+
+---
+
+## Overview
+
+**Jouspace** is a private journaling app designed around calm writing, personal ownership, and optional AI-assisted reflection.
+
+The journal is **local-first**: entries remain on the device by default. When AI is enabled, Jouspace sends only the relevant context for the selected request to a configured **Jouspace Intelligence Runtime**, which streams the response back to the app.
 
 > [!IMPORTANT]
-> Jouspace is designed to *feel* on-device, but inference runs on the configured remote runtime.
-> **AI is entirely optional** — the journal works fully without it.
+> Jouspace offers an **on-device-feeling AI experience**, but model inference is performed by the configured remote runtime and its hosted NVIDIA NIM model. AI features are optional.
 
 ---
 
-## ✨ **Features**
+## Highlights
 
-<div align="center">
+<table>
+<tr>
+<td width="50%" valign="top">
 
-| 🔒 **Privacy-First**               | 🤖 **Optional AI**                     | ⚡ **Streaming**                     |
-|-----------------------------------|---------------------------------------|------------------------------------|
-| Entries in `localStorage`          | AI tab inert until configured          | All responses via **SSE**          |
-| ✅ No account                      | ✅ Opt-in                             | ✅ Live & conversational            |
-| ✅ No sync server                  | ✅ Per request                        | ✅ Responsive                      |
-| ✅ Nothing to breach               | ✅ Never in background                |                                    |
+### Local-first journaling
 
-| 📦 **Single File**                | 📱 **Android Ready**                  | 🔄 **Portable**                     |
-|-----------------------------------|---------------------------------------|------------------------------------|
-| `vite-plugin-singlefile`          | Committed Capacitor platform          | JSON export/import                 |
-| ✅ Entire app in `index.html`      | ✅ Branded icons                      | ✅ `JournalStore` ready             |
-| ✅ Offline-safe                    | ✅ Native permissions                 | ✅ Future cloud sync                |
-|                                   | ✅ Release signing                    |                                    |
+Journal entries are stored in the browser or Android WebView using `localStorage`.
 
-</div>
+The core writing experience works without an account, database, telemetry, or cloud sync.
+
+</td>
+<td width="50%" valign="top">
+
+### Streaming AI reflection
+
+AI chat, reflections, insights, and summaries stream back through **Server-Sent Events** for a responsive, conversational experience.
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+### Web, PWA, and Android
+
+The same React application runs in the browser, installs as a PWA, and ships inside a committed Capacitor Android shell.
+
+</td>
+<td width="50%" valign="top">
+
+### Portable by design
+
+Export and import journal data as JSON. The storage layer is isolated behind `JournalStore` for future cloud-sync support.
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+### Stateless AI runtime
+
+The runtime does not store journals. The frontend sends recent entries with each AI request, and the server falls back to seed data only when no entries are provided.
+
+</td>
+<td width="50%" valign="top">
+
+### Production-ready APK pipeline
+
+GitHub Actions can build a signed Android release APK using the committed Capacitor platform and release-signing configuration.
+
+</td>
+</tr>
+</table>
 
 ---
 
-## 🌐 **Project Links**
+## Project links
 
-| **Resource**               | **Address**                                                                 |
-|---------------------------|-----------------------------------------------------------------------------|
-| **📦 Repository**          | [github.com/datascyther/Jouspace](https://github.com/datascyther/Jouspace) |
-| **⚡ Live AI Runtime**     | [jouspace-runtime.jouspace.workers.dev](https://jouspace-runtime.jouspace.workers.dev) |
-| **📱 Releases / APKs**    | [github.com/datascyther/Jouspace/releases](https://github.com/datascyther/Jouspace/releases) |
-| **📖 Deployment Guide**   | [`DEPLOYMENT.md`](./DEPLOYMENT.md)                                       |
-
----
-
-## 🛠️ **Technology Stack**
-
-<div align="center">
-
-| **Layer**               | **Technology**                                                                 |
-|-------------------------|-------------------------------------------------------------------------------|
-| **Frontend**            | React 19 · TypeScript · Vite 7 · Tailwind CSS 4                              |
-| **Build**               | `vite-plugin-singlefile` — entire app in one `dist/index.html`               |
-| **PWA**                 | Manifest + icons + self-hosted fonts (offline-safe)                         |
-| **AI Runtime**          | Express 4 + OpenAI SDK (NVIDIA NIM gateway) + SSE streaming                 |
-| **Hosting**             | Cloudflare Workers                                                          |
-| **Mobile**              | Capacitor with committed `android/` platform                                |
-| **Auth** *(optional)*   | Firebase Auth — Google + email/password, identity only                       |
-| **Storage**             | Local-first via `localStorage` (`src/store/`)                               |
-
-</div>
+| Resource | Address |
+| --- | --- |
+| **Source repository** | [github.com/datascyther/Jouspace](https://github.com/datascyther/Jouspace) |
+| **Live AI Runtime** | [jouspace-runtime.jouspace.workers.dev](https://jouspace-runtime.jouspace.workers.dev) |
+| **Releases and APKs** | [github.com/datascyther/Jouspace/releases](https://github.com/datascyther/Jouspace/releases) |
+| **Deployment guide** | [`DEPLOYMENT.md`](./DEPLOYMENT.md) |
 
 ---
 
-## 📚 **Table of Contents**
+## Technology stack
 
-<div align="center">
+| Layer | Technology |
+| --- | --- |
+| **Frontend** | React 19, TypeScript, Vite 7, Tailwind CSS 4 |
+| **Build pipeline** | `vite-plugin-singlefile` — app JavaScript and CSS inline into one `dist/index.html` |
+| **PWA** | Manifest, icons, and self-hosted offline-safe fonts in `public/` |
+| **Persistence** | Local-first journal storage through `localStorage` |
+| **AI Runtime** | Express 4, OpenAI SDK, NVIDIA NIM gateway, SSE streaming |
+| **Runtime hosting** | Cloudflare Workers |
+| **Authentication** | Optional Firebase Authentication integration |
+| **Mobile shell** | Capacitor with committed `android/` platform, branded icons, native permissions, and release signing |
 
-| **Part 1**                          | **Part 2**                          |
-|-------------------------------------|-------------------------------------|
-| [🚀 Quick Start](#-quick-start)     | [🏗️ Architecture](#-architecture)   |
-| [✨ AI Capabilities](#-ai-capabilities) | [⚙️ Runtime Config](#-runtime-configuration) |
-| [📱 Android Build](#-android-build) | [📊 Versioning](#-versioning)       |
-| [🏭 Production](#-production)        | [💻 Scripts](#-scripts)             |
-| [🔒 Security](#-security)           | [🛡️ Privacy](#-privacy) · [📜 License](#-license) |
+---
 
-</div>
+## Table of contents
+
+| Section | Description |
+| --- | --- |
+| [Quick start](#quick-start) | Install dependencies and run the full development environment |
+| [Architecture](#architecture) | Frontend, runtime, storage, and AI flow |
+| [AI capabilities](#ai-capabilities) | Chat, reflection, insight, and summary endpoints |
+| [Runtime configuration](#runtime-configuration) | Development proxy, production runtime URL, and CORS |
+| [Building the Android APK](#building-the-android-apk) | GitHub Actions and local Android release builds |
+| [Versioning](#versioning) | Semantic versioning and Android version codes |
+| [Production and deployment](#production-and-deployment) | Cloudflare Workers, data model, and Firebase Auth |
+| [Available scripts](#available-scripts) | Project commands |
+| [Security](#security) | Runtime isolation and safe AI handling |
+| [Privacy](#privacy) | Local-first behavior and AI opt-in model |
+| [License](#license) | MIT License |
 
 ---
 
 <a id="quick-start"></a>
 
-## 🚀 **Quick Start**
+## Quick start
 
-> **Prerequisites** — Node.js 20+ · npm · *(Android only)* JDK 17 + Android SDK
-
-### **1️⃣ Clone Repository**
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/datascyther/Jouspace.git
 cd Jouspace
 ```
 
-### **2️⃣ Install Dependencies**
+### 2. Install dependencies
 
 ```bash
-npm install                # Frontend
-cd server && npm install   # Intelligence Runtime
+# Frontend dependencies
+npm install
+
+# Intelligence Runtime dependencies
+cd server
+npm install
 cd ..
 ```
 
-### **3️⃣ Configure Runtime**
+### 3. Configure the runtime
 
-Create `server/.env` **(gitignored)**:
+Create `server/.env`:
 
 ```dotenv
 NVIDIA_API_KEY=your_nvidia_nim_key
 ```
 
-> ⚠️ **Never commit this file** — it contains your model provider credentials.
+> [!CAUTION]
+> `server/.env` is gitignored and must never be committed.
 
-### **4️⃣ Launch Development Environment**
+### 4. Start the full development environment
 
 ```bash
-npm run dev:all    # Vite + Runtime, together
+npm run dev:all
 ```
 
-| **Service**            | **Address**          |
-|------------------------|----------------------|
-| 🌐 **Frontend**        | http://localhost:5173 |
-| ⚡ **Runtime**         | http://localhost:3001 |
+| Service | Local address |
+| --- | --- |
+| **Jouspace frontend** | `http://localhost:5173` |
+| **Intelligence Runtime** | `http://localhost:3001` |
 
-> ℹ️ In development, frontend calls `/api/ai/*` on its own origin; Vite proxies to `localhost:3001`.
+During development, the frontend calls `/api/ai/*` on its own origin. Vite proxies those requests to the local runtime on port `3001`.
 
 ---
 
 <a id="architecture"></a>
 
-## 🏗️ **Architecture**
-
-### **🔄 System Overview**
+## Architecture
 
 ```mermaid
 flowchart LR
-    User["👤 Writer"] --> App["📱 Jouspace\nReact + TS + Tailwind"]
+    User["Writer"] --> App["Jouspace<br/>React + TypeScript"]
 
-    subgraph Device["💾 Device"]
-        App <--> Store[("📒 JournalStore\nlocalStorage")]
+    subgraph Device["Browser / Android Device"]
+        App --> Store["JournalStore<br/>localStorage"]
+        Store --> App
     end
 
-    App -->|"opt-in AI request\n+ recent entries"| Runtime
+    App -->|"Optional AI request<br/>recent journal context"| Runtime
 
-    subgraph Server["⚡ Jouspace Intelligence Runtime"]
-        Runtime["Express API"] --> Routes["routes/\nchat · reflect · insight · summarize"]
-        Routes --> Context["ContextAssembler"]
-        Routes --> Prompts["PromptAssembler"]
-        Context --> Gateway["gateway/\n→ NvidiaGateway"]
-        Gateway --> Stream["StreamController\nAsyncIterable → SSE"]
+    subgraph Intelligence["Jouspace Intelligence Runtime"]
+        Runtime["Express API"]
+        Routes["Capability Routes<br/>chat · reflect · insight · summarize"]
+        Context["ContextAssembler"]
+        Prompts["PromptAssembler"]
+        Gateway["NvidiaGateway"]
+        Stream["StreamController"]
+
+        Runtime --> Routes
+        Routes --> Context
+        Routes --> Prompts
+        Context --> Gateway
+        Prompts --> Gateway
+        Gateway --> Stream
     end
 
-    Gateway --> NIM["🤖 Hosted NVIDIA NIM"]
-    Stream --> App
+    Gateway -->|"OpenAI-compatible API"| NIM["Hosted NVIDIA NIM Model"]
+    Stream -->|"SSE stream"| App
 ```
 
-### **🔍 Sequence Diagram**
-
-<details>
-<summary><b>👁️ Click to expand: What happens during an AI request</b></summary>
-<br />
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant U as 👤 Writer
-    participant F as 📱 Frontend
-    participant L as 💾 localStorage
-    participant R as ⚡ Runtime
-    participant N as 🤖 NVIDIA NIM
-
-    U->>F: Request reflection
-    F->>L: Read recent entries
-    L-->>F: Journal context
-    F->>R: POST /api/ai/reflect {messages, entries}
-    R->>R: Strip client system messages
-    R->>R: ContextAssembler + PromptAssembler
-    R->>N: Chat completion (stream: true)
-    loop Stream
-        N-->>R: delta chunk
-        R->>R: Discard reasoning_content
-        R-->>F: SSE data: {token}
-    end
-    R-->>F: SSE [DONE]
-    F-->>U: Rendered reflection
-    Note over L,R: Nothing persisted server-side
-```
-</details>
-
----
-
-### **📂 Frontend Structure**
+### Frontend responsibilities
 
 ```text
-Frontend (React)
-├── useJouspaceIntelligence(capability) → POST {runtime}/api/ai/<capability>
-├── 💬 AI chat
-├── 📝 Reflection drawer
-├── 💡 Insight cards
-├── 📊 Writing summary
-├── 📒 JournalStore (localStorage, src/store/)
-└── Configurable API base URL (VITE_API_BASE_URL)
+React application
+├── AI chat
+├── Reflection drawer
+├── Insight cards
+├── Writing summaries
+├── Local JournalStore
+└── useJouspaceIntelligence(capability)
+      └── POST {runtime}/api/ai/<capability>
 ```
 
-**Key behaviors:**
-✅ Stores entries locally
-✅ Selects recent entries as AI context
-✅ Consumes AI output as SSE stream
-✅ Keeps AI optional and decoupled
+The frontend:
 
----
+- Stores journal entries locally.
+- Selects recent entries as context for AI requests.
+- Connects to the runtime through a configurable base URL.
+- Consumes AI output as an SSE stream.
+- Keeps AI functionality optional and separate from the core journal.
 
-### **⚙️ Runtime Structure**
+### Runtime responsibilities
 
 ```text
-Intelligence Runtime (Express, server/)
-├── routes/          # chat · reflect · insight · summarize (all SSE)
-├── ContextAssembler # journal context from client entries (seeded if absent)
-├── PromptAssembler  # Jouspace-branded system prompts
-├── gateway/         # provider abstraction (NvidiaGateway = live)
-└── StreamController # AsyncIterable → SSE
+server/
+├── routes/
+│   └── chat · reflect · insight · summarize
+├── ContextAssembler
+│   └── Assembles journal context from client-supplied entries
+├── PromptAssembler
+│   └── Creates Jouspace-branded system prompts per capability
+├── gateway/
+│   └── NvidiaGateway
+└── StreamController
+    └── Converts AsyncIterable output into SSE responses
 ```
 
-**Key behaviors:**
-✅ Stateless by design
-✅ No database required
-✅ Falls back to seed data only when client sends no entries
+The runtime is intentionally **stateless**. It does not require a journal database and falls back to seed data only when the client provides no entries.
 
 ---
 
 <a id="ai-capabilities"></a>
 
-## ✨ **AI Capabilities**
+## AI capabilities
 
-All capabilities exposed via:
+Each AI capability is exposed through:
 
-```http
+```text
 POST /api/ai/<capability>
-Content-Type: application/json
-Accept: text/event-stream
 ```
 
-| **Capability** | **Purpose**                          | **Transport** |
-|----------------|--------------------------------------|---------------|
-| `chat`         | Conversational exploration           | SSE           |
-| `reflect`      | Calm reflection on entry/writing    | SSE           |
-| `insight`      | Extract themes & patterns            | SSE           |
-| `summarize`    | Concise summary of recent activity   | SSE           |
+| Capability | Purpose | Output |
+| --- | --- | --- |
+| `chat` | Conversational exploration of thoughts and journal context | SSE stream |
+| `reflect` | Calm reflection on a journal entry or recent writing | SSE stream |
+| `insight` | Extraction of themes, patterns, and useful observations | SSE stream |
+| `summarize` | Concise summaries of recent journal activity | SSE stream |
+
+### AI request lifecycle
+
+```mermaid
+sequenceDiagram
+    participant App as Jouspace App
+    participant Store as Local JournalStore
+    participant Runtime as Intelligence Runtime
+    participant NIM as NVIDIA NIM
+
+    App->>Store: Read recent journal entries
+    App->>Runtime: POST /api/ai/<capability>
+    Runtime->>Runtime: Assemble context and system prompt
+    Runtime->>NIM: Forward trusted prompt and context
+    NIM-->>Runtime: Stream model output
+    Runtime-->>App: Stream SSE response
+```
 
 ---
 
 <a id="runtime-configuration"></a>
 
-## ⚙️ **Runtime Configuration**
+## Runtime configuration
 
-### **🔧 Development**
+### Development
+
+No frontend runtime URL is required during local development:
 
 ```text
-Frontend /api/ai/* → Vite proxy → localhost:3001
+Frontend /api/ai/*  →  Vite proxy  →  localhost:3001
 ```
-*No environment variable needed.*
 
-### **🌍 Production**
+### Deployed PWA or Android APK
 
-Set `VITE_API_BASE_URL` when building:
+Set `VITE_API_BASE_URL` when creating a production build:
 
 ```bash
-VITE_API_BASE_URL=https://your-runtime.example npm run build
+VITE_API_BASE_URL=https://your-runtime-host.example npm run build
 ```
 
-For hosted runtime:
+For the hosted Jouspace runtime:
 
 ```bash
 VITE_API_BASE_URL=https://jouspace-runtime.jouspace.workers.dev npm run build
 ```
 
-> ℹ️ **Note:** Builds can ship **without** a default runtime, leaving AI inert until user configures in Profile.
+> [!NOTE]
+> A build does not have to use the public runtime. Jouspace can ship without a default runtime and let users configure one from Profile.
 
-### **🔐 CORS**
+### CORS
 
-Already allowed (Android WebView origins):
+The runtime already permits the standard Capacitor WebView origins:
 
 ```text
 capacitor://localhost
 https://localhost
 ```
 
-Add others via `CORS_ORIGINS`:
+Add other permitted origins through the `CORS_ORIGINS` environment variable:
 
 ```dotenv
 CORS_ORIGINS=https://journal.example.com,https://preview.example.com
@@ -371,34 +366,56 @@ CORS_ORIGINS=https://journal.example.com,https://preview.example.com
 
 ---
 
-<a id="android-build"></a>
+<a id="building-the-android-apk"></a>
 
-## 📱 **Building the Android APK**
+## Building the Android APK
 
-The `android/` platform is **committed** with:
-🎨 Branded icons · 🔐 Native permissions · ⚙️ Capacitor config · 🔑 Release signing · 📦 Gradle pipeline
+The `android/` platform is committed to the repository and includes:
 
-**Web app → single `dist/index.html` → Capacitor sync → native shell**
+- Branded application icons
+- Native permissions
+- Capacitor configuration
+- Permanent release-signing configuration
+- Reproducible Gradle release pipeline
+
+The web application builds into `dist/`, with app JavaScript and CSS inlined into a single `dist/index.html`. Capacitor then synchronizes that build into the native Android shell.
 
 ---
 
-### **🤖 Option A: GitHub Actions** *(Recommended)*
+### Option A — GitHub Actions
 
-Zero local Android setup:
+**Recommended: no local Android setup required.**
 
-1. Push repo to GitHub
-2. **Actions** → **Build Android APK**
-3. **Run workflow**
-4. Download `jouspace-release.apk` from **Artifacts**
+1. Push this repository to GitHub.
+2. Open **Actions**.
+3. Select **Build Android APK**.
+4. Choose **Run workflow**.
+5. Download `jouspace-release.apk` from the run's **Artifacts** section.
 
-**Workflow:** `.github/workflows/build-apk.yml`
+Workflow file:
 
-**Pipeline:**
 ```text
-install deps → build web → cap sync → stamp version → assembleRelease → upload
+.github/workflows/build-apk.yml
 ```
 
-**Version from tag:**
+Release pipeline:
+
+```text
+Install dependencies
+      ↓
+Build the web application
+      ↓
+Run npx cap sync android
+      ↓
+Stamp the Android version
+      ↓
+Build a signed release APK
+      ↓
+Upload jouspace-release.apk
+```
+
+Version metadata is derived from the Git tag:
+
 ```text
 v1.1.0-beta.1
 ├── versionName: 1.1.0-beta.1
@@ -407,195 +424,290 @@ v1.1.0-beta.1
 
 ---
 
-### **💻 Option B: Local Build**
+### Option B — Local build
 
-**Requires:** JDK 17 + Android SDK
+Local Android builds require:
+
+- JDK 17
+- Android SDK
+- Configured Android build environment
 
 ```bash
 npm run build
 npx cap sync android
-cd android && ./gradlew assembleRelease
+
+cd android
+./gradlew assembleRelease
 ```
 
-**Output:** `android/app/build/outputs/apk/release/app-release.apk`
+The generated APK is written to:
 
-> ⚠️ **Warning:** Preserve your release keystore — losing it prevents updates.
+```text
+android/app/build/outputs/apk/release/app-release.apk
+```
+
+> [!WARNING]
+> Preserve the release keystore and its credentials. Losing the signing identity prevents future APKs from being published as updates to the same Android application.
 
 ---
 
 <a id="versioning"></a>
 
-## 📊 **Versioning**
+## Versioning
 
-Semantic Versioning with `-beta.N` prereleases.
+Jouspace follows **Semantic Versioning** and uses `-beta.N` for prerelease builds.
 
-| **Git Tag**       | **`versionName`** | **`versionCode`** |
-|-------------------|-------------------|-------------------|
-| `v1.1.0-beta.1`   | `1.1.0-beta.1`    | `11001`           |
-| `v1.1.0-beta.2`   | `1.1.0-beta.2`    | `11002`           |
-| `v1.1.0`          | `1.1.0`           | `11100`           |
+| Git tag | Android `versionName` | Android `versionCode` |
+| --- | ---: | ---: |
+| `v1.1.0-beta.1` | `1.1.0-beta.1` | `11001` |
+| `v1.1.0-beta.2` | `1.1.0-beta.2` | `11002` |
+| `v1.1.0` | `1.1.0` | `11100` |
 
----
-
-### **🔢 Version Code Formula**
+### Version code formula
 
 ```text
-versionCode = MAJOR×10000 + MINOR×1000 + PATCH×100 + iteration
+versionCode =
+  MAJOR × 10000
+  + MINOR × 1000
+  + PATCH × 100
+  + iteration
 ```
 
-| **Release Type** | **`iteration`** |
-|------------------|-----------------|
-| Beta `-beta.N`   | `01`–`99`       |
-| Stable           | `100`           |
+Where `iteration` is:
 
----
+| Release type | Iteration value |
+| --- | --- |
+| Beta release `-beta.N` | `01`–`99` |
+| Stable release | `100` |
 
-### **📜 Release Rules**
+This keeps `versionCode` strictly increasing so Android and Google Play always order newer builds correctly.
 
-1. **Increment beta number:** `1.1.0-beta.1` → `1.1.0-beta.2`
-2. **Drop suffix for stable:** `1.1.0-beta.3` → `1.1.0`
-3. **Sync `package.json`** version with `versionName`
-4. **Trigger via tag:**
+### Release rules
+
+1. Increment the beta number for every prerelease:
+
+   ```text
+   1.1.0-beta.1 → 1.1.0-beta.2 → 1.1.0-beta.3
+   ```
+
+2. Drop the beta suffix when promoting to stable:
+
+   ```text
+   1.1.0-beta.3 → 1.1.0
+   ```
+
+3. Keep `package.json` `version` synchronized with the Android `versionName`.
+
+4. Trigger a release build by pushing a matching Git tag:
+
    ```bash
    git tag v1.1.0-beta.1
    git push origin v1.1.0-beta.1
    ```
-5. **Or use Actions UI:** **Build Android APK** → manual version input
 
-**Full scheme:** [`DEPLOYMENT.md` §2.2](./DEPLOYMENT.md)
+5. Or use the workflow's manual `version` input from the GitHub Actions interface.
+
+See [`DEPLOYMENT.md` §2.2](./DEPLOYMENT.md) for the complete release scheme.
 
 ---
 
-<a id="production"></a>
+<a id="production-and-deployment"></a>
 
-## 🏭 **Production & Deployment**
+## Production and deployment
 
-<details>
-<summary><b>🚀 Deployment</b></summary>
-<br />
-See [`DEPLOYMENT.md`](./DEPLOYMENT.md) for:
-✅ Cloudflare Workers hosting
-✅ Runtime environment variables
-✅ APK release signing
-✅ Keystore management
-✅ Current auth status
-</details>
+### Runtime deployment
 
-<details>
-<summary><b>⚙️ Backend</b></summary>
-<br />
-Deploy runtime to Cloudflare Workers:
+Deploy the Jouspace Intelligence Runtime to **Cloudflare Workers** by following:
+
+- [`DEPLOYMENT.md`](./DEPLOYMENT.md)
+
+Then compile the client against the deployed runtime:
 
 ```bash
-VITE_API_BASE_URL=https://jouspace-runtime.<sub>.workers.dev npm run build
+VITE_API_BASE_URL=https://jouspace-runtime.<subdomain>.workers.dev npm run build
 ```
 
-**Stateless design:**
-✅ No database required
-✅ Context from client requests
-✅ Seed fallback only
-✅ Credentials stay server-side
-</details>
+The runtime is deliberately stateless:
 
-<details>
-<summary><b>💾 Data Model</b></summary>
-<br />
-Frontend persists in `localStorage` (`src/store/`).
-Recent entries sent with each AI request.
-Future cloud sync can use `JournalStore` interface **without touching AI pipeline**.
-</details>
+- No journal database is required.
+- Journal context is supplied by the client with each AI request.
+- Seed context is used only when the client sends no entries.
+- AI provider credentials remain on the server.
 
-<details>
-<summary><b>🔐 Authentication</b></summary>
-<br />
-Firebase Auth for:
-✅ Google sign-in
-✅ Email/password
+### Local-first data model
 
-**Identity only** — journal works without account.
+The frontend persists journal entries through the store implementation in:
 
-**Frontend `.env`:**
+```text
+src/store/
+```
+
+Recent entries are attached to AI requests as contextual input.
+
+A future cloud-sync layer can be introduced behind the `JournalStore` interface without replacing the AI pipeline or journal UI.
+
+### Optional authentication
+
+Firebase Authentication support is wired for:
+
+- Google sign-in
+- Email/password authentication
+
+Authentication is an optional identity layer. The local journal remains usable without an account.
+
+Configure Firebase web credentials in the frontend `.env` file:
+
 ```dotenv
-VITE_FIREBASE_API_KEY=…
-VITE_FIREBASE_AUTH_DOMAIN=…
-VITE_FIREBASE_PROJECT_ID=…
-VITE_FIREBASE_STORAGE_BUCKET=…
-VITE_FIREBASE_MESSAGING_SENDER_ID=…
-VITE_FIREBASE_APP_ID=…
+VITE_FIREBASE_API_KEY=...
+VITE_FIREBASE_AUTH_DOMAIN=...
+VITE_FIREBASE_PROJECT_ID=...
+VITE_FIREBASE_STORAGE_BUCKET=...
+VITE_FIREBASE_MESSAGING_SENDER_ID=...
+VITE_FIREBASE_APP_ID=...
 ```
 
-**Android:** `android/app/google-services.json`
-**Full details:** [`DEPLOYMENT.md` §3](./DEPLOYMENT.md)
-</details>
+For Android Google sign-in, provide:
+
+```text
+android/app/google-services.json
+```
+
+Profile metadata such as display name and join date is stored locally. See [`DEPLOYMENT.md` §3](./DEPLOYMENT.md) for configuration details and the current authentication status.
 
 ---
 
-<a id="scripts"></a>
+<a id="available-scripts"></a>
 
-## 💻 **Available Scripts**
+## Available scripts
 
-| **Command**          | **Description**                          |
-|----------------------|------------------------------------------|
-| `npm run dev`        | Vite dev server (frontend only)          |
-| `npm run build`      | Production build → `dist/`               |
-| `npm run server`     | Intelligence Runtime (tsx watch)         |
-| `npm run dev:all`    | Frontend + Runtime together              |
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the Vite development server |
+| `npm run build` | Create the production frontend build in `dist/` |
+| `npm run server` | Start the Intelligence Runtime with `tsx` watch mode |
+| `npm run dev:all` | Run the frontend and Intelligence Runtime together |
 
-**Common workflows:**
+### Common workflows
+
 ```bash
-npm run dev          # Frontend only
-npm run server       # Runtime only
-npm run dev:all      # Full stack
-npm run build        # Production
+# Frontend only
+npm run dev
+```
+
+```bash
+# Runtime only
+npm run server
+```
+
+```bash
+# Full local development environment
+npm run dev:all
+```
+
+```bash
+# Production web build
+npm run build
 ```
 
 ---
 
 <a id="security"></a>
 
-## 🔒 **Security**
+## Security
 
-| **Aspect**               | **Protection**                                                                 |
-|--------------------------|-------------------------------------------------------------------------------|
-| **API Key**              | Lives only in `server/.env` (gitignored), never reaches client               |
-| **System Prompts**       | Client-supplied `system` role messages blocked; runtime injects own          |
-| **Reasoning**            | `reasoning_content` consumed & discarded, never in SSE output                |
-| **Errors**               | Generic `{error: "Intelligence unavailable"}`; no stack traces exposed      |
-| **State**                | Stateless — context assembled from current request only                     |
+Jouspace separates trusted runtime behavior from untrusted client input.
+
+### API key isolation
+
+The NVIDIA API key exists only in the runtime environment:
+
+```text
+server/.env
+```
+
+It is never embedded in the frontend bundle or sent to the client.
+
+### System prompt protection
+
+Client-supplied messages with the `system` role are rejected or ignored. The runtime injects its own capability-specific system prompt through `PromptAssembler`.
+
+### Reasoning privacy
+
+Model `reasoning_content` is consumed and discarded by the runtime. Chain-of-thought output is never forwarded through the SSE stream.
+
+### Safe error responses
+
+The global error handler returns a generic response:
+
+```json
+{
+  "error": "Intelligence unavailable"
+}
+```
+
+Stack traces and internal runtime details are not exposed to the client.
+
+### Stateless request handling
+
+The runtime does not require persistent journal storage. Context is assembled from entries included with the current request.
 
 ---
 
 <a id="privacy"></a>
-<a id="license"></a>
 
-## 🛡️ **Privacy** | 📜 **License**
+## Privacy
 
-### **🛡️ Privacy**
+Jouspace is designed as a **local-first journal**.
 
-> **Jouspace v1 is local-first and account-free**
+### What remains on the device
 
-| **💾 What Stays on Device** | **🤖 When AI is Enabled** |
-|----------------------------|---------------------------|
-| ✅ Journal entries in `localStorage` | 1. Client selects context |
-| ✅ No account required | 2. Sent to **your runtime** |
-| ✅ No cloud sync | 3. Runtime prompts provider |
-| ✅ No server can read journal | 4. Response streamed back |
-| | ✅ **Choose a runtime you trust** |
+By default, journal entries are stored in the browser's `localStorage` or in the Android app's WebView storage.
 
-> ✅ **Default build has no runtime configured** — AI remains inactive until you set one in Profile
+The core journaling experience does not require:
 
-| **📤 Export/Import** | **⚠️ Data Loss Risk** |
-|---------------------|-----------------------|
-| JSON export/import in Profile | Uninstalling app |
-| Your data stays yours | Clearing browser data |
-| | Resetting device |
-| | **Export regularly & keep backups** |
+- A Jouspace account
+- A cloud journal database
+- Analytics
+- Telemetry
+- Remote entry logging
+- AI access
+
+### When AI is enabled
+
+AI features are opt-in. When a runtime is configured and an AI action is requested:
+
+1. The client selects relevant journal context.
+2. That context is sent to the configured runtime.
+3. The runtime sends the prompt to its configured model provider.
+4. The generated response is streamed back to the app.
+
+Choose a runtime and model provider you trust. Their infrastructure and privacy terms apply to the content intentionally submitted for AI processing.
+
+> [!IMPORTANT]
+> A default build may ship without a runtime configured. In that case, the AI interface remains inactive until a runtime URL is added in Profile.
+
+### Export and import
+
+Profile includes JSON export and import so journal data remains portable and under the user's control.
+
+### Device-local data risk
+
+Because journal data is stored locally, the following actions may permanently erase it:
+
+- Uninstalling the application
+- Clearing browser or WebView storage
+- Resetting the device
+- Removing application data
+
+Export your journal regularly and keep backups in a secure location.
 
 ---
 
-### **📜 License**
+<a id="license"></a>
 
-[MIT License](./LICENSE)
+## License
+
+Jouspace is released under the [MIT License](./LICENSE).
 
 ```text
 Copyright © Jouspace contributors
@@ -606,21 +718,12 @@ SPDX-License-Identifier: MIT
 
 <div align="center">
 
-<br />
+<img src="https://capsule-render.vercel.app/api?type=waving&height=120&section=footer&color=0:8b5cf6,50:4c1d95,100:111827" width="100%" alt="" />
 
-<img src="https://capsule-render.vercel.app/api?type=waving&height=120&section=footer&color=0:8b5cf6,50:4c1d95,100:0f0f23" width="100%" alt=""/>
-
-### **Built for quieter thoughts, private writing, and more intentional reflection.**
+**Built for quieter thoughts, private writing, and more intentional reflection.**
 
 <br />
 
-<sub>
-  <a href="https://github.com/datascyther/Jouspace">📦 Repository</a> ·
-  <a href="https://github.com/datascyther/Jouspace/releases">📱 Releases</a> ·
-  <a href="./DEPLOYMENT.md">📖 Deployment</a> ·
-  <a href="#top">↑ Back to Top</a>
-</sub>
-
-<br /><br />
+[Back to top ↑](#top)
 
 </div>
