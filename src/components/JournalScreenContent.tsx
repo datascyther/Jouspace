@@ -1,24 +1,21 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { X } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { X, Tag } from 'lucide-react';
 import { JournalHeader } from './JournalHeader';
 import { JournalMetadata, AutosaveStatus } from './JournalMetadata';
 import { JournalEditor } from './JournalEditor';
-import { WritingToolbar } from './WritingToolbar';
 import { BottomNavigation, NavTab } from './BottomNavigation';
 import { ThemeChipGroup, DEFAULT_THEMES, normalizeTheme } from './ThemeChipGroup';
 import { RecentOnTheme } from './RecentOnTheme';
 import {
-  SpacePickerSheet,
   getSpaceById,
   spaceForTheme,
   CUSTOM_SPACE_ID,
-  type Space,
 } from './SpacePickerSheet';
 import {
   type CustomTheme,
-  saveCustomTheme,
   findCustomThemeById,
-} from '../lib/supabaseCustomThemes';
+} from '../utils/customThemes';
+import { readSpaceSelection, clearSpaceSelection } from '../utils/pickerStore';
 import {
   detectSentiment,
   type SentimentKey,
@@ -29,8 +26,7 @@ import type { StoredEntry } from '../store/types';
 import type { Entry } from './EntryRow';
 import { Presence } from './Presence';
 import { useAnimatedPresence } from '../hooks/useAnimatedPresence';
-import { useVoiceInput } from '../hooks/useVoiceInput';
-import { usePermission } from '../permissions/usePermissions';
+import { useKeyboard } from '../hooks/useAdaptiveKeyboard';
 
 interface JournalScreenContentProps {
   /** Entry being edited; when omitted the composer is a fresh new entry. */
@@ -53,6 +49,8 @@ interface JournalScreenContentProps {
   onOpenEntry?: (entry: Entry) => void;
   /** Deep-links to the Memory thread view for a theme. */
   onExploreThread?: (themeId: string) => void;
+  /** Opens the Space picker as a separate route. */
+  onOpenSpacePicker?: (spaceId: string, customThemeId: string | null) => void;
 }
 
 /**
@@ -131,39 +129,6 @@ function getReflection(entry: Entry, allEntries: Entry[]): string {
   return `That's ${themeCount} entries about ${entry.theme}.`;
 }
 
-/**
- * Inline-continuation prompts, bucketed by theme. Shown in the Sparkle
- * panel when the user taps the sparkle button; rotated by hour so the
- * same suggestion never repeats within the same day.
- */
-const SPARKLE_SUGGESTIONS: Record<string, string[]> = {
-  clarity: [
-    "What became clear is...",
-    "The truth underneath this is...",
-    "If I had to name it in one word...",
-  ],
-  discipline: [
-    "The smallest next step is...",
-    "What I'm avoiding right now is...",
-    "Done looks like...",
-  ],
-  purpose: [
-    "Why this matters to me is...",
-    "What I'm actually reaching for is...",
-    "If this worked out, what would change is...",
-  ],
-  pressure: [
-    "What's weighing on me that I haven't named is...",
-    "If I weren't being polite, I'd say...",
-    "The feeling underneath the words is...",
-  ],
-  default: [
-    "Continue this thought...",
-    "What I'm really afraid of is...",
-    "The opposite might also be true...",
-  ],
-};
-
 export const JournalScreenContent: React.FC<JournalScreenContentProps> = ({
   editingEntry,
   entries = [],
@@ -175,6 +140,7 @@ export const JournalScreenContent: React.FC<JournalScreenContentProps> = ({
   onSaveEntry,
   onOpenEntry,
   onExploreThread,
+  onOpenSpacePicker,
 }) => {
   const initialTheme = normalizeTheme(editingEntry?.theme ?? '') || DEFAULT_THEMES[0].id;
 
@@ -213,7 +179,6 @@ export const JournalScreenContent: React.FC<JournalScreenContentProps> = ({
   const [customTheme, setCustomTheme] = useState<CustomTheme | null>(
     initialCustomTheme
   );
-  const [spacePickerOpen, setSpacePickerOpen] = useState(false);
   const [currentSaveStatus, setCurrentSaveStatus] =
     useState<AutosaveStatus>(saveStatus);
   // True briefly after a manual save completes — drives the checkmark pulse
@@ -221,6 +186,10 @@ export const JournalScreenContent: React.FC<JournalScreenContentProps> = ({
   const [justSaved, setJustSaved] = useState(false);
   // One-line micro-reflection shown for ~2s after tapping Done.
   const [reflection, setReflection] = useState<string | null>(null);
+
+  // Keyboard open state — the bottom nav is hidden while the software keyboard
+  // is on screen so it can't ride up over the input (see AppScreen).
+  const { keyboardVisible } = useKeyboard();
 
   // Pending autosave-status timers, tracked so a typing burst can't stack them.
   const statusTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -239,78 +208,28 @@ export const JournalScreenContent: React.FC<JournalScreenContentProps> = ({
 
   // --- Sparkle inline continuations ---------------------------------------
   const [sparkleSuggestions, setSparkleSuggestions] = useState<string[] | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [sparkleGlow, setSparkleGlow] = useState(false);
   const sparkleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sparklePanelRef = useRef<HTMLDivElement>(null);
 
-  // --- Mic voice-to-text ---------------------------------------------------
-  // Shared Web Speech API hook. Commits finalized transcript segments to the
-  // journal body; the hook guarantees each segment is delivered exactly once
-  // (no interim duplication) and streams a live interim preview.
-  const [voiceInterim, setVoiceInterim] = useState('');
-  const [voiceError, setVoiceError] = useState<string | null>(null);
-
-  const voice = useVoiceInput({
-    onFinal: (text) => {
-      setBody((prev) => {
-        const sep = prev.length > 0 && !/\s$/.test(prev) ? ' ' : '';
-        return prev + sep + text;
-      });
-      beginSaveStatusCycle();
-    },
-    onInterim: (text) => setVoiceInterim(text ?? ''),
-    onError: (code) => {
-      setVoiceInterim('');
-      setVoiceError(
-        code === 'not-allowed' || code === 'service-not-allowed'
-          ? 'Microphone permission blocked for voice input.'
-          : code === 'audio-capture'
-            ? 'No microphone found for voice input.'
-            : 'Voice input unavailable — could not reach the speech service. Check your connection or mic permission.',
-      );
-      window.setTimeout(() => setVoiceError(null), 5000);
-    },
-    onStop: () => setVoiceInterim(''),
-  });
-
-  // Gate the mic behind the unified permission system. We always call `ensure`
-  // (which requests in-context on first use and never re-prompts once denied),
-  // then start voice input only when permitted. On the web the actual mic grant
-  // is shared with the Web Speech API, so this single prompt covers both.
-  const mic = usePermission('microphone');
-
-  const handleMic = useCallback(async () => {
-    if (!voice.supported) {
-      setVoiceError('Voice input isn’t supported on this device or browser.');
-      window.setTimeout(() => setVoiceError(null), 5000);
-      return;
+  // Apply any pending Space selection written by the picker route on the way
+  // back (one-shot transient store). Runs once on mount after the picker.
+  useEffect(() => {
+    const sel = readSpaceSelection();
+    if (!sel) return;
+    if (sel.customThemeId) {
+      const ct = findCustomThemeById(sel.customThemeId);
+      setCustomTheme(ct);
+      setSpaceId(CUSTOM_SPACE_ID);
+      if (ct) setTheme(ct.id);
+    } else {
+      const sp = getSpaceById(sel.spaceId);
+      setCustomTheme(null);
+      setSpaceId(sel.spaceId);
+      setTheme(sp.defaultTheme);
     }
-    const res = await mic.ensure();
-    if (!res.ok) {
-      if (res.state === 'deniedPermanently' || res.state === 'restricted') {
-        const opened = await mic.openSettings();
-        if (!opened) {
-          setVoiceError(
-            'Microphone access is blocked. Enable it in your browser or device Settings, then return here.',
-          );
-          window.setTimeout(() => setVoiceError(null), 5000);
-        }
-      } else {
-        setVoiceError(
-          res.state === 'unsupported'
-            ? 'No microphone found for voice input.'
-            : 'Microphone permission blocked for voice input.',
-        );
-        window.setTimeout(() => setVoiceError(null), 5000);
-      }
-      return;
-    }
-    // Warm the on-device model right after the mic is granted so the first tap
-    // is instant (no interruption). The toggle below then loads if still pending.
-    voice.preload?.();
-    voice.toggle();
-  }, [mic.ensure, mic.openSettings, voice.supported, voice.toggle, voice.preload, setVoiceError]);
+    clearSpaceSelection();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Persist the in-progress draft for new entries so a reload/relaunch never
   // loses an unsaved thought. Cleared on save or when the composer is emptied.
@@ -403,12 +322,11 @@ export const JournalScreenContent: React.FC<JournalScreenContentProps> = ({
       sentimentTimerRef.current = null;
     }
     setSentiment(null);
-    // Clear sparkle glow — typing resumes, so the hint disappears.
+    // Clear pending sparkle timer — typing resumes.
     if (sparkleTimerRef.current) {
       clearTimeout(sparkleTimerRef.current);
       sparkleTimerRef.current = null;
     }
-    setSparkleGlow(false);
   };
 
   /** Fired on key-up / change: (re)start the 4s pause timer that surfaces a
@@ -429,17 +347,10 @@ export const JournalScreenContent: React.FC<JournalScreenContentProps> = ({
         setPausePrompt(prompt);
       }
     }, 4000);
-    // Sparkle glow at 3s — slightly before the prompt, only when no
-    // suggestions are already open.
-    sparkleTimerRef.current = setTimeout(() => {
-      if (!isTypingRef.current && !sparkleSuggestions) {
-        setSparkleGlow(true);
-      }
-    }, 3000);
+
   };
 
-  // Clear any pending timers on unmount so nothing fires after the composer is
-  // gone. (Active speech recognition is released by useVoiceInput itself.)
+  // Clear any pending timers on unmount so nothing fires after the composer is gone.
   useEffect(() => {
     return () => {
       if (promptTimerRef.current) clearTimeout(promptTimerRef.current);
@@ -518,34 +429,6 @@ export const JournalScreenContent: React.FC<JournalScreenContentProps> = ({
     setTimeout(() => setReflection(null), 2000);
   };
 
-  /** Sparkle — open (or dismiss) the inline-continuation panel. Template
-   *  based, no backend: prompts are bucketed by theme and rotated by hour. */
-  const handleSparkleClick = () => {
-    if (sparkleSuggestions) {
-      setSparkleSuggestions(null); // dismiss if already open
-      return;
-    }
-    setSparkleGlow(false);
-    setIsGenerating(true);
-    // Simulate brief "thinking" delay (300ms) for UX
-    setTimeout(() => {
-      const bucket = SPARKLE_SUGGESTIONS[theme || 'default'] || SPARKLE_SUGGESTIONS.default;
-      // Rotate by hour for variety
-      const hour = new Date().getHours();
-      const suggestions = [
-        bucket[hour % bucket.length],
-        bucket[(hour + 1) % bucket.length],
-        bucket[(hour + 2) % bucket.length],
-      ];
-      // Sparkle and Tag are mutually exclusive — opening one clears the
-      // other helper panels, including the sentiment whisper.
-      clearPausePrompt();
-      setSentiment(null);
-      setSparkleSuggestions(suggestions);
-      setIsGenerating(false);
-    }, 300);
-  };
-
   /** Insert a suggestion at the cursor — pragmatic DOM approach using the
    *  textarea's id. */
   const handleInsertSuggestion = (text: string) => {
@@ -588,7 +471,6 @@ export const JournalScreenContent: React.FC<JournalScreenContentProps> = ({
       clearTimeout(sparkleTimerRef.current);
       sparkleTimerRef.current = null;
     }
-    setSparkleGlow(false);
     setSparkleSuggestions(null);
     clearPausePrompt();
     if (sentimentTimerRef.current) {
@@ -596,24 +478,7 @@ export const JournalScreenContent: React.FC<JournalScreenContentProps> = ({
       sentimentTimerRef.current = null;
     }
     setSentiment(null);
-    setSpacePickerOpen(true);
-  };
-
-  /** Apply a preset Space: its default theme + placeholders drive the entry. */
-  const handleSelectSpace = (space: Space) => {
-    setCustomTheme(null);
-    setSpaceId(space.id);
-    setTheme(space.defaultTheme);
-    setSpacePickerOpen(false);
-  };
-
-  /** Create/edit a custom theme: persist it globally and activate it. */
-  const handleCreateCustomTheme = (newTheme: CustomTheme) => {
-    saveCustomTheme(newTheme);
-    setCustomTheme(newTheme);
-    setSpaceId(CUSTOM_SPACE_ID);
-    setTheme(newTheme.id);
-    setSpacePickerOpen(false);
+    onOpenSpacePicker?.(spaceId, customTheme?.id ?? null);
   };
 
   const now = new Date();
@@ -671,21 +536,26 @@ export const JournalScreenContent: React.FC<JournalScreenContentProps> = ({
           AppBackground. `relative` only anchors the Space sheet and the Done
           micro-reflection overlay to the composer. */}
       {/* Scrollable content */}
-      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-4 pt-2 pb-4">
-        <div className="flex flex-col gap-7 w-full">
-          <JournalHeader
-            onBack={onBackToHome}
-          />
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-4 pt-1 pb-4">
+        <div className="flex flex-col w-full">
+          {/* Compact top block: header + metadata + divider, tight spacing */}
+          <div className="flex flex-col gap-1">
+            <JournalHeader
+              onBack={onBackToHome}
+            />
 
-          <JournalMetadata
-            dateLabel="Today"
-            timeLabel={timeLabel}
-            status={currentSaveStatus}
-            justSaved={justSaved}
-          />
+            <JournalMetadata
+              dateLabel="Today"
+              timeLabel={timeLabel}
+              status={currentSaveStatus}
+              justSaved={justSaved}
+            />
+          </div>
 
-          <div className="w-full border-t border-borderSubtle -mt-1 -mb-1" />
+          <div className="w-full border-t border-borderSubtle my-2" />
 
+          {/* Writing area — editor, helpers, themes, and past entries */}
+          <div className="flex flex-col gap-6">
           {/* JournalEditor + inline Sparkle continuation strip — the strip
               sits flush below the body textarea as a native companion. */}
           <div className="flex flex-col">
@@ -817,55 +687,47 @@ export const JournalScreenContent: React.FC<JournalScreenContentProps> = ({
             onOpenEntry={onOpenEntry}
             onExploreThread={onExploreThread}
           />
+          </div>
         </div>
       </div>
 
-      {/* Pinned WritingToolbar — full width, outside scroll padding */}
-      <div className="shrink-0">
-        {voiceError ? (
-          <p className="px-5 pb-1 font-sans text-[12.5px] text-error leading-snug">
-            {voiceError}
-          </p>
-        ) : voiceInterim ? (
-          <p className="px-5 pb-1 font-sans text-[13px] text-muted italic truncate">
-            {voiceInterim}…
-          </p>
-        ) : null}
-        <WritingToolbar
-          onDoneClick={handleDone}
-          doneDisabled={reflection !== null}
-          onMicClick={handleMic}
-          isRecording={voice.recording}
-          isPreparing={voice.status === 'loading'}
-          micAvailable={voice.supported}
-          onSpaceClick={handleSpaceClick}
-          spacePickerOpen={spacePickerOpen}
-          onSparkleClick={handleSparkleClick}
-          isGenerating={isGenerating}
-          hasSparkleGlow={sparkleGlow}
-          sparklePanelOpen={sparklePanelOpen}
-        />
+      {/* Bottom bar — Tag + Done, pinned below scroll area. `py-4` keeps a 1%
+          breathing gap above the pinned BottomNavigation (its wrapper has no
+          padding of its own, so this is the only spacing between them). */}
+      <div className="shrink-0 px-4 py-4 flex items-center justify-between">
+        <button
+          type="button"
+          onClick={handleSpaceClick}
+          aria-label="Choose a space"
+          className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-surface border border-borderSubtle hover:bg-elevated transition-all duration-150 active:scale-[0.97] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+        >
+          <Tag className="w-4 h-4 text-accent stroke-[1.6]" />
+          <span className="text-[13px] text-secondary leading-tight">Create your own theme.</span>
+        </button>
+        <button
+          type="button"
+          onClick={handleDone}
+          disabled={reflection !== null}
+          className="bg-accent hover:bg-accentHover active:bg-accentActive text-white font-sans font-medium text-[14px] px-5 py-2 rounded-[14px] transition-all duration-200 active:scale-[0.97] active:opacity-90 shadow-xs cursor-pointer focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-accent disabled:active:bg-accent"
+        >
+          Done
+        </button>
       </div>
 
-      {/* Pinned BottomNavigation */}
-      <div className="shrink-0">
-        <BottomNavigation
-          activeTab={activeTab}
-          onTabChange={onTabChange}
-        />
-      </div>
+      {/* Pinned BottomNavigation — hidden while the software keyboard is open:
+          the shell is already the visible viewport, so the nav must not
+          cover the input. */}
+      {!keyboardVisible && (
+        <div className="shrink-0">
+          <BottomNavigation
+            activeTab={activeTab}
+            onTabChange={onTabChange}
+          />
+        </div>
+      )}
 
-      {/* Space picker — a bottom sheet that sets the entry's context (Space →
-          placeholders + default theme). Clipped to the composer because this
-          root is the app frame's relative container. */}
-      <SpacePickerSheet
-        isOpen={spacePickerOpen}
-        onClose={() => setSpacePickerOpen(false)}
-        selectedSpaceId={spaceId}
-        onSelectSpace={handleSelectSpace}
-        customTheme={customTheme}
-        onCreateCustomTheme={handleCreateCustomTheme}
-      />
+      {/* Space picker — now a separate full-screen route (SpacePickerScreen),
+          opened via onOpenSpacePicker. No overlay renders here. */}
 
       {/* Micro-reflection — a brief one-line insight shown for ~2s after
           Done. Pure overlay (pointer-events: none) so it never captures

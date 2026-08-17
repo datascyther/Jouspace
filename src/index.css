@@ -278,20 +278,20 @@
 .skeleton-shimmer {
   position: relative;
   overflow: hidden;
-  background: #E8E6E1;
+  background: var(--skeleton-base);
 }
 .skeleton-shimmer::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  background: linear-gradient(90deg, transparent, var(--skeleton-shine), transparent);
   transform: translateX(-100%);
   will-change: transform;
   animation: shimmer 1.2s ease-in-out infinite;
 }
-/* Static variant (animate=false): same warm-grey base, no sweep. */
+/* Static variant (animate=false): same base, no sweep. */
 .skeleton-static {
-  background: #E8E6E1;
+  background: var(--skeleton-base);
 }
 
 /* Touch target minimum (44pt) */
@@ -701,8 +701,8 @@ html[data-theme="dark"] .onboarding-orb {
   right: -90px;
   width: 300px;
   height: 300px;
-  background: radial-gradient(circle, rgba(108, 77, 202, 0.04) 0%, transparent 70%);
-  filter: blur(60px);
+  /* Pre-blurred gradient (same reasoning as .auth-orb--bl below). */
+  background: radial-gradient(circle, rgba(108, 77, 202, 0.06) 0%, rgba(108, 77, 202, 0.03) 35%, transparent 65%);
 }
 html[data-theme="dark"] .auth-orb {
   display: none;
@@ -719,8 +719,12 @@ html[data-theme="dark"] .auth-orb {
   left: -110px;
   width: 320px;
   height: 320px;
-  background: radial-gradient(circle, rgba(94, 64, 192, 0.05) 0%, transparent 70%);
-  filter: blur(70px);
+  /* Pre-blurred gradient: no runtime filter:blur() needed.
+     On Android WebView, CSS blur() is NOT GPU-accelerated and forces
+     software rendering of the blurred layer every animation frame,
+     causing visible jitter on the auth screen. Baking the blur into
+     the gradient keeps the element compositor-friendly. */
+  background: radial-gradient(circle, rgba(94, 64, 192, 0.05) 0%, rgba(94, 64, 192, 0.03) 30%, transparent 65%);
   animation: orbDrift 19s ease-in-out infinite;
 }
 .auth-orb--tr {

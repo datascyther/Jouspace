@@ -79,9 +79,9 @@ app.use(
 );
 
 // Raised from 64kb → 256kb so 20 capped entries + a profile fit comfortably
-// without hitting the express.json body limit (413). Each entry content is now
-// capped at 8000 chars (see schemas.ts), so this is generous headroom.
-app.use(express.json({ limit: '256kb' }));
+  // without hitting the express.json body limit (413). Each entry content is now
+  // capped at 8000 chars (see schemas.ts), so this is generous headroom.
+  app.use(express.json({ limit: '256kb' }));
 
 // ── Structured request logger ──────────────────────────────────────────────────
 // Tiny JSON-to-stdout logger (no new dependency, no PII, no bodies). Records one

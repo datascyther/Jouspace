@@ -29,7 +29,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({
   }, [query, entries]);
 
   return (
-    <div className={`flex flex-col w-full h-full ${className}`}>
+    <div className={`flex flex-col w-full flex-1 min-h-0 ${className}`}>
       {/* Header */}
       <div className="flex items-center gap-3 px-6 pt-4 pb-3 shrink-0 border-b border-borderSubtle">
         {/* Search Input */}
@@ -66,7 +66,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({
       </div>
 
       {/* Content */}
-      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-6 py-4">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-6 py-4 pb-safe">
         {!query.trim() ? (
           <p className="font-sans text-[13px] text-muted mt-2">
             Search your entries by title, theme, or content.

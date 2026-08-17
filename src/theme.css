@@ -54,6 +54,10 @@
   --font-serif: 'Playfair Display', Georgia, serif;
   --font-sans: 'Inter', -apple-system, sans-serif;
 
+  /* Skeleton shimmer */
+  --skeleton-base: #E8E6E1;
+  --skeleton-shine: rgba(255, 255, 255, 0.4);
+
   /* Radii */
   --radius-card: 16px;
   --radius-button: 12px;
@@ -108,4 +112,8 @@ html[data-theme="dark"] {
 
   /* Accent + error tokens are kept from the light token set (they read
      fine on dark) and are not redeclared here. */
+
+  /* Skeleton shimmer — dark variant */
+  --skeleton-base: #2E2E33;
+  --skeleton-shine: rgba(255, 255, 255, 0.08);
 }

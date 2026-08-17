@@ -3,7 +3,9 @@
  *
  * One pipeline serves chat / reflect / insight / summarize / memory by varying
  * only: request schema, guard targets, capability name, context assembly, and
- * the anchor prompt. This mirrors each Express route's logic 1:1.
+ * the anchor prompt. This mirrors each Express route's logic 1:1. Voice chat
+ * (POST /api/ai/voice-chat) is a separate flow (see runVoiceChat below) that
+ * transcribes a clip first, then re-enters the same chat pipeline.
  */
 
 import { assembleContext } from '../../server/context/ContextAssembler.js';
@@ -198,6 +200,8 @@ export interface RunOptions {
   apiKey: string;
   enabledRateLimit: boolean;
   corsOrigin: string;
+  /** ASR model override (env NVIDIA_ASR_MODEL), falls back to the default. */
+  asrModel?: string;
 }
 
 export async function runCapability(
@@ -260,6 +264,126 @@ export async function runCapability(
     return json(502, { error: 'Intelligence unavailable right now. Check NVIDIA_API_KEY and try again.' }, opts.corsOrigin);
   } finally {
     rateLimiter.release(rate.key);
+  }
+}
+
+// ── Voice chat ─────────────────────────────────────────────────────────────────
+
+// Cap the clip so a runaway recording can't blow the JSON body limit. The
+// client auto-stops at 45s (~1.4MB WAV → ~1.9MB base64), this is a hard backstop.
+const MAX_AUDIO_CHARS = 2.5 * 1024 * 1024;
+
+const VoiceChatRequestSchema = z.object({
+  /** Base64 data URL of a WAV recording (mono 16-bit PCM). */
+  audio: z.string().min(1).max(MAX_AUDIO_CHARS),
+  /** Length of the clip in ms (client UI only). */
+  durationMs: z.number().int().positive().max(60_000).optional(),
+  /** Prior conversation — voice chat may start from an empty history. */
+  messages: z.array(MessageSchema).max(50).optional(),
+  context: z
+    .object({ entryId: z.string().optional() })
+    .optional(),
+  /** Local-first: the client's real journal entries used for AI context */
+  entries: z.array(EntrySchema).max(20).optional(),
+  /** Device-derived personalization (treated as data, not instructions) */
+  profile: ProfileSchema.optional(),
+});
+
+/** Strip the `data:audio/wav;base64,` prefix and decode to raw bytes. */
+function decodeAudioDataUrl(dataUrl: string): Uint8Array {
+  const comma = dataUrl.indexOf(',');
+  const base64 = comma >= 0 ? dataUrl.slice(comma + 1) : dataUrl;
+  return Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+}
+
+/**
+ * Voice Chat capability — POST /api/ai/voice-chat (Worker port of
+ * server/routes/voiceChat.ts). Transcribes the clip via the ASR gateway under
+ * the 'generative' rate-limit bucket (released right after transcription),
+ * then runs the exact same chat pipeline with the transcript appended as the
+ * newest user message and a leading `transcript` SSE event before any tokens.
+ */
+export async function runVoiceChat(request: Request, opts: RunOptions): Promise<Response> {
+  let body: any;
+  try {
+    body = await request.json();
+  } catch {
+    return json(400, { error: 'Invalid JSON body.' });
+  }
+
+  const parsed = VoiceChatRequestSchema.safeParse(body);
+  if (!parsed.success) {
+    return json(400, { error: 'Invalid request', details: parsed.error.flatten().fieldErrors });
+  }
+  const { audio, messages = [], context, entries, profile } = parsed.data;
+
+  // 1. Rate limit BEFORE spending ASR + LLM credits. Transcription is the
+  //    costliest step, so voice messages charge the tighter generative bucket.
+  const userId = request.headers.get('x-user-id') ?? request.headers.get('cf-connecting-ip') ?? 'anonymous';
+  const rate = await rateLimiter.acquire(userId, 'generative');
+  if (!rate.ok) {
+    return new Response(JSON.stringify({ error: 'Intelligence unavailable — please try again shortly.' }), {
+      status: 429,
+      headers: { 'Content-Type': 'application/json', 'Retry-After': String(rate.retryAfterSec), 'Access-Control-Allow-Origin': opts.corsOrigin },
+    });
+  }
+
+  // 2. Transcribe the clip. The generative slot is released as soon as the
+  //    transcript exists, then the LLM reply re-enters the normal chat budget
+  //    — so a single voice request never holds two concurrency slots at once.
+  let transcript: string;
+  try {
+    const gateway = new NvidiaGateway(opts.apiKey, opts.asrModel);
+    transcript = await gateway.transcribeAudio(decodeAudioDataUrl(audio));
+  } catch (err: any) {
+    if (String(err?.message ?? err) === 'No speech detected in the recording.') {
+      return json(422, { error: 'No speech detected in the recording.' }, opts.corsOrigin);
+    }
+    console.error('[voice-chat] transcription error:', err?.message ?? err);
+    return json(503, { error: 'Intelligence unavailable' }, opts.corsOrigin);
+  } finally {
+    rateLimiter.release(rate.key);
+  }
+
+  // 3. Run the exact same chat pipeline, with the transcript as the newest
+  //    user message and a leading `transcript` event so the client can show
+  //    what was heard while the reply streams in.
+  const chatBody = { messages: [...messages, { role: 'user', content: transcript }], context, entries, profile };
+
+  if (anyOffDomain(...CAPABILITIES['chat'].guardFields(chatBody))) {
+    return refusal(opts.corsOrigin);
+  }
+
+  const convRate = await rateLimiter.acquire(userId, 'conversational');
+  if (!convRate.ok) {
+    return new Response(JSON.stringify({ error: 'Intelligence unavailable — please try again shortly.' }), {
+      status: 429,
+      headers: { 'Content-Type': 'application/json', 'Retry-After': String(convRate.retryAfterSec), 'Access-Control-Allow-Origin': opts.corsOrigin },
+    });
+  }
+
+  try {
+    const ctx = await assembleContext('user-1', 'chat', contextOptionsFor('chat', chatBody));
+    const { messages: modelMessages, reasoning } = CAPABILITIES['chat'].build(chatBody, ctx);
+
+    const gateway = new NvidiaGateway(opts.apiKey);
+    const headers = {
+      'Access-Control-Allow-Origin': opts.corsOrigin,
+      'X-Reasoning-Profile': reasoning,
+    };
+
+    return streamToResponse(
+      gateway.streamCompletion(modelMessages, { reasoning, signal: new AbortController().signal }),
+      request,
+      headers,
+      [`data: ${JSON.stringify({ transcript })}\n\n`]
+    );
+  } catch (err: any) {
+    rateLimiter.release(convRate.key);
+    console.error('[voice-chat] error:', err?.message ?? err);
+    return json(503, { error: 'Intelligence unavailable' }, opts.corsOrigin);
+  } finally {
+    rateLimiter.release(convRate.key);
   }
 }
 

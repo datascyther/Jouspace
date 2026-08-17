@@ -10,6 +10,8 @@
  *
  * Behaviour (unchanged): two-model routing, reasoning_content silently dropped,
  * fast-model failure → one retry on balanced. Yields only visible content.
+ * Also hosts transcribeAudio() for voice chat (multipart POST to
+ * /v1/audio/transcriptions, returns the trimmed transcript).
  */
 
 import type { ModelMessage, GatewayStreamChunk } from '../../server/types.js';
@@ -18,6 +20,12 @@ import type { ReasoningProfile } from '../../server/reasoning.js';
 const NVIDIA_BASE_URL = 'https://integrate.api.nvidia.com/v1';
 const LIGHTNING_MODEL = 'nvidia/nemotron-3.5-lightning-30b-a3b';
 const FAST_MODEL = 'nvidia/nemotron-3-nano-30b-a3b';
+// Hosted ASR model for voice chat. NVIDIA serves speech NIMs (Parakeet family,
+// Whisper, Canary) from the same integrate.api.nvidia.com base + key used for
+// LLM inference. Parakeet is English-first and low-latency; override with the
+// NVIDIA_ASR_MODEL env binding to switch (e.g. nvidia/whisper-large-v3 for
+// multilingual).
+const DEFAULT_ASR_MODEL = 'nvidia/parakeet-tdt-0.6b-v3';
 
 type ProfileParams = {
   model: string;
@@ -43,7 +51,10 @@ const PROFILE_PARAMS: Record<ReasoningProfile, ProfileParams> = {
 };
 
 export class NvidiaGateway {
-  constructor(private readonly apiKey: string) {
+  constructor(
+    private readonly apiKey: string,
+    private readonly asrModel: string = DEFAULT_ASR_MODEL
+  ) {
     if (!apiKey) {
       throw new Error('NVIDIA_API_KEY is not set (configure it as a Worker secret).');
     }
@@ -140,5 +151,37 @@ export class NvidiaGateway {
     }
 
     yield { text: '', done: true };
+  }
+
+  /**
+   * Transcribe a mono 16-bit PCM WAV clip via the hosted NVIDIA ASR NIM.
+   * POSTs multipart form data (file + model) to /v1/audio/transcriptions —
+   * the same OpenAI-compatible surface NVIDIA exposes for its speech models.
+   * Returns the trimmed transcript text.
+   */
+  async transcribeAudio(bytes: Uint8Array): Promise<string> {
+    const form = new FormData();
+    // Copy into a fresh ArrayBuffer-backed view so TS accepts it as a BlobPart.
+    form.append('file', new File([new Uint8Array(bytes)], 'recording.wav', { type: 'audio/wav' }));
+    form.append('model', this.asrModel);
+    form.append('response_format', 'json');
+
+    const res = await fetch(`${NVIDIA_BASE_URL}/audio/transcriptions`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${this.apiKey}` },
+      body: form,
+    });
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      throw new Error(`NVIDIA upstream error ${res.status}: ${text.slice(0, 200)}`);
+    }
+
+    const payload = (await res.json()) as { text?: string };
+    const transcript = (payload?.text ?? '').trim();
+    if (!transcript) {
+      throw new Error('No speech detected in the recording.');
+    }
+    return transcript;
   }
 }

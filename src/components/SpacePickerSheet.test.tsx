@@ -1,9 +1,13 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { OverlayStackProvider } from '../hooks/useFocusTrap';
-import { SpacePickerSheet, SPACES, getSpaceById, spaceForTheme } from './SpacePickerSheet';
+import {
+  SpacePickerScreen,
+  SPACES,
+  spaceForTheme,
+} from './SpacePickerSheet';
 
-function renderSheet(node: React.ReactElement) {
+function renderScreen(node: React.ReactElement) {
   return render(<OverlayStackProvider>{node}</OverlayStackProvider>);
 }
 
@@ -14,22 +18,13 @@ const CUSTOM = {
   placeholderBody: 'Today begins...',
 };
 
-describe('SpacePickerSheet', () => {
+describe('SpacePickerScreen', () => {
   beforeEach(() => {
     localStorage.clear();
   });
 
   it('renders the four preset spaces plus the create option', () => {
-    renderSheet(
-      <SpacePickerSheet
-        isOpen
-        onClose={() => {}}
-        selectedSpaceId="journal"
-        onSelectSpace={() => {}}
-        onCreateCustomTheme={() => {}}
-      />
-    );
-    expect(screen.getByRole('dialog', { name: 'Choose a space' })).toBeTruthy();
+    renderScreen(<SpacePickerScreen initialSelectedId="journal" onBack={() => {}} />);
     for (const space of SPACES) {
       expect(screen.getByText(space.label)).toBeTruthy();
     }
@@ -37,88 +32,55 @@ describe('SpacePickerSheet', () => {
   });
 
   it('marks the selected space with aria-pressed', () => {
-    renderSheet(
-      <SpacePickerSheet
-        isOpen
-        onClose={() => {}}
-        selectedSpaceId="gratitude"
-        onSelectSpace={() => {}}
-        onCreateCustomTheme={() => {}}
-      />
-    );
+    renderScreen(<SpacePickerScreen initialSelectedId="gratitude" onBack={() => {}} />);
     const gratitude = screen.getByText('Gratitude').closest('button');
     expect(gratitude?.getAttribute('aria-pressed')).toBe('true');
   });
 
-  it('calls onSelectSpace with the chosen space', () => {
-    const onSelect = vi.fn();
-    renderSheet(
-      <SpacePickerSheet
-        isOpen
-        onClose={() => {}}
-        selectedSpaceId="journal"
-        onSelectSpace={onSelect}
-        onCreateCustomTheme={() => {}}
-      />
-    );
+  it('writes the chosen space to the transient store on select', () => {
+    renderScreen(<SpacePickerScreen initialSelectedId="journal" onBack={() => {}} />);
     fireEvent.click(screen.getByText('Gratitude'));
-    expect(onSelect).toHaveBeenCalledWith(getSpaceById('gratitude'));
+    const sel = JSON.parse(localStorage.getItem('jouspace:space:selection')!);
+    expect(sel).toEqual({ spaceId: 'gratitude', customThemeId: null });
   });
 
   it('opens the create form and submits a slugged custom theme', () => {
-    const onCreate = vi.fn();
-    renderSheet(
-      <SpacePickerSheet
-        isOpen
-        onClose={() => {}}
-        selectedSpaceId="journal"
-        onSelectSpace={() => {}}
-        onCreateCustomTheme={onCreate}
-      />
-    );
+    renderScreen(<SpacePickerScreen initialSelectedId="journal" onBack={() => {}} />);
     fireEvent.click(screen.getByText('Create your own theme'));
-    expect(screen.getByRole('dialog', { name: 'Create your own theme' })).toBeTruthy();
+    expect(screen.getByText('Set the tone and placeholders for this space')).toBeTruthy();
 
     fireEvent.change(screen.getByLabelText('Theme name'), {
       target: { value: 'My Morning Pages!' },
     });
     fireEvent.click(screen.getByText('Create'));
 
-    expect(onCreate).toHaveBeenCalledTimes(1);
-    const created = onCreate.mock.calls[0][0];
-    expect(created.id).toBe('my_morning_pages');
-    expect(created.label).toBe('My Morning Pages!');
+    const sel = JSON.parse(localStorage.getItem('jouspace:space:selection')!);
+    expect(sel.spaceId).toBe('custom');
+    expect(sel.customThemeId).toBe('my_morning_pages');
+
+    // The custom theme is persisted globally.
+    const stored = JSON.parse(localStorage.getItem('jouspace:spaces:custom')!);
+    expect(stored[0].id).toBe('my_morning_pages');
+    expect(stored[0].label).toBe('My Morning Pages!');
   });
 
   it('rejects a reserved theme name', () => {
-    const onCreate = vi.fn();
-    renderSheet(
-      <SpacePickerSheet
-        isOpen
-        onClose={() => {}}
-        selectedSpaceId="journal"
-        onSelectSpace={() => {}}
-        onCreateCustomTheme={onCreate}
-      />
-    );
+    renderScreen(<SpacePickerScreen initialSelectedId="journal" onBack={() => {}} />);
     fireEvent.click(screen.getByText('Create your own theme'));
     fireEvent.change(screen.getByLabelText('Theme name'), {
       target: { value: 'Clarity' },
     });
     fireEvent.click(screen.getByText('Create'));
-    expect(onCreate).not.toHaveBeenCalled();
     expect(screen.getByRole('alert')).toBeTruthy();
+    expect(localStorage.getItem('jouspace:space:selection')).toBeNull();
   });
 
   it('renders the active custom theme as the create row', () => {
-    renderSheet(
-      <SpacePickerSheet
-        isOpen
-        onClose={() => {}}
-        selectedSpaceId="custom"
-        onSelectSpace={() => {}}
-        customTheme={CUSTOM}
-        onCreateCustomTheme={() => {}}
+    renderScreen(
+      <SpacePickerScreen
+        initialSelectedId="custom"
+        initialCustom={{ name: CUSTOM.label, cTitle: CUSTOM.placeholderTitle, cBody: CUSTOM.placeholderBody }}
+        onBack={() => {}}
       />
     );
     expect(screen.getByText(CUSTOM.label)).toBeTruthy();

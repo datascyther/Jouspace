@@ -1,39 +1,36 @@
 import React, { useState, useId } from 'react';
-import { Mail, Lock, User as UserIcon, ArrowLeft, Eye, EyeOff, CheckCircle2, Shield, Lock as LockIcon } from 'lucide-react';
+import { Mail, Lock, User as UserIcon, ArrowLeft, ArrowRight, Eye, EyeOff, CheckCircle2, Shield, Lock as LockIcon } from 'lucide-react';
 import { TbSparkle } from 'react-icons/tb';
 import { RiPencilAi2Line } from 'react-icons/ri';
 import { PrimaryButton } from './PrimaryButton';
 import { TextAction } from './TextAction';
 import logoSrc from '../assets/Jouspace logo.png';
+import { Capacitor } from '@capacitor/core';
 import {
   type AuthUser,
-  isSupabaseConfigured,
+  isFirebaseConfigured,
   signUp,
   signIn,
-  requestVerificationCode,
+  resendVerificationEmail,
+  reloadAndCheckVerified,
   requestPasswordReset,
-  signInWithOAuth,
+  signInWithGoogle,
 } from '../lib/auth';
 
 type View = 'welcome' | 'signin' | 'create' | 'forgot' | 'verify';
 
 interface AuthScreenProps {
-  /** Called with the authenticated user once sign-in / verification completes.
-   *  Pass `null` to clear back to a local no-account session (e.g. sign-out). */
-  onAuthed: (user: AuthUser | null) => void;
-  /** Lets the user enter the app without a cloud account (local-first). */
-  onContinueWithoutAccount: () => void;
+  /** Called with the authenticated user once sign-in / verification completes. */
+  onAuthed: (user: AuthUser) => void;
 }
 
 /**
- * Revived auth entry point. Backend-free: every step is handled by the local
- * mock in `lib/localAuth.ts` so the transition can be tested in the running
- * app. When the real backend lands, only that module changes.
+ * Auth entry point. All account creation / sign-in / verification goes through
+ * Firebase (Google + email/password) via `lib/auth.ts`.
  */
-export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed, onContinueWithoutAccount }) => {
+export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed }) => {
   const [view, setView] = useState<View>('welcome');
   const [pending, setPending] = useState<AuthUser | null>(null);
-  const [pendingOrigin, setPendingOrigin] = useState<'create' | 'signin'>('create');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -52,7 +49,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed, onContinueWith
     setResetSent(false);
   };
 
-  const go = (next: View, _direction: 'fwd' | 'back' = 'fwd') => {
+  const go = (next: View) => {
     setError(null);
     setView(next);
   };
@@ -66,17 +63,14 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed, onContinueWith
         setError(res.error);
         return;
       }
-      // Supabase confirms via email link. Route to the "check your email" view
-      // (the link completes sign-in via onAuthStateChange → onAuthed).
       setSuccess(true);
       setPending(res.user);
-      setPendingOrigin('create');
       setTimeout(() => {
         setSuccess(false);
-        go('verify', 'fwd');
+        go('verify');
       }, 600);
     } catch {
-      setError('Unable to create account. Check your connection and try again.');
+      setError('Unable to create account. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -88,11 +82,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed, onContinueWith
     try {
       const res = await signIn(email, password);
       if (!res.ok) {
-        // If the account exists but isn't confirmed yet, nudge to check email.
         if (/confirm|verify/i.test(res.error)) {
-          setPending({ ...currentFallbackUser(), email });
-          setPendingOrigin('signin');
-          go('verify', 'fwd');
+          setPending({ id: '', email, displayName: name || 'You', joinedDate: '', verified: false });
+          go('verify');
           return;
         }
         setError(res.error);
@@ -100,64 +92,71 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed, onContinueWith
       }
       onAuthed(res.user);
     } catch {
-      setError('Unable to sign in. Check your connection and try again.');
+      setError('Unable to sign in. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const currentFallbackUser = (): AuthUser => ({
-    id: '',
-    email,
-    displayName: name || 'You',
-    joinedDate: '',
-    verified: false,
-  });
-
-  const handleResend = async () => {
-    if (!pending) return;
+  const handleGoogleSignIn = async () => {
     setLoading(true);
     setError(null);
     try {
-      await requestVerificationCode(pending.email);
-      setResetSent(true);
-    } catch {
-      setError('Unable to resend the link. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleOAuth = async (provider: 'google') => {
-    if (!isSupabaseConfigured) {
-      setError('Sign-in is not configured. Use “Continue without an account” for now.');
-      return;
-    }
-    setError(null);
-    setLoading(true);
-    try {
-      const res = await signInWithOAuth(provider);
+      if (!Capacitor.isNativePlatform()) {
+        // Web: redirect flow — page unloads, completion on return.
+        await signInWithGoogle();
+        return;
+      }
+      // Native: OS sheet resolves in-process.
+      const safety = setTimeout(() => setLoading(false), 120_000);
+      const res = await signInWithGoogle();
+      clearTimeout(safety);
       if (!res.ok) {
         setError(res.error);
         setLoading(false);
         return;
       }
-      // On success supabase-js navigates the top-level window to the provider.
-      // If navigation is blocked (popup blocker, or the browser never leaves),
-      // don’t leave the spinner stuck forever — bail out after a beat
-      // and tell the user what likely went wrong.
-      setTimeout(() => {
-        setError(
-          'Could not open Google. Check that Google sign-in is enabled in the '
-            + 'Supabase Dashboard and that this exact URL is an allowed redirect '
-            + 'URL. You can also use “Continue without an account”.',
-        );
-        setLoading(false);
-      }, 1500);
+      onAuthed(res.user);
     } catch {
-      setError('Unable to start sign-in. Please try again.');
+      setError('Unable to start Google sign-in. Please try again.');
+    } finally {
       setLoading(false);
     }
+  };
+
+  const handleResend = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await resendVerificationEmail();
+      if (!res.ok) setError(res.error);
+    } catch {
+      setError('Unable to resend the email. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCheckVerified = async () => {
+    if (!pending) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const verified = await reloadAndCheckVerified();
+      if (verified) {
+        onAuthed({ ...pending, verified: true });
+      } else {
+        setError('We still can’t confirm your email. You can keep writing — or try again.');
+      }
+    } catch {
+      setError('Unable to confirm your email. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleContinueAnyway = () => {
+    if (pending) onAuthed(pending);
   };
 
   const handleReset = async () => {
@@ -178,12 +177,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed, onContinueWith
   };
 
   return (
-    <div className="relative flex-1 flex flex-col min-h-0 bg-base overflow-hidden overscroll-contain">
+    <div className="relative flex-1 flex flex-col min-h-0 w-full bg-base overflow-y-auto overscroll-contain">
       {/* Ambient depth orbs — two contained, low-opacity brand-purple hazes that
-          give the auth canvas a sense of room (light theme only; hidden on dark).
-          They drift slowly for a living, creative atmosphere. */}
+          give the auth canvas a sense of room (light theme only; hidden on dark). */}
       <div aria-hidden="true" className="auth-orb auth-orb--tr" />
-      <div aria-hidden="true" className="auth-orb auth-orb--bl" />
 
       {/* Welcome watermark — a quiet, watermarked privacy promise pinned to the
           bottom of the screen (welcome only). */}
@@ -206,10 +203,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed, onContinueWith
                 setError(null);
                 if (view === 'verify') {
                   // Back from verify returns to where we came from.
-                  setPendingOrigin;
-                  go(pending && pending.verified ? 'signin' : 'create', 'back');
+                  go(pending && pending.verified ? 'signin' : 'create');
                 } else {
-                  go('welcome', 'back');
+                  go('welcome');
                 }
               }}
               className="absolute left-0 -top-14 flex h-12 w-12 items-center justify-center rounded-full text-secondary transition-colors hover:text-primary hover:bg-black/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
@@ -222,26 +218,22 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed, onContinueWith
           {/* Brand lockup */}
           <div className="flex justify-center mb-10">
             <div className="relative grid place-items-center">
-              {/* Outer ambient glow — wide, soft spread */}
+              {/* Layered brand glow — translucent, blends into the background,
+                  matches the flower mark's accent purple. */}
               <div
                 aria-hidden
-                className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(108,77,202,0.22),rgba(108,77,202,0.08)_50%,transparent_72%)] blur-2xl"
+                className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-28 w-28 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(108,77,202,0.55),rgba(108,77,202,0.12)_55%,transparent_75%)] blur-md"
               />
-              {/* Mid-range glow ring */}
               <div
                 aria-hidden
-                className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(108,77,202,0.40),rgba(108,77,202,0.10)_60%,transparent_80%)] blur-xl"
+                className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-48 w-48 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(108,77,202,0.30),transparent_70%)] blur-xl"
               />
-              {/* Inner tight glow — punchy core */}
-              <div
-                aria-hidden
-                className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-28 w-28 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(108,77,202,0.60),rgba(108,77,202,0.15)_55%,transparent_75%)] blur-lg"
-              />
-              {/* Logo mark with layered purple glow depth */}
+              {/* Logo mark floating in the glow — no hard border, just a faint
+                  translucent rim and a soft accent halo. */}
               <img
                 src={logoSrc}
                 alt=""
-                className="relative h-20 w-20 rounded-full object-cover shadow-[0_0_32px_-2px_rgba(108,77,202,0.55),0_0_60px_-4px_rgba(108,77,202,0.3),inset_0_1px_2px_rgba(255,255,255,0.15)]"
+                className="relative h-20 w-20 rounded-full object-cover shadow-[0_0_28px_-2px_rgba(108,77,202,0.6)] ring-1 ring-white/30"
               />
             </div>
           </div>
@@ -252,7 +244,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed, onContinueWith
             <WelcomeView
               onGetStarted={() => { resetForm(); go('create'); }}
               onSignIn={() => { resetForm(); go('signin'); }}
-              onContinueWithoutAccount={onContinueWithoutAccount}
             />
           )}
 
@@ -292,7 +283,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed, onContinueWith
                 gradient={false}
                 size="lg"
                 className="mt-1 bg-accent! hover:bg-accentHover! active:bg-accentActive! shadow-[0_4px_14px_rgba(108,77,202,0.3)]! active:shadow-[0_2px_8px_rgba(108,77,202,0.45)]! active:scale-[0.98]! disabled:opacity-50! w-full tracking-[0.3px]"
-                isLoading={loading}
                 success={success}
                 disabled={loading || !name.trim() || !email.trim() || !password}
                 onClick={handleCreate}
@@ -307,6 +297,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed, onContinueWith
           )}
 
           {view === 'signin' && (
+            <>
             <FormShell
               eyebrow="Welcome back"
               title="Sign in to Jouspace"
@@ -330,7 +321,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed, onContinueWith
               />
               {error && <ErrorNote message={error} />}
               <div className="flex justify-end -mt-2">
-                <TextAction onClick={() => { resetForm(); go('forgot', 'fwd'); }} className="text-[14px] text-accent!">
+                <TextAction onClick={() => { resetForm(); go('forgot'); }} className="text-[14px] text-accent!">
                   Forgot password?
                 </TextAction>
               </div>
@@ -338,37 +329,41 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed, onContinueWith
                 gradient={false}
                 size="lg"
                 className="bg-accent! hover:bg-accentHover! active:bg-accentActive! shadow-[0_4px_14px_rgba(108,77,202,0.3)]! active:shadow-[0_2px_8px_rgba(108,77,202,0.45)]! active:scale-[0.98]! disabled:opacity-50! w-full tracking-[0.3px]"
-                isLoading={loading}
                 disabled={loading || !email.trim() || !password}
                 onClick={handleSignIn}
               >
                 Sign in
               </PrimaryButton>
 
-              <div className="flex items-center gap-3 py-1 text-[12.5px] text-muted">
-                <span className="h-px flex-1 bg-borderSubtle" />
-                or
-                <span className="h-px flex-1 bg-borderSubtle" />
-              </div>
+              {isFirebaseConfigured && (
+                <>
+                  <div className="flex items-center gap-3 py-1 text-[12.5px] text-muted">
+                    <span className="h-px flex-1 bg-borderSubtle" />
+                    or
+                    <span className="h-px flex-1 bg-borderSubtle" />
+                  </div>
 
-              <PrimaryButton
-                gradient={false}
-                size="lg"
-                className="gap-2.5 tracking-[0.3px] bg-surface! text-primary! border border-borderSubtle! hover:bg-baseTint! active:bg-elevated! shadow-[0_1px_3px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.04)]! hover:shadow-[0_2px_8px_rgba(0,0,0,0.1)]! w-full"
-                disabled={loading}
-                onClick={() => handleOAuth('google')}
-                icon={
-                  <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
-                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                  </svg>
-                }
-              >
-                Continue with Google
-              </PrimaryButton>
+                  <PrimaryButton
+                    gradient={false}
+                    size="lg"
+                    className="gap-2.5 tracking-[0.3px] bg-surface! text-primary! border border-borderSubtle! hover:bg-baseTint! active:bg-elevated! shadow-[0_1px_3px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.04)]! hover:shadow-[0_2px_8px_rgba(0,0,0,0.1)]! w-full"
+                    disabled={loading}
+                    onClick={handleGoogleSignIn}
+                    icon={
+                      <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                      </svg>
+                    }
+                  >
+                    Continue with Google
+                  </PrimaryButton>
+                </>
+              )}
             </FormShell>
+            </>
           )}
 
           {view === 'forgot' && (
@@ -401,7 +396,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed, onContinueWith
                     gradient={false}
                     size="lg"
                     className="bg-accent! hover:bg-accentHover! active:bg-accentActive! shadow-[0_4px_14px_rgba(108,77,202,0.3)]! active:shadow-[0_2px_8px_rgba(108,77,202,0.45)]! active:scale-[0.98]! disabled:opacity-50! w-full mt-2 tracking-[0.3px]"
-                    isLoading={loading}
                     disabled={loading || !email.trim()}
                     onClick={handleReset}
                   >
@@ -414,43 +408,37 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed, onContinueWith
 
           {view === 'verify' && pending && (
             <FormShell
-              eyebrow="Check your email"
-              title="One last step"
-              subtitle={
-                pendingOrigin === 'create'
-                  ? `We sent a confirmation link to ${pending.email}. Open it to activate your account and continue.`
-                  : `We sent a sign-in link to ${pending.email}. Open it to finish signing in.`
-              }
+              eyebrow="Verify your email"
+              title="Check your email"
+              subtitle={`We sent a verification link to ${pending.email}. Open it, then continue — or keep writing and verify later.`}
             >
-              <div className="flex flex-col items-center gap-4 py-2 text-center">
-                <Mail className="h-10 w-10 text-accent" />
-                <p className="text-[15px] text-secondary leading-relaxed">
-                  Didn't get it? Check spam, or resend the link below. You can also close this and sign in
-                  another way.
-                </p>
+              <div className="flex flex-col gap-3 mt-2">
+                {error && <ErrorNote message={error} />}
+                <PrimaryButton
+                  gradient={false}
+                  size="lg"
+                  className="bg-accent! hover:bg-accentHover! active:bg-accentActive! shadow-[0_4px_14px_rgba(108,77,202,0.3)]! active:shadow-[0_2px_8px_rgba(108,77,202,0.45)]! active:scale-[0.98]! disabled:opacity-50! w-full gap-1.5 tracking-[0.3px]"
+                  disabled={loading}
+                  onClick={handleCheckVerified}
+                  icon={<ArrowRight className="h-[18px] w-[18px] stroke-[1.8]" />}
+                >
+                  I've verified — continue
+                </PrimaryButton>
+                <PrimaryButton
+                  gradient={false}
+                  size="lg"
+                  className="bg-surface! text-primary! border border-borderSubtle! hover:bg-baseTint! active:bg-elevated! shadow-[0_1px_3px_rgba(0,0,0,0.08)]! w-full tracking-[0.3px]"
+                  disabled={loading}
+                  onClick={handleContinueAnyway}
+                >
+                  Continue anyway
+                </PrimaryButton>
+                <div className="mt-2 flex items-center justify-center">
+                  <TextAction onClick={handleResend} className="text-[14px] text-muted! link-underline-grow">
+                    Resend email
+                  </TextAction>
+                </div>
               </div>
-              {resetSent && (
-                <p className="text-center text-[13px] text-accent">Link resent to {pending.email}.</p>
-              )}
-              <PrimaryButton
-                gradient={false}
-                size="lg"
-                className="bg-accent! hover:bg-accentHover! active:bg-accentActive! shadow-[0_4px_14px_rgba(108,77,202,0.3)]! active:shadow-[0_2px_8px_rgba(108,77,202,0.45)]! active:scale-[0.98]! disabled:opacity-50! w-full mt-1 tracking-[0.3px]"
-                isLoading={loading}
-                disabled={loading}
-                onClick={handleResend}
-              >
-                Resend link
-              </PrimaryButton>
-              <TextAction
-                onClick={() => {
-                  resetForm();
-                  go('signin', 'back');
-                }}
-                className="text-[14px] text-accent! mx-auto"
-              >
-                Back to sign in
-              </TextAction>
             </FormShell>
           )}
         </div>
@@ -464,10 +452,16 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed, onContinueWith
 
 // Landing decorative flower removed per polish pass — the typography and CTA now breathe.
 
-function WelcomeView({ onGetStarted, onSignIn, onContinueWithoutAccount }: { onGetStarted: () => void; onSignIn: () => void; onContinueWithoutAccount: () => void }) {
+function WelcomeView({
+  onGetStarted,
+  onSignIn,
+}: {
+  onGetStarted: () => void;
+  onSignIn: () => void;
+}) {
   return (
     <div className="text-center">
-      <div className="mb-5 inline-flex items-center gap-1.5 rounded-full border border-borderSubtle bg-surface/40 px-3 py-1.5 text-accent backdrop-blur-md">
+      <div className="mb-5 inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-3 py-1.5 text-accent">
         <TbSparkle className="h-4 w-4 -translate-y-px" aria-hidden="true" />
         <span className="text-[11px] font-semibold uppercase tracking-[1.2px]">Your private journal</span>
       </div>
@@ -499,14 +493,7 @@ function WelcomeView({ onGetStarted, onSignIn, onContinueWithoutAccount }: { onG
         </TextAction>
       </div>
 
-      <button
-        type="button"
-        onClick={onContinueWithoutAccount}
-        className="mt-4 w-full inline-flex items-center justify-center text-[14px] font-medium text-muted hover:text-secondary active:text-secondary transition-colors min-h-12"
-      >
-        Continue without an account
-      </button>
-    </div>
+      </div>
   );
 }
 
@@ -525,7 +512,7 @@ function FormShell({
     <div>
       <div className="mb-2 text-[11px] font-semibold uppercase tracking-[1.2px] text-accent">{eyebrow}</div>
       <h1 className="mb-1.5 text-[26px] font-bold leading-[1.2] tracking-[-0.3px] text-primary">{title}</h1>
-      <p className="mb-7 max-w-[320px] text-[15px] font-normal leading-normal text-secondary">{subtitle}</p>
+      <p className="mb-7 max-w-[320px] text-[15px] font-normal leading-normal text-secondaryText">{subtitle}</p>
       <div className="flex flex-col gap-5">{children}</div>
     </div>
   );
@@ -551,7 +538,7 @@ function LabeledField({
   const inputId = useId();
   return (
     <div className={hasError ? 'animate-shake' : undefined}>
-      <label htmlFor={inputId} className="mb-2 block text-[14px] font-medium text-primary">
+      <label htmlFor={inputId} className="mb-2 block text-[14px] font-medium text-primaryText">
         {label}
       </label>
       <div
@@ -565,7 +552,7 @@ function LabeledField({
           autoComplete={autoComplete}
           onChange={(e) => onChange(e.target.value)}
           placeholder={label}
-          className="h-full w-full bg-transparent text-[16px] font-sans font-normal text-primary placeholder:text-[15px] placeholder:text-muted focus:outline-none"
+          className="h-full w-full bg-transparent text-[16px] font-sans font-normal text-primaryText placeholder:text-[15px] placeholder:text-muted focus:outline-none"
         />
       </div>
     </div>
@@ -589,7 +576,7 @@ function LabeledPasswordField({
   const inputId = useId();
   return (
     <div className={hasError ? 'animate-shake' : undefined}>
-      <label htmlFor={inputId} className="mb-2 block text-[14px] font-medium text-primary">
+      <label htmlFor={inputId} className="mb-2 block text-[14px] font-medium text-primaryText">
         {label}
       </label>
       <div
@@ -605,7 +592,7 @@ function LabeledPasswordField({
           autoComplete={autoComplete}
           onChange={(e) => onChange(e.target.value)}
           placeholder={label}
-          className="h-full w-full bg-transparent text-[16px] font-sans font-normal text-primary placeholder:text-[15px] placeholder:text-muted focus:outline-none"
+          className="h-full w-full bg-transparent text-[16px] font-sans font-normal text-primaryText placeholder:text-[15px] placeholder:text-muted focus:outline-none"
         />
         <button
           type="button"

@@ -18,8 +18,6 @@ export interface Draft {
   savedAt: number;
 }
 
-import { queueUserPrefsSync } from '../lib/supabaseUserPrefs';
-
 const DRAFT_STORAGE_KEY = 'jouspace:journal:draft';
 
 type ReadableStorage = Pick<Storage, 'getItem'>;
@@ -65,7 +63,6 @@ export function writeDraft(
   } catch {
     /* ignore storage failure (private mode, quota, etc.) */
   }
-  void queueUserPrefsSync();
 }
 
 /** Remove the persisted draft (called after the entry is saved). */
@@ -75,5 +72,4 @@ export function clearDraft(storage: RemovableStorage = localStorage): void {
   } catch {
     /* ignore storage failure */
   }
-  void queueUserPrefsSync();
 }

@@ -113,7 +113,7 @@ export const BrandedSpinner: React.FC<{ className?: string; label?: string }> = 
       aria-hidden="true"
       className="w-14 h-14 rounded-full shadow-sm object-cover animate-brand-pulse"
     />
-    <span className="font-sans text-[13px] text-[#999999] select-none">{label}</span>
+    <span className="font-sans text-[13px] text-muted select-none">{label}</span>
   </div>
 );
 

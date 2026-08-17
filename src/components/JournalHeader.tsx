@@ -12,7 +12,7 @@ export const JournalHeader: React.FC<JournalHeaderProps> = ({
 }) => {
   return (
     <header
-      className={`flex items-center justify-between w-full py-2 bg-base border-none shadow-none ${className}`}
+      className={`flex items-center justify-between w-full py-0.5 bg-base border-none shadow-none ${className}`}
     >
       {/* Back Button */}
       <button
@@ -29,7 +29,7 @@ export const JournalHeader: React.FC<JournalHeaderProps> = ({
         Journal
       </h1>
 
-      {/* Spacer — keeps the title centered now that Save is removed */}
+      {/* Spacer — keeps the title centered */}
       <span className="w-8" aria-hidden="true" />
     </header>
   );

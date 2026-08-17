@@ -23,7 +23,6 @@
 import { readDraft } from '../utils/draft';
 import { journalStore } from '../store';
 import { loadProfile, DEFAULT_DISPLAY_NAME } from '../hooks/useProfile';
-import { queueUserPrefsSync } from '../lib/supabaseUserPrefs';
 import { PermissionService } from '../permissions';
 import {
   nativeSchedule,
@@ -84,7 +83,6 @@ function writeEnabled(enabled: boolean): void {
   } catch {
     /* ignore */
   }
-  void queueUserPrefsSync();
 }
 
 function getDisplayName(): string {
