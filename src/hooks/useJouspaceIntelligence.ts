@@ -108,13 +108,6 @@ export interface ChatSendOptions {
   context?: { entryId?: string };
 }
 
-export interface VoiceSendInput {
-  /** Base64 WAV data URL from the voice recorder. */
-  dataUrl: string;
-  /** Clip length in ms (UI + server validation only). */
-  durationMs?: number;
-}
-
 export interface ReflectSendOptions {
   /** The insight being reflected on — required for reflect capability */
   insight: string;
@@ -134,10 +127,6 @@ export interface UseJouspaceIntelligenceReturn {
   error: string | null;
   /** Send a user message and start streaming the response */
   send: (userText: string, options?: SendOptions) => void;
-  /** Send a recorded voice clip (transcribed server-side) and stream the
-   *  response. The user bubble is inserted when the runtime returns the
-   *  transcript — only the server knows what was heard. */
-  sendVoice: (audio: VoiceSendInput, options?: SendOptions) => void;
   /** Cancel the in-flight stream */
   abort: () => void;
   /** Clear message history */
@@ -194,14 +183,13 @@ export function parseSSELine(
 }
 
 // ── Shared stream reader ──────────────────────────────────────────────────────
-// Both `send` (text chat) and `sendVoice` (recorded chat) consume the same SSE
-// wire format, so the read loop + transient retry live here once.
+// `send` (text chat) consumes this SSE wire format; the read loop + transient
+// retry live here once.
 
 type SSEMessage =
   | { kind: 'done' }
   | { kind: 'error'; message: string }
-  | { kind: 'text'; text: string }
-  | { kind: 'transcript'; text: string };
+  | { kind: 'text'; text: string };
 
 async function readSSE(
   reader: ReadableStreamDefaultReader<Uint8Array>,
@@ -231,9 +219,6 @@ async function readSSE(
       if (parsed.error) {
         onEvent({ kind: 'error', message: parsed.error });
         return;
-      }
-      if (parsed.transcript !== undefined) {
-        onEvent({ kind: 'transcript', text: parsed.transcript });
       }
       if (parsed.text !== undefined) {
         onEvent({ kind: 'text', text: parsed.text });
@@ -408,7 +393,6 @@ export function useJouspaceIntelligence(
                 setError(event.message);
                 return;
               }
-              if (event.kind === 'transcript') return; // text chat never emits these
               if (event.kind === 'text') {
                 if (firstChunk) {
                   // Transition from thinking → streaming on the first real token
@@ -456,124 +440,6 @@ export function useJouspaceIntelligence(
     [capability, messages]
   );
 
-  const sendVoice = useCallback(
-    (audio: VoiceSendInput, options?: SendOptions) => {
-      const dataUrl = audio?.dataUrl?.trim();
-      if (!dataUrl) return;
-
-      // Cancel any in-flight request
-      abortRef.current?.abort();
-      const controller = new AbortController();
-      abortRef.current = controller;
-
-      // No user bubble yet — it is inserted when the runtime returns the
-      // transcript (only the server knows what was heard).
-      setIsThinking(true);
-      setIsStreaming(false);
-      setError(null);
-
-      // No runtime configured (and no build-time URL, and not dev) → degrade
-      // gracefully instead of firing a doomed request. In dev an empty base
-      // means a relative /api/... call handled by the Vite proxy.
-      const base = getApiBaseUrl();
-      if (!base && !import.meta.env.DEV) {
-        setIsThinking(false);
-        setError(RUNTIME_UNAVAILABLE_MESSAGE);
-        return;
-      }
-
-      // The audio clip travels as base64 in the JSON body; the runtime
-      // transcribes it server-side and answers with the transcript as context.
-      const body: Record<string, unknown> = {
-        audio: dataUrl,
-        durationMs: audio.durationMs,
-        messages: [
-          // Prior conversation (the transcript becomes the newest user message
-          // on the server)
-          ...messages
-            .filter((m) => m.role === 'user' || m.role === 'assistant')
-            .map((m) => ({ role: m.role, content: m.text })),
-        ],
-        context: (options as ChatSendOptions)?.context,
-        entries: clientEntriesPayload(),
-        profile: getAIProfilePayload(),
-      };
-
-      const assistantId = `a-${Date.now()}`;
-      let firstChunk = true;
-      let userMsgId: string | null = null;
-
-      (async () => {
-        try {
-          await streamChatResponse({
-            base,
-            path: '/api/ai/voice-chat',
-            body,
-            controller,
-            onEvent: (event) => {
-              if (event.kind === 'done') return;
-              if (event.kind === 'error') {
-                setError(event.message);
-                return;
-              }
-              if (event.kind === 'transcript') {
-                if (userMsgId) return; // guard against duplicate transcript events
-                userMsgId = `u-${Date.now()}`;
-                setMessages((prev) => [
-                  ...prev,
-                  {
-                    id: userMsgId as string,
-                    role: 'user' as const,
-                    text: event.text,
-                    timestamp: new Date().toLocaleTimeString([], {
-                      hour: 'numeric',
-                      minute: '2-digit',
-                    }),
-                  },
-                ]);
-                return;
-              }
-              if (event.kind === 'text') {
-                if (firstChunk) {
-                  firstChunk = false;
-                  setIsThinking(false);
-                  setIsStreaming(true);
-                  setMessages((prev) => [
-                    ...prev,
-                    {
-                      id: assistantId,
-                      role: 'assistant' as const,
-                      text: event.text,
-                    },
-                  ]);
-                } else {
-                  setMessages((prev) =>
-                    prev.map((m) =>
-                      m.id === assistantId
-                        ? { ...m, text: m.text + event.text }
-                        : m
-                    )
-                  );
-                }
-              }
-            },
-          });
-        } catch (err) {
-          if ((err as Error).name === 'AbortError') return; // User cancelled
-          console.error('[useJouspaceIntelligence]', err);
-          setError(
-            (err as Error).message ||
-              'Jouspace Intelligence is unavailable. Please try again.'
-          );
-        } finally {
-          setIsThinking(false);
-          setIsStreaming(false);
-        }
-      })();
-    },
-    [messages]
-  );
-
   // Persist the 'chat' conversation whenever it is idle (never mid-stream),
   // so a partial/aborted assistant message is never written to storage.
   useEffect(() => {
@@ -588,7 +454,6 @@ export function useJouspaceIntelligence(
     isStreaming,
     error,
     send,
-    sendVoice,
     abort,
     reset,
   };

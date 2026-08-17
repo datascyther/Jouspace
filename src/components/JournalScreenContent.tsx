@@ -691,8 +691,10 @@ export const JournalScreenContent: React.FC<JournalScreenContentProps> = ({
         </div>
       </div>
 
-      {/* Bottom bar — Tag + Done, pinned below scroll area */}
-      <div className="shrink-0 px-4 py-3 flex items-center justify-between">
+      {/* Bottom bar — Tag + Done, pinned below scroll area. `py-4` keeps a 1%
+          breathing gap above the pinned BottomNavigation (its wrapper has no
+          padding of its own, so this is the only spacing between them). */}
+      <div className="shrink-0 px-4 py-4 flex items-center justify-between">
         <button
           type="button"
           onClick={handleSpaceClick}

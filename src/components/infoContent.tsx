@@ -56,10 +56,9 @@ export const infoContent: Record<
     body: (
       <div className="flex flex-col gap-2">
         <p>
-          Your journal starts on your device and works fully offline. If you use
-          it without an account, everything stays in your browser's local
-          storage — clearing site data or uninstalling removes it, and nothing
-          is uploaded.
+          Your journal starts on your device and works fully offline. Everything you
+          write stays in your browser's local storage — clearing site data or
+          uninstalling removes it, and nothing is uploaded unless you sign in.
         </p>
         <p>
           If you sign in (Google or email), your entries are backed up and kept

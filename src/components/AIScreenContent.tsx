@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Mic, ArrowUp, X } from 'lucide-react';
 import { AIHeader } from './AIHeader';
 import { MemoryContextCard } from './MemoryContextCard';
 import { SuggestionRow } from './SuggestionRow';
@@ -15,7 +14,6 @@ import {
 import { journalStore } from '../store';
 import { useKeyboard } from '../hooks/useAdaptiveKeyboard';
 import { readAiAttach, clearAiAttach } from '../utils/pickerStore';
-import { useVoiceRecorder } from '../hooks/useVoiceRecorder';
 import type { Entry } from './EntryRow';
 
 export interface AIMessage {
@@ -58,14 +56,6 @@ function realContextThreads(): string[] {
   return Array.from(set);
 }
 
-/** Format ms as m:ss for the voice-note chip. */
-function formatDuration(ms: number): string {
-  const totalSeconds = Math.max(0, Math.round(ms / 1000));
-  const m = Math.floor(totalSeconds / 60);
-  const s = totalSeconds % 60;
-  return `${m}:${String(s).padStart(2, '0')}`;
-}
-
 export const AIScreenContent: React.FC<AIScreenContentProps> = ({
   activeTab,
   onTabChange,
@@ -85,19 +75,12 @@ export const AIScreenContent: React.FC<AIScreenContentProps> = ({
   const [initialMessages] = useState(() => loadChatMessages());
   const ai = useJouspaceIntelligence('chat', initialMessages);
 
-  // Voice recording — records a clip (WAV, 16kHz mono) so the AI runtime can
-  // transcribe and answer it. Tap the mic to start/stop capture; stopping
-  // produces a preview chip with Send / Discard.
-  const recorder = useVoiceRecorder();
-
   // Apply any pending "attach" selected in the entry-picker route (one-shot
   // transient store). Runs after mount so it composes with the restored chat.
   useEffect(() => {
     const title = readAiAttach();
     if (title) {
       setComposerValue((prev) => (prev ? `${prev}\n` : '') + `Re: ${title}`);
-      // An attach composes a text message, so any pending voice chip goes too.
-      recorder.clear();
       clearAiAttach();
     }
   }, []);
@@ -152,46 +135,23 @@ export const AIScreenContent: React.FC<AIScreenContentProps> = ({
     if (atBottomRef.current) scrollToBottom(false);
   }, [keyboardVisible]);
 
-  // Pin to the bottom whenever the thread grows — a new text message, the user
-  // bubble inserted on the voice-transcript SSE event, or streamed tokens — so a
-  // streaming reply stays in view. Only auto-scrolls while the user is already
-  // at the bottom (reading history is never yanked).
+  // Pin to the bottom whenever the thread grows — a new text message or streamed
+  // tokens — so a streaming reply stays in view. Only auto-scrolls while the
+  // user is already at the bottom (reading history is never yanked).
   useEffect(() => {
     if (!atBottomRef.current) return;
     scrollToBottom(false);
   }, [ai.messages, ai.isThinking, ai.isStreaming]);
 
-  const handleMicPress = () => {
-    if (recorder.recording) {
-      recorder.stop();
-    } else {
-      void recorder.start();
-    }
-  };
-
-  const handleSendVoice = () => {
-    const clip = recorder.result;
-    if (!clip) return;
-    ai.sendVoice({ dataUrl: clip.dataUrl, durationMs: clip.durationMs });
-    recorder.clear();
-  };
-
   const handleSend = (overrideText?: string) => {
     const text = (overrideText ?? composerValue).trim();
     if (!text) return;
     setComposerValue('');
-    // Sending text supersedes any pending voice note — the chip is no longer
-    // the next message to send.
-    recorder.clear();
     ai.send(text);
   };
 
-  // Typing supersedes a pending voice note: without this the chip would sit
-  // alongside typed text, ambiguous about what Send actually sends. The first
-  // non-empty keystroke dismisses it (Send/Discard are gone with it).
   const handleComposerChange = (value: string) => {
     setComposerValue(value);
-    if (value.trim()) recorder.clear();
   };
 
   const handleSuggestion = (question: string) => handleSend(question);
@@ -307,59 +267,15 @@ export const AIScreenContent: React.FC<AIScreenContentProps> = ({
       {/* Pinned Composer */}
       <div
         className={`shrink-0 px-4 pt-1 transition-[padding] duration-200 ${
-          keyboardVisible ? 'pb-composer-kb' : 'pb-2'
+          keyboardVisible ? 'pb-composer-kb' : 'pb-3'
         }`}
       >
-        {recorder.error ? (
-          <p className="px-1 pb-1.5 font-sans text-[12.5px] text-error leading-snug">
-            {recorder.error}
-            {recorder.canOpenSettings ? (
-              <button
-                type="button"
-                onClick={() => void recorder.openSettings()}
-                className="ml-1 underline underline-offset-2"
-              >
-                Open Settings
-              </button>
-            ) : null}
-          </p>
-        ) : null}
-        {recorder.result && !ai.isThinking && !ai.isStreaming ? (
-          <div className="flex items-center gap-2 px-1 pb-1.5">
-            <span className="flex items-center gap-1.5 font-sans text-[13px] text-secondary bg-surface border border-borderSubtle rounded-full px-3 py-1.5">
-              <Mic className="w-3.5 h-3.5 text-accent" />
-              Voice note · {formatDuration(recorder.result.durationMs)}
-            </span>
-            <button
-              type="button"
-              onClick={handleSendVoice}
-              aria-label="Send voice note"
-              className="flex items-center gap-1 rounded-full bg-accent px-3 py-1.5 font-sans text-[12.5px] text-white hover:bg-accentHover transition-colors cursor-pointer focus:outline-none"
-            >
-              <ArrowUp className="w-3.5 h-3.5 stroke-2" />
-              Send
-            </button>
-            <button
-              type="button"
-              onClick={recorder.clear}
-              aria-label="Discard voice note"
-              className="flex items-center rounded-full border border-borderSubtle p-1.5 text-secondary hover:text-primaryText transition-colors cursor-pointer focus:outline-none"
-            >
-              <X className="w-4 h-4 stroke-[1.8]" />
-            </button>
-          </div>
-        ) : null}
         <Composer
           value={composerValue}
           onChange={handleComposerChange}
           onSend={() => handleSend()}
           onAttach={() => onOpenEntryPicker?.()}
-          onMic={handleMicPress}
           onFocus={() => setInputMode('default')}
-          micDisabled={!recorder.supported || ai.isThinking || ai.isStreaming}
-          isRecording={recorder.recording}
-          isPreparing={recorder.starting}
-          recordingSec={Math.floor(recorder.elapsedMs / 1000)}
           disabled={ai.isThinking || ai.isStreaming}
         />
       </div>

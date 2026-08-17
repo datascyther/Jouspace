@@ -3,7 +3,7 @@
  *
  * localStorage is the instant source of truth for the UI (snappy, works fully
  * offline). Firestore is the background mirror for cross-device sync on
- * authenticated accounts. "Continue without an account" never touches Firestore.
+ * authenticated accounts; unauthenticated users never touch Firestore.
  *
  * Architecture:
  *   attachSync(uid)   → initial merge → live onSnapshot listeners

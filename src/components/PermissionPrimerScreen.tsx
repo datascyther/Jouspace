@@ -8,12 +8,14 @@ import { PERMISSIONS, PERMISSION_ORDER } from '../permissions/registry';
 import type { PermissionKey, PermissionResult } from '../permissions/types';
 
 const ICONS: Record<PermissionKey, React.ReactNode> = {
+  // Microphone is catalogued (for a later voice-typing release) but is never
+  // rendered — only PERMISSION_ORDER is mapped below.
   microphone: <Mic className="w-6 h-6" />,
   notifications: <Bell className="w-6 h-6" />,
 };
 
 // Concise purpose phrases for accessible switch labels, e.g.
-// "Enable Microphone for voice journaling".
+// "Enable Notifications for reflection reminders".
 const PURPOSE: Record<PermissionKey, string> = {
   microphone: 'voice journaling',
   notifications: 'reflection reminders',
@@ -67,6 +69,10 @@ function Toggle({
  * Post-auth permission primer. Shown after successful email/Google
  * authentication; required step (each permission individually optional via its
  * toggle). The "Continue" button enters the app; there is no "Skip for now".
+ *
+ * Only the permissions in PERMISSION_ORDER are offered here. This release
+ * surfaces just notifications — the microphone permission is catalogued but
+ * not presented, since voice typing is deprecated for now.
  */
 export const PermissionPrimerScreen: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
   const { states, ensure, openSettings, refresh } = usePermissions();

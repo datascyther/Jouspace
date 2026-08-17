@@ -1,14 +1,10 @@
 /**
  * chatPipeline.ts — Shared conversational completion pipeline
  *
- * Both the Chat route (POST /api/ai/chat) and the Voice Chat route
- * (POST /api/ai/voice-chat) stream a Jouspace Intelligence reply through the
- * exact same steps: domain pre-filter → rate limit → adaptive reasoning profile
- * → journal context assembly → system prompt → model gateway → SSE stream.
- *
- * The only difference: voice chat transcribes the user's recording first,
- * appends the transcript as the newest user message, and emits a `transcript`
- * event before the model tokens so the client can show what was heard.
+ * The Chat route (POST /api/ai/chat) streams a Jouspace Intelligence reply
+ * through these steps: domain pre-filter → rate limit → adaptive reasoning
+ * profile → journal context assembly → system prompt → model gateway → SSE
+ * stream.
  */
 
 import type { Request, Response } from 'express';
@@ -41,9 +37,6 @@ export interface ChatPipelineOptions {
   context?: ChatRequest['context'];
   entries?: ChatRequest['entries'];
   profile?: ChatRequest['profile'];
-  /** Runs after SSE headers are sent, before the first model token — used by
-   *  voice chat to emit the transcript event. */
-  beforeTokens?: (res: Response) => void;
 }
 
 /**

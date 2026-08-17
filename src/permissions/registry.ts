@@ -18,7 +18,10 @@ export const PERMISSIONS: Record<PermissionKey, PermissionMeta> = {
       'recognition service (typically Google’s), so the audio is sent to that ' +
       'service to be turned into text for your entry — it is used for nothing else.',
     required: false,
-    usedBy: ['AI composer mic', 'Journal writing-toolbar mic'],
+    // Voice typing is deprecated for this release; the mic permission plumbing
+    // stays wired (native + web bridges, PermissionService) so the feature can
+    // be revived later. It is simply never surfaced in the primer / settings UI.
+    usedBy: [],
   },
   notifications: {
     key: 'notifications',
@@ -32,5 +35,7 @@ export const PERMISSIONS: Record<PermissionKey, PermissionMeta> = {
   },
 };
 
-/** Stable display order for the primer / settings list. */
-export const PERMISSION_ORDER: PermissionKey[] = ['microphone', 'notifications'];
+/** Stable display order for the primer / settings list. Only notifications are
+ *  offered to users this release — the microphone permission exists in the
+ *  catalogue but is deliberately not presented. */
+export const PERMISSION_ORDER: PermissionKey[] = ['notifications'];

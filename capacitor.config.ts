@@ -55,27 +55,35 @@ const config: CapacitorConfig = {
 export default config;
 
 /**
- * ── Native permission setup (mic + notifications) ─────────────────────────────
+ * ── Native permission setup (notifications; microphone dormant) ──────────────
  * The web build asks for these via the browser/WebView. For a real app-store
  * build you must also declare them natively, or the OS will refuse the request.
  *
- * These are already declared in the committed android/app/src/main/AndroidManifest.xml.
- * The jouspace:// deep-link intent-filter for OAuth callbacks is also in the manifest.
+ * Notifications are declared in the committed
+ * android/app/src/main/AndroidManifest.xml. The jouspace:// deep-link
+ * intent-filter for OAuth callbacks is also in the manifest.
+ *
+ * The microphone permission is ALSO declared natively (RECORD_AUDIO) and
+ * catalogued in the permission registry, but voice typing is deprecated for
+ * this release — the mic is never requested in the primer or settings UI, so
+ * the native declaration is inert. Reviving voice typing later needs no
+ * manifest change, just the UI + engine wiring back.
  *
  * 1) Plugins are installed via package.json — run `npm install && npx cap sync android`.
  *
-   * 2) iOS — ios/App/App/Info.plist (purpose strings are REQUIRED or the app
-   *    crashes on first request):
-   *      <key>NSMicrophoneUsageDescription</key>
-   *      <string>Jouspace uses your microphone to transcribe voice journal entries.</string>
-   *      <key>NSSpeechRecognitionUsageDescription</key>
-   *      <string>Jouspace sends your speech to Apple’s speech recognition service to transcribe voice journal entries.</string>
-   *      <key>NSLocalNotificationUsageDescription</key>
-   *      <string>Jouspace sends gentle reminders to help you build a journaling habit.</string>
-   *
-   * NOTE: there is no `ios/` target in this repo yet (Android only). These
-   * purpose strings are documented for when iOS support is added.
-   *
-   * The primer screen (PermissionPrimerScreen) requests these in-context, which
-   * keeps the app compliant with Apple Guideline 5.1.1 and Google Play policies.
+    * 2) iOS — ios/App/App/Info.plist (purpose strings are REQUIRED or the app
+    *    crashes on first request):
+    *      <key>NSMicrophoneUsageDescription</key>
+    *      <string>Jouspace uses your microphone to transcribe voice journal entries.</string>
+    *      <key>NSSpeechRecognitionUsageDescription</key>
+    *      <string>Jouspace sends your speech to Apple’s speech recognition service to transcribe voice journal entries.</string>
+    *      <key>NSLocalNotificationUsageDescription</key>
+    *      <string>Jouspace sends gentle reminders to help you build a journaling habit.</string>
+    *
+ * NOTE: there is no `ios/` target in this repo yet (Android only). These
+ * purpose strings are documented for when iOS support is added.
+ *
+ * The primer screen (PermissionPrimerScreen) requests permissions in-context,
+ * which keeps the app compliant with Apple Guideline 5.1.1 and Google Play
+ * policies. Only notifications are offered this release.
  */

@@ -123,15 +123,9 @@ export function saveSession(user: AuthUser): void {
 }
 
 /** Sign out everywhere and clear the local mirror. */
-export async function clearSession(): Promise<void> {
+  export async function clearSession(): Promise<void> {
   // Clear local state immediately so the UI transitions without waiting.
   setCurrent(null);
-  // Also drop the local-mode bypass flag so the gate re-appears on next launch.
-  try {
-    localStorage.removeItem('jouspace:auth:bypass');
-  } catch {
-    /* storage disabled — in-memory only */
-  }
   // Fire-and-forget remote sign-out — errors are non-fatal.
   void signOutFirebase().catch(() => {});
 }
@@ -364,7 +358,7 @@ let authInitialized = false;
  * Wire Firebase auth-state into the local session mirror. When Firebase is
  * configured it is the authoritative session source; every change maps to an
  * AuthUser (carrying `emailVerified`) and notifies local listeners. The
- * localStorage mirror is retained for the no-Firebase / local / bypass modes.
+ * localStorage mirror is retained for restoring the session across reloads.
  */
 export function initializeAuth(): void {
   if (!isFirebaseConfigured || authInitialized) return;

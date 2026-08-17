@@ -28,7 +28,11 @@ function capacitor(): CapacitorGlobal | undefined {
 }
 
 export function isNativePlatform(): boolean {
-  return !!capacitor()?.isNativePlatform?.();
+  const native = !!capacitor()?.isNativePlatform?.();
+  // DIAGNOSTIC: capture ground truth about which permission path the app
+  // actually takes on this device (see mic issue investigation).
+  console.log('[JousPACE-MIC-DIAG] isNativePlatform=' + native);
+  return native;
 }
 
 function plugin(name: string): AnyPlugin | undefined {
@@ -64,8 +68,11 @@ function getMicPermission(): MicPlugin {
 export async function nativeCheckMicrophone(): Promise<string | null> {
   try {
     const r = await getMicPermission().checkPermissions();
-    return r?.microphone ?? null;
-  } catch {
+    const mic = r?.microphone ?? null;
+    console.log('[JousPACE-MI-DIAG] nativeCheckMicrophone raw=' + JSON.stringify(r) + ' -> ' + mic);
+    return mic;
+  } catch (e) {
+    console.log('[JousPACE-MI-DIAG] nativeCheckMicrophone threw: ' + (e && (e as Error).message ? (e as Error).message : String(e)));
     return null;
   }
 }
@@ -77,8 +84,11 @@ export async function nativeCheckMicrophone(): Promise<string | null> {
 export async function nativeRequestMicrophone(): Promise<string | null> {
   try {
     const r = await getMicPermission().requestPermissions();
-    return r?.microphone ?? null;
-  } catch {
+    const mic = r?.microphone ?? null;
+    console.log('[JousPACE-MI-DIAG] nativeRequestMicrophone raw=' + JSON.stringify(r) + ' -> ' + mic);
+    return mic;
+  } catch (e) {
+    console.log('[JousPACE-MI-DIAG] nativeRequestMicrophone threw: ' + (e && (e as Error).message ? (e as Error).message : String(e)));
     return null;
   }
 }

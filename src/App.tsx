@@ -180,31 +180,12 @@ export function App() {
   // Onboarding: splash → auth → permission primer → app.
   // Returning users who finished the primer skip straight to the app.
   // Auth gate — Firebase is the identity provider (Google + email/password).
-  // The app stays fully usable without a real sign-in via the "Continue without
-  // an account" local-first path. A successful sign-in (handleAuthed) overwrites
-  // authUser; the `bypassed` flag lets the app be reached with no account.
+  // A successful sign-in (handleAuthed) overwrites authUser; otherwise the
+  // gate stays up until the user completes a Firebase auth flow.
   const [authUser, setAuthUser] = useState<AuthUser | null>(() => loadSession() ?? NoAccountUser);
 
-  // Test / local-mode bypass: persisted in localStorage so it survives reload.
-  // A dev-only `?bypassAuth=1` query param (stripped from prod builds) sets it.
-  const [bypassed, setBypassed] = useState<boolean>(() => {
-    try {
-      if (localStorage.getItem('jouspace:auth:bypass') === '1') return true;
-    } catch {
-      /* ignore */
-    }
-    if (import.meta.env.DEV) {
-      try {
-        return new URLSearchParams(location.search).get('bypassAuth') === '1';
-      } catch {
-        /* ignore */
-      }
-    }
-    return false;
-  });
-
   /** True when the user should see the app rather than the auth gate. */
-  const showApp = bypassed || !isNoAccountUser(authUser);
+  const showApp = !isNoAccountUser(authUser);
 
   // First-run flow stages: splash -> auth -> permissions -> app.
   // Returning users (jouspace.onboarded === '1') start straight at 'app'.
@@ -321,6 +302,14 @@ export function App() {
   const [memoryLoading, setMemoryLoading] = useState(false);
   const memoryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Live mirrors of `stage` / `navStack` so the hardware-back listener (which
+  // closes over a stable effect, not the latest render) can always read the
+  // current onboarding stage and navigation depth.
+  const stageRef = useRef(stage);
+  stageRef.current = stage;
+  const navDepthRef = useRef(navStack.length);
+  navDepthRef.current = navStack.length;
+
   useLayoutEffect(() => {
     if (currentScreen === 'memory' && !memoryLoadedRef.current) {
       memoryLoadedRef.current = true;
@@ -367,32 +356,14 @@ export function App() {
       const next = user ?? NoAccountUser;
       setAuthUser(next);
       if (!isNoAccountUser(next)) {
-        // Real (non-no-account) sign-in: sync the Profile display name and
-        // clear any local-mode bypass so the gate stays solved by the session.
+        // Real (non-no-account) sign-in: sync the Profile display name so it
+        // matches the authenticated account.
         setDisplayName(next.displayName);
-        setBypassed(false);
-        try {
-          localStorage.removeItem('jouspace:auth:bypass');
-        } catch {
-          /* ignore */
-        }
       }
       setStage((prev) => (prev === 'auth' ? 'permissions' : 'app'));
     },
     [setDisplayName],
   );
-
-  // Local-mode bypass ("Continue without an account"): persist the flag and
-  // advance past the gate without creating a Firebase session.
-  const handleBypass = useCallback(() => {
-    try {
-      localStorage.setItem('jouspace:auth:bypass', '1');
-    } catch {
-      /* ignore */
-    }
-    setBypassed(true);
-    setStage('app');
-  }, []);
 
   // Hydrate the session from the persisted Firebase session on startup, and keep
   // authUser in sync with any future sign-in / sign-out.
@@ -433,15 +404,9 @@ export function App() {
   }, []);
 
   // Show the auth screen on demand (e.g. from Profile -> Sign in / Switch
-  // account, or after signing out). Clears the local-mode bypass so the gate
-  // re-appears, then resets to the no-account placeholder.
+  // account, or after signing out). Resets to the no-account placeholder so the
+  // gate re-appears and the user can complete a Firebase auth flow.
   const goToAuth = useCallback(() => {
-    try {
-      localStorage.removeItem('jouspace:auth:bypass');
-    } catch {
-      /* ignore */
-    }
-    setBypassed(false);
     setAuthUser(NoAccountUser);
     setNavStack([tabToNode('home')]); // land on a fresh root, not a stale Profile
     setStage('auth');
@@ -516,15 +481,24 @@ export function App() {
         offUrlOpen =
           typeof urlHandle?.remove === 'function' ? () => urlHandle.remove() : undefined;
 
-        // Android hardware back button — when the auth screen is showing,
-        // keep the no-account placeholder instead of letting the WebView handle
-        // it (which would exit the activity).
+        // Android hardware back button — navigate the in-app stack on every screen.
+        // Registering ANY listener stops Capacitor's native AppPlugin from
+        // calling finish() (it fires the event to JS instead), so we must
+        // always decide what to do here: pop a screen, hold the auth gate, or
+        // minimize. Without this, back does nothing on most screens.
         const backHandle = app.addListener(
           'backButton',
           () => {
-            // Only intercept on the auth screen; otherwise let the default
-            // Capacitor / Android behaviour handle it (minimize app).
-            if (stage === 'auth') {
+            // Inside the app: pop the navigation stack (composer → home,
+            // detail view → list, overlay → underlying screen). At the root
+            // there is nothing to pop, so let the OS minimize the app.
+            if (stageRef.current === 'app') {
+              if (navDepthRef.current > 1) goBack();
+              return;
+            }
+            // Onboarding stages (splash / auth / permissions): hold the auth
+            // gate rather than letting the WebView exit the activity.
+            if (stageRef.current === 'auth') {
               setAuthUser(NoAccountUser);
             }
           },
@@ -1021,7 +995,6 @@ export function App() {
         ) : (
           <AuthScreen
             onAuthed={handleAuthed}
-            onContinueWithoutAccount={handleBypass}
           />
         )
         }

@@ -22,16 +22,13 @@ type View = 'welcome' | 'signin' | 'create' | 'forgot' | 'verify';
 interface AuthScreenProps {
   /** Called with the authenticated user once sign-in / verification completes. */
   onAuthed: (user: AuthUser) => void;
-  /** Skips account creation and enters the app in local (no-account) mode. */
-  onContinueWithoutAccount: () => void;
 }
 
 /**
  * Auth entry point. All account creation / sign-in / verification goes through
- * Firebase (Google + email/password) via `lib/auth.ts`. The app also supports a
- * fully local "Continue without an account" path — no cloud session required.
+ * Firebase (Google + email/password) via `lib/auth.ts`.
  */
-export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed, onContinueWithoutAccount }) => {
+export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed }) => {
   const [view, setView] = useState<View>('welcome');
   const [pending, setPending] = useState<AuthUser | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -247,7 +244,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed, onContinueWith
             <WelcomeView
               onGetStarted={() => { resetForm(); go('create'); }}
               onSignIn={() => { resetForm(); go('signin'); }}
-              onContinueWithoutAccount={onContinueWithoutAccount}
             />
           )}
 
@@ -367,12 +363,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed, onContinueWith
                 </>
               )}
             </FormShell>
-
-            <div className="mt-6 flex items-center justify-center">
-              <TextAction onClick={onContinueWithoutAccount} className="text-[14px] text-muted! link-underline-grow">
-                Continue without an account
-              </TextAction>
-            </div>
             </>
           )}
 
@@ -465,11 +455,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed, onContinueWith
 function WelcomeView({
   onGetStarted,
   onSignIn,
-  onContinueWithoutAccount,
 }: {
   onGetStarted: () => void;
   onSignIn: () => void;
-  onContinueWithoutAccount: () => void;
 }) {
   return (
     <div className="text-center">
@@ -505,12 +493,7 @@ function WelcomeView({
         </TextAction>
       </div>
 
-      <div className="mt-4 flex items-center justify-center">
-        <TextAction onClick={onContinueWithoutAccount} className="text-[14px] text-muted! link-underline-grow">
-          Continue without an account
-        </TextAction>
       </div>
-    </div>
   );
 }
 
