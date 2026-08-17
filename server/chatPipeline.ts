@@ -101,9 +101,6 @@ export async function runChatPipeline(
     res.setHeader('X-Reasoning-Profile', reasoning);
     initSSE(res);
 
-    // Voice chat emits the transcript as the first event.
-    options.beforeTokens?.(res);
-
     // Upstream abort controller: cancelled on client disconnect or the
     // StreamController ceiling so the NVIDIA call is released promptly.
     const upstreamAbort = new AbortController();
