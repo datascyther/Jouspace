@@ -66,7 +66,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({
       </div>
 
       {/* Content */}
-      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-6 py-4 pb-safe">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-none px-6 py-4 pb-safe">
         {!query.trim() ? (
           <p className="font-sans text-[13px] text-muted mt-2">
             Search your entries by title, theme, or content.

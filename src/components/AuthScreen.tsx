@@ -177,7 +177,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed }) => {
   };
 
   return (
-    <div className="relative flex-1 flex flex-col min-h-0 w-full bg-base overflow-y-auto overscroll-contain">
+    <div className="relative flex-1 flex flex-col min-h-0 w-full bg-base overflow-y-auto overscroll-none">
       {/* Ambient depth orbs — two contained, low-opacity brand-purple hazes that
           give the auth canvas a sense of room (light theme only; hidden on dark). */}
       <div aria-hidden="true" className="auth-orb auth-orb--tr" />
@@ -193,7 +193,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed }) => {
         </div>
       )}
 
-      <div className={`relative z-10 flex flex-1 flex-col items-center ${view === 'welcome' ? 'justify-center px-6' : 'pt-20 pb-10 px-6'}`}>
+      <div className={`relative z-10 flex flex-1 flex-col items-center ${view === 'welcome' ? 'justify-center px-6 select-none' : 'pt-20 pb-10 px-6'}`}>
         <div className="relative w-full max-w-[360px]">
           {/* Back affordance (forms only) — 48×48 touch target, top-left. */}
           {view !== 'welcome' && (

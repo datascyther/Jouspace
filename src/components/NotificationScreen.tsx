@@ -107,7 +107,7 @@ export const NotificationScreen: React.FC<NotificationScreenProps> = ({
           </p>
         </div>
       ) : (
-        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-5 pb-6">
+        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-none px-5 pb-6">
           {/* ── Earlier today ── */}
           <SectionLabel>Earlier today</SectionLabel>
           <div className="flex flex-col gap-2.5">

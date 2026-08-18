@@ -86,7 +86,7 @@ export const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProp
       </div>
 
       {/* Settings list */}
-      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-6 pb-4 pb-safe">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-none px-6 pb-4 pb-safe">
         <div className="flex flex-col gap-4">
           {/* Notification permission toggle */}
           <div className="bg-surface rounded-2xl border border-borderSubtle p-4 flex items-center gap-4">

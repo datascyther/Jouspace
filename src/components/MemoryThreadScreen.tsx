@@ -41,7 +41,7 @@ export const MemoryThreadScreen: React.FC<MemoryThreadScreenProps> = ({
       </div>
 
       {/* Scrollable content */}
-      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-6 pb-6 pb-safe">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-none px-6 pb-6 pb-safe">
         {/* Theme Title */}
         <div className="bg-surface border border-borderSubtle rounded-2xl px-5 py-4 mt-5 mb-6">
           <h2 className="font-serif font-medium text-[20px] text-primaryText mb-1 capitalize">
@@ -60,7 +60,7 @@ export const MemoryThreadScreen: React.FC<MemoryThreadScreenProps> = ({
         ) : (
           <div className="flex flex-col gap-0 mb-8">
             {entries.map((entry, index) => (
-              <div key={entry.id} className="flex gap-4">
+              <div key={entry.id} className="cvi-auto flex gap-4">
                 {/* Timeline Line */}
                 <div className="flex flex-col items-center">
                   <div className="w-2.5 h-2.5 rounded-full bg-accent shrink-0 mt-1.5" />
