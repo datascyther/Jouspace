@@ -12,6 +12,7 @@ import { Presence } from './components/Presence';
 import { MemoryScreenContent } from './components/MemoryScreenContent';
 import { AIScreenContent } from './components/AIScreenContent';
 import { ProfileScreenContent, type InfoSheetKind } from './components/ProfileScreenContent';
+import { PullToRefresh } from './components/PullToRefresh';
 import { SplashScreen } from './components/SplashScreen';
 import { PermissionPrimerScreen } from './components/PermissionPrimerScreen';
 import { AuthScreen } from './components/AuthScreen';
@@ -54,6 +55,7 @@ import {
   attachSync,
   detachSync,
   onSyncStatusChange,
+  refreshSync,
   type SyncStatus,
 } from './store/cloudSync';
 import { Capacitor } from '@capacitor/core';
@@ -594,6 +596,17 @@ export function App() {
     showToast('AI memory reset');
   };
 
+  // Pull-to-refresh for the feed screens (Home / Memory). Re-syncs from the
+  // cloud when signed in (a failed pull can never touch local data — see
+  // refreshSync), re-reads the on-device personalization, and reports failures
+  // via the existing toast. Composer screens never get this gesture, so no
+  // unsaved text is ever at risk.
+  const handleRefresh = useCallback(async () => {
+    const ok = await refreshSync();
+    setAiMemoryNotes(loadPersonalization().memoryNotes);
+    if (!ok) showToast("Couldn't refresh — check your connection.");
+  }, []);
+
   const handleSelectContext = (id: string) => {
     const item = CONTEXT_ITEMS.find((c) => c.id === id);
     if (!item) return;
@@ -748,6 +761,7 @@ export function App() {
               entries={journal.entries}
               isNoMemories={isEmpty}
               isLoading={memoryLoading}
+              onRefresh={handleRefresh}
               onEntryClick={handleEntryClick}
               onExploreThread={handleExploreThread}
               onReflectWithAi={handleReflectWithAI}
@@ -874,7 +888,7 @@ export function App() {
           ) : (
             /* HOME SCREEN VIEW */
             <div className="flex flex-col flex-1 min-h-0">
-              <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-none px-4 pt-2 pb-4">
+              <PullToRefresh onRefresh={handleRefresh} className="px-4 pt-2 pb-4">
                 <div className="flex flex-col gap-7 w-full">
                   <JouspaceHeader
                     userInitials={userInitials}
@@ -982,7 +996,7 @@ export function App() {
                     )}
                   </section>
                 </div>
-              </div>
+              </PullToRefresh>
 
               <div className="shrink-0">
                 <BottomNavigation
