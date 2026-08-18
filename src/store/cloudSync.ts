@@ -571,6 +571,28 @@ export async function attachSync(uid: string): Promise<void> {
 }
 
 /**
+ * Force a re-sync from Firestore on demand ("pull to refresh"). Pushes any
+ * pending local writes, pulls the latest cloud state, and re-runs the same LWW
+ * merge used at attach. Returns true on success; false on failure. Never
+ * throws. Local data is only rewritten AFTER a successful cloud read (see
+ * initialMerge), so a failed refresh can never delete an entry. Cosmetic
+ * no-op (resolves true) for local-only / not-signed-in users.
+ */
+export async function refreshSync(): Promise<boolean> {
+  if (!attachedUid || !getFirestoreDB()) return true;
+  setStatus('syncing');
+  try {
+    await initialMerge(attachedUid);
+    flushJournalPush(attachedUid);
+    return getSyncStatus() !== 'error';
+  } catch (err) {
+    console.error('[cloudSync] refreshSync failed:', err);
+    setStatus('error');
+    return false;
+  }
+}
+
+/**
  * Detach sync — stop all listeners, clear state.
  * Local data is NOT wiped; the journal remains readable.
  */
