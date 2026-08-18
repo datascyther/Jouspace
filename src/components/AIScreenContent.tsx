@@ -14,6 +14,11 @@ import {
 import { journalStore } from '../store';
 import { useKeyboard } from '../hooks/useAdaptiveKeyboard';
 import { readAiAttach, clearAiAttach } from '../utils/pickerStore';
+import {
+  readAiComposerDraft,
+  writeAiComposerDraft,
+  clearAiComposerDraft,
+} from '../utils/aiDraft';
 import type { Entry } from './EntryRow';
 
 export interface AIMessage {
@@ -69,7 +74,10 @@ export const AIScreenContent: React.FC<AIScreenContentProps> = ({
   onOpenEntry,
   onOpenEntryPicker,
 }) => {
-  const [composerValue, setComposerValue] = useState('');
+  // Restore the persisted composer draft on mount so a half-typed message
+  // survives any remount (tab switch, refresh elsewhere, reload). Cleared when
+  // the message is sent — see handleSend.
+  const [composerValue, setComposerValue] = useState(() => readAiComposerDraft());
 
   // Restore persisted chat history on mount so navigation doesn't lose it.
   const [initialMessages] = useState(() => loadChatMessages());
@@ -80,7 +88,11 @@ export const AIScreenContent: React.FC<AIScreenContentProps> = ({
   useEffect(() => {
     const title = readAiAttach();
     if (title) {
-      setComposerValue((prev) => (prev ? `${prev}\n` : '') + `Re: ${title}`);
+      setComposerValue((prev) => {
+        const next = (prev ? `${prev}\n` : '') + `Re: ${title}`;
+        writeAiComposerDraft(next);
+        return next;
+      });
       clearAiAttach();
     }
   }, []);
@@ -147,11 +159,13 @@ export const AIScreenContent: React.FC<AIScreenContentProps> = ({
     const text = (overrideText ?? composerValue).trim();
     if (!text) return;
     setComposerValue('');
+    clearAiComposerDraft();
     ai.send(text);
   };
 
   const handleComposerChange = (value: string) => {
     setComposerValue(value);
+    writeAiComposerDraft(value);
   };
 
   const handleSuggestion = (question: string) => handleSend(question);

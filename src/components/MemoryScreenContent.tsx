@@ -12,6 +12,7 @@ import { ReflectionPromptCard } from './ReflectionPromptCard';
 import { BottomNavigation, NavTab } from './BottomNavigation';
 import { Skeleton, useLoadGuard } from './Skeleton';
 import { ErrorState } from './ErrorState';
+import { PullToRefresh } from './PullToRefresh';
 import { useAiInsight } from '../hooks/useJouspaceIntelligence';
 
 interface MemoryScreenContentProps {
@@ -19,6 +20,8 @@ interface MemoryScreenContentProps {
   onTabChange: (tab: NavTab) => void;
   /** Real journal entries — memory patterns are derived from these. */
   entries: Entry[];
+  /** Pull-to-refresh: re-syncs feed data in place (never unmounts children). */
+  onRefresh?: () => Promise<void> | void;
   isNoMemories?: boolean;
   onEntryClick?: (entry: Entry) => void;
   onExploreThread?: (themeId: string) => void;
@@ -59,6 +62,7 @@ export const MemoryScreenContent: React.FC<MemoryScreenContentProps> = ({
   activeTab,
   onTabChange,
   entries,
+  onRefresh = async () => {},
   isNoMemories = false,
   onEntryClick,
   onExploreThread,
@@ -124,7 +128,7 @@ export const MemoryScreenContent: React.FC<MemoryScreenContentProps> = ({
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* Scrollable content */}
-      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-none px-4 pt-2 pb-4">
+      <PullToRefresh onRefresh={onRefresh} className="px-4 pt-2 pb-4">
         <div className="flex flex-col gap-7 w-full">
           <MemoryHeader
             userInitials={userInitials}
@@ -217,7 +221,7 @@ export const MemoryScreenContent: React.FC<MemoryScreenContentProps> = ({
             </section>
           )}
         </div>
-      </div>
+      </PullToRefresh>
 
       {/* Pinned BottomNavigation */}
       <div className="shrink-0">
