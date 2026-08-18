@@ -42,7 +42,7 @@ export const ThemeScreen: React.FC<ThemeScreenProps> = ({
         <div className="w-9 h-9" aria-hidden="true" />
       </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-6 pb-4 pb-safe">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-none px-6 pb-4 pb-safe">
         <p className="font-sans text-[14px] text-muted mb-4">
           Choose how Jouspace looks.
         </p>

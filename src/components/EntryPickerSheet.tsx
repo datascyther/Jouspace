@@ -32,7 +32,7 @@ export const EntryPickerScreen: React.FC<EntryPickerScreenProps> = ({
         <div className="w-9 h-9" aria-hidden="true" />
       </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-6 pb-4 pb-safe">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-none px-6 pb-4 pb-safe">
         {entries.length === 0 ? (
           <p className="font-sans text-[14px] text-muted py-4">
             No entries yet. Write something first, then attach it here.
@@ -44,7 +44,7 @@ export const EntryPickerScreen: React.FC<EntryPickerScreenProps> = ({
                 key={entry.id}
                 type="button"
                 onClick={() => onSelect(entry)}
-                className="flex items-center gap-3.5 w-full text-left bg-base hover:bg-accentSoft rounded-[14px] px-4 py-3.5 transition-all duration-150 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-accent/20 cursor-pointer"
+                className="cvi-auto flex items-center gap-3.5 w-full text-left bg-base hover:bg-accentSoft rounded-[14px] px-4 py-3.5 transition-all duration-150 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-accent/20 cursor-pointer"
               >
                 <div className="flex-1 min-w-0">
                   <p className="font-sans text-[14px] font-medium text-primaryText truncate">

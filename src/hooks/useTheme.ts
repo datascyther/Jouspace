@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { StatusBar, Style } from '@capacitor/status-bar';
 
 export type Theme = 'light' | 'dark' | 'system';
 
@@ -30,6 +32,13 @@ export function applyTheme(resolved: 'light' | 'dark'): void {
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) {
     meta.setAttribute('content', resolved === 'dark' ? DARK_BASE : LIGHT_BASE);
+  }
+  // Native: paint the Android status bar with the app canvas color and match
+  // the icon style so there is never a black bar at the top, in either theme.
+  if (Capacitor.isNativePlatform()) {
+    const isDark = resolved === 'dark';
+    void StatusBar.setBackgroundColor({ color: isDark ? DARK_BASE : LIGHT_BASE });
+    void StatusBar.setStyle({ style: isDark ? Style.Dark : Style.Light });
   }
 }
 

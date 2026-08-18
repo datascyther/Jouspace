@@ -535,25 +535,29 @@ export const JournalScreenContent: React.FC<JournalScreenContentProps> = ({
       {/* No background layer here by design — the canvas is painted once by
           AppBackground. `relative` only anchors the Space sheet and the Done
           micro-reflection overlay to the composer. */}
+      {/* Pinned header block — title, date/time, autosave, and divider stay
+          fixed while the writing area scrolls beneath. Generous spacing gives
+          the top a calm, native rhythm instead of a compressed strip. */}
+      <div className="shrink-0 px-4 pt-2 pb-1">
+        <div className="flex flex-col gap-3">
+          <JournalHeader
+            onBack={onBackToHome}
+          />
+
+          <JournalMetadata
+            dateLabel="Today"
+            timeLabel={timeLabel}
+            status={currentSaveStatus}
+            justSaved={justSaved}
+          />
+        </div>
+
+        <div className="w-full border-t border-borderSubtle mt-3 mb-6" />
+      </div>
+
       {/* Scrollable content */}
-      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-4 pt-1 pb-4">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-none px-4 pb-4">
         <div className="flex flex-col w-full">
-          {/* Compact top block: header + metadata + divider, tight spacing */}
-          <div className="flex flex-col gap-1">
-            <JournalHeader
-              onBack={onBackToHome}
-            />
-
-            <JournalMetadata
-              dateLabel="Today"
-              timeLabel={timeLabel}
-              status={currentSaveStatus}
-              justSaved={justSaved}
-            />
-          </div>
-
-          <div className="w-full border-t border-borderSubtle my-2" />
-
           {/* Writing area — editor, helpers, themes, and past entries */}
           <div className="flex flex-col gap-6">
           {/* JournalEditor + inline Sparkle continuation strip — the strip
