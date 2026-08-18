@@ -40,10 +40,18 @@ const projectId = (import.meta.env.VITE_FIREBASE_PROJECT_ID as string | undefine
 const appId = (import.meta.env.VITE_FIREBASE_APP_ID as string | undefined)?.trim();
 
 /** True only when real Firebase web-app credentials are present. */
-export const isFirebaseConfigured = Boolean(apiKey && authDomain && projectId && appId);
+const hasWebConfig = Boolean(apiKey && authDomain && projectId && appId);
+
+/**
+ * Firebase is considered configured on native platforms even when the web
+ * env vars aren't injected at build time — native auth goes through the
+ * committed `android/app/google-services.json` + @capacitor-firebase/
+ * authentication, not the JS SDK. On web, real credentials are required.
+ */
+export const isFirebaseConfigured = Capacitor.isNativePlatform() || hasWebConfig;
 
 /** Web SDK app — only used for the browser/dev fallback. Never used on native. */
-export const firebaseApp: FirebaseApp | null = isFirebaseConfigured
+export const firebaseApp: FirebaseApp | null = hasWebConfig
   ? initializeApp({ apiKey, authDomain, projectId, appId })
   : null;
 

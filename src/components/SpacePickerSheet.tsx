@@ -157,7 +157,7 @@ export const SpacePickerScreen: React.FC<SpacePickerScreenProps> = ({
         <div className="w-9 h-9" aria-hidden="true" />
       </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-6 pb-4 pb-safe">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-none px-6 pb-4 pb-safe">
         {creating ? (
           /* ── Custom theme creation form ─────────────────────────────── */
           <div className="flex flex-col gap-4 mt-4">

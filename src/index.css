@@ -309,6 +309,14 @@
   scrollbar-width: none;
 }
 
+/* Cheap list virtualization: skip layout/paint for rows far outside the
+   viewport so long journals scroll at compositor speed. `contain-intrinsic-size`
+   reserves an estimated row height so scrollbar height stays stable. */
+.cvi-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 96px;
+}
+
 /* Focus visible for accessibility */
 .focus-ring:focus-visible {
   outline: 2px solid var(--color-accent);

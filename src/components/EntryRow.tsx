@@ -33,7 +33,7 @@ export const EntryRow: React.FC<EntryRowProps> = ({
       type="button"
       onClick={() => onClick?.(entry)}
       aria-label={`Open entry from ${entry.date}: ${entry.title || 'untitled'}`}
-      className={`group flex items-center justify-between min-h-[60px] py-3.5 px-1 cursor-pointer text-left w-full hover:bg-elevated rounded-lg transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 ${
+      className={`cvi-auto group flex items-center justify-between min-h-[60px] py-3.5 px-1 cursor-pointer text-left w-full hover:bg-elevated rounded-lg transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 ${
         !isLast ? 'border-b border-borderSubtle' : ''
       } ${className}`}
     >

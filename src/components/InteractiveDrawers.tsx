@@ -71,7 +71,7 @@ export const AIReflectScreen: React.FC<AIReflectScreenProps> = ({
       </div>
 
       {/* Scrollable responses + anchor */}
-      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-6 pb-4 pb-safe flex flex-col gap-3">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-none px-6 pb-4 pb-safe flex flex-col gap-3">
         {/* Anchor insight quote */}
         <div className="p-4 bg-accentSoft/60 rounded-2xl border border-borderSubtle/50 text-sm text-primaryText font-serif leading-relaxed mt-4">
           "{insight}"
@@ -205,7 +205,7 @@ export const EntryDetailScreen: React.FC<EntryDetailScreenProps> = ({
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-6 pb-4 pb-safe">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-none px-6 pb-4 pb-safe">
         <h3 className="font-serif text-xl text-primaryText font-medium leading-snug mt-4">
           {entry.title}
         </h3>
