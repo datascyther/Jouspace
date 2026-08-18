@@ -124,7 +124,7 @@ export const MemoryScreenContent: React.FC<MemoryScreenContentProps> = ({
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* Scrollable content */}
-      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-4 pt-2 pb-4">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-none px-4 pt-2 pb-4">
         <div className="flex flex-col gap-7 w-full">
           <MemoryHeader
             userInitials={userInitials}

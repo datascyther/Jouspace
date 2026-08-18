@@ -71,7 +71,7 @@ export const ProfileScreenContent: React.FC<ProfileScreenContentProps> = ({
   if (isLoading) {
     return (
       <div className="flex flex-col flex-1 min-h-0">
-        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-4 pt-2 pb-4">
+        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-none px-4 pt-2 pb-4">
           <div className="flex flex-col gap-7 w-full animate-pulse">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -117,7 +117,7 @@ export const ProfileScreenContent: React.FC<ProfileScreenContentProps> = ({
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
-      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-4 pt-2 pb-4">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-none px-4 pt-2 pb-4">
         <div className="flex flex-col gap-5 w-full">
           <div className="flex flex-col">
             <header className="flex items-center justify-between py-2 bg-base">

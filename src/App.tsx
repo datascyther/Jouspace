@@ -874,7 +874,7 @@ export function App() {
           ) : (
             /* HOME SCREEN VIEW */
             <div className="flex flex-col flex-1 min-h-0">
-              <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-4 pt-2 pb-4">
+              <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-none px-4 pt-2 pb-4">
                 <div className="flex flex-col gap-7 w-full">
                   <JouspaceHeader
                     userInitials={userInitials}

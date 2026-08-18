@@ -12,7 +12,7 @@ export const JournalHeader: React.FC<JournalHeaderProps> = ({
 }) => {
   return (
     <header
-      className={`flex items-center justify-between w-full py-0.5 bg-base border-none shadow-none ${className}`}
+      className={`flex items-center justify-between w-full pt-2 pb-1 bg-base border-none shadow-none ${className}`}
     >
       {/* Back Button */}
       <button

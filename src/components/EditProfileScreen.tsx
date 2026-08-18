@@ -78,7 +78,7 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
       </div>
 
       {/* Content */}
-      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-6 pt-4 pb-4">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-none px-6 pt-4 pb-4">
         <div className="flex flex-col items-center gap-5">
           {/* Avatar */}
           <div className="w-[72px] h-[72px] rounded-full bg-accent/10 flex items-center justify-center shrink-0">
