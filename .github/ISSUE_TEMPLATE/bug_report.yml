@@ -1,0 +1,73 @@
+name: Bug report
+description: Report a problem with Jouspace
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report.
+
+        **Security vulnerability?** Please do **not** file a public issue. Email **security@jouspace.app** instead. See [SECURITY.md](../../../SECURITY.md).
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear and concise description of what the bug is.
+      placeholder: When I try to save an entry with a long title, the app crashes...
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Steps to reproduce the behavior.
+      placeholder: |
+        1. Go to '...'
+        2. Click on '....'
+        3. See error
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What actually happened? Include error messages or screenshots.
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      description: Where did you encounter this bug?
+      options:
+        - Web (PWA / browser)
+        - Android (APK)
+        - Both
+        - Not sure
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Which version of Jouspace are you using?
+      placeholder: e.g. 1.1.0-beta.2
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, device, browser version, etc.
+      placeholder: e.g. Android 14, Pixel 8, Chrome 126
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Any other context — screenshots, recordings, or a minimal reproduction.
