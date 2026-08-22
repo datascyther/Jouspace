@@ -3,6 +3,7 @@
   "private": true,
   "version": "1.1.0-beta.2",
   "type": "module",
+  "homepage": "https://jouspace.pages.dev/",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
