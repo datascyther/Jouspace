@@ -6,6 +6,8 @@
 
 **A private place for your thoughts — with intelligence that stays out of the way.**
 
+<img src="src/assets/gif.gif" alt="Jouspace in action — local-first journaling with streamed AI reflections" width="100%" />
+
 Local-first journaling for people who take their own mind seriously. Your words never leave your device. When you want perspective, Jouspace streams reflections through a stateless AI runtime that forgets everything the moment you stop reading.
 
 <p>
