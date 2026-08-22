@@ -6,11 +6,11 @@
 **A private place for your thoughts — with intelligence that stays out of the way.**
 
 
-Local-first journaling for people who take their own mind seriously. Your words never leave your device. When you want perspective, Jouspace streams reflections through a stateless AI runtime that forgets everything the moment you stop reading.
+Local-first journaling for people who take their own mind seriously. Your words live on your device. When you want perspective, Jouspace streams reflections through a stateless AI runtime that forgets everything the moment you stop reading.
 
 <p>
   <a href="https://github.com/datascyther/Jouspace/actions"><img src="https://img.shields.io/github/actions/workflow/status/datascyther/Jouspace/ci.yml?branch=main&style=flat-square&label=CI&labelColor=16161A" alt="CI"></a>
-  <a href="https://github.com/datascyther/Jouspace/releases"><img src="https://img.shields.io/badge/version-1.1.0--beta.2-6C4DCA?style=flat-square&labelColor=16161A" alt="Version"></a>
+  <a href="https://github.com/datascyther/Jouspace/releases"><img src="https://img.shields.io/badge/version-1.1.0-beta.2-6C4DCA?style=flat-square&labelColor=16161A" alt="Version"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-3DDC84?style=flat-square&labelColor=16161A" alt="License"></a>
   <a href="https://github.com/datascyther/Jouspace/releases"><img src="https://img.shields.io/badge/Android-APK-3DDC84?style=flat-square&logo=android&logoColor=white&labelColor=16161A" alt="Android"></a>
   <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5.9-3178C6?style=flat-square&logo=typescript&logoColor=white&labelColor=16161A" alt="TypeScript"></a>
@@ -33,7 +33,7 @@ Most software is built to capture you. Your attention, your data, your behavior 
 
 A journal is the last place that should feel that way.
 
-Jouspace is a journal that lives entirely on your device. No account. No cloud database. No analytics. Your entries are stored locally, encrypted at rest by your operating system, and never leave your hardware — unless you ask them to.
+Jouspace is local-first: your journal lives on your device and works fully offline with **no account required**. No analytics, no trackers, no remote assets. Entries are stored locally and never leave your hardware unless you choose to share them with the AI runtime or opt into cross-device sync.
 
 The one exception is deliberate: when you want insight, Jouspace can send *specific entries you choose* to a stateless AI runtime for a single, ephemeral reflection. The runtime holds no database, keeps no logs, and forgets everything the moment the stream ends.
 
@@ -45,7 +45,7 @@ Your thoughts are yours. Jouspace just helps you think them.
 
 | | |
 |---|---|
-| **Truly local-first** | Your journal is stored on your device. Works offline. No account, ever. |
+| **Truly local-first** | Your journal is stored on your device. Works offline. No account required. |
 | **Stateless AI insight** | Stream reflections, prompts, and summaries from a zero-retention runtime. You choose what to share, one request at a time. |
 | **A place to think** | A distraction-free composer with ambient sentiment tinting, draft auto-recovery, and typography tuned for long-form reflection. |
 | **Memory threads** | Entries connect into themes over time. Search, filter, and rediscover what you thought you'd forgotten. |
@@ -58,7 +58,7 @@ Your thoughts are yours. Jouspace just helps you think them.
 
 ### Prerequisites
 
-- **Node.js** `v20.0.0` or higher
+- **Node.js** `v20.19.0` or higher (or `v22.12.0`+)
 - **npm** `v10.0.0` or higher
 - *(Optional)* **NVIDIA NIM API Key** for local AI execution — get one free at [build.nvidia.com](https://build.nvidia.com)
 
@@ -116,6 +116,7 @@ All AI endpoints communicate via **Server-Sent Events (SSE)**. The client suppli
 | `/api/ai/reflect` | `POST` | Targeted reflective inquiries grounded in journal themes |
 | `/api/ai/insight` | `POST` | Autonomous pattern discovery and thematic cards |
 | `/api/ai/summarize` | `POST` | Concise distillation of long entries or memory threads |
+| `/api/ai/memory` | `POST` | Compiles a compact personalization profile from entries and your own recent turns |
 | `/api/health` | `GET` | Diagnostic status check |
 
 ---
@@ -180,6 +181,14 @@ jouspace/
 ```
 
 ---
+
+## Roadmap
+
+Jouspace is honest about what is real today and what is coming:
+
+- **Client-side encryption at rest** — journal entries are currently stored in the browser's local storage in plaintext. On-device encryption of entries is **planned but not yet implemented**.
+- **Optional cross-device sync** — sign-in via Firebase is available today, and an authenticated account can mirror entries to Firestore for sync across devices. Unauthenticated use stays fully local.
+- **Stateless AI** — the zero-retention runtime is live; provider expansion beyond NVIDIA NIM is planned.
 
 ## Contributing
 
