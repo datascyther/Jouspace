@@ -6,7 +6,7 @@ Your privacy is the entire point of Jouspace. If you believe you have found a se
 
 **Please do not open a public issue for security vulnerabilities.**
 
-Instead, email us directly at **security@jouspace.app**. You should receive an acknowledgment within 48 hours. If you don't hear back, please follow up — email can be unreliable.
+Instead, email us directly at **contact.jouspace@proton.me**. You should receive an acknowledgment within 48 hours. If you don't hear back, please follow up — email can be unreliable.
 
 ### What to include
 
