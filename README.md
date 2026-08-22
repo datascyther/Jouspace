@@ -21,6 +21,12 @@ Local-first journaling for people who take their own mind seriously. Your words 
 
 ---
 
+> *"Writing in a journal gives me a place to report, interpret, argue, reflect, save, question, predict, unload, praise, compare, cry, laugh, draw, paint, and remember."*
+>
+> **— Luci Swindoll**
+
+---
+
 ## Why Jouspace
 
 Most software is built to capture you. Your attention, your data, your behavior — packaged, profiled, and sold back to you as convenience.
