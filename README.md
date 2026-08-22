@@ -1,7 +1,8 @@
 <div align="center">
 <img src="src/assets/gif.gif" alt="Jouspace in action — local-first journaling with streamed AI reflections" width="640" />
 
-<img src="public/jouspace-wordmark.svg" alt="Jouspace" width="320" />
+<img src="public/jouspace-wordmark.svg#gh-light-mode-only" alt="Jouspace" width="320" />
+<img src="public/jouspace-wordmark-white.svg#gh-dark-mode-only" alt="Jouspace" width="320" />
 
 **A private place for your thoughts — with intelligence that stays out of the way.**
 
