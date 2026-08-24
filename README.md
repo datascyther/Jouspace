@@ -34,9 +34,9 @@ Most software is built to capture you. Your attention, your data, your behavior 
 
 A journal is the last place that should feel that way.
 
-Jouspace stores your journal on your device and works fully offline with **no account required**. No analytics, no trackers, no remote assets. Entries stay on your hardware unless you choose to send specific entries to the AI runtime or opt into cross-device sync.
+Jouspace stores your journal on your device and works offline for journaling with **no account required**. No analytics, no trackers, no remote assets. Entries stay on your hardware unless you choose to send specific entries to the AI runtime or opt into cross-device sync.
 
-The one exception is deliberate: when you want insight, Jouspace can send *specific entries you choose* to a stateless AI runtime for a single, ephemeral reflection. The runtime holds no database, keeps no logs, and forgets everything the moment the stream ends.
+The one exception is deliberate: when you want insight, Jouspace can send *specific entries you choose* to a stateless AI runtime for a single, ephemeral reflection. The runtime holds no database and never logs your journal entries; it forgets the conversation the moment the stream ends.
 
 Your thoughts are yours. Jouspace just helps you think them.
 
@@ -47,7 +47,7 @@ Your thoughts are yours. Jouspace just helps you think them.
 | | |
 |---|---|
 | **Your journal stays on your device** | Stored locally, works offline, and needs no account. |
-| **Stateless AI insight** | Stream reflections, prompts, and summaries from a zero-retention runtime. You choose what to share, one request at a time. |
+| **Stateless AI insight** | Stream reflections, prompts, and summaries from a runtime that doesn't retain your entries. You choose what to share, one request at a time. |
 | **A place to think** | A distraction-free composer with ambient sentiment tinting, draft auto-recovery, and typography tuned for long-form reflection. |
 | **Memory threads** | Entries connect into themes over time. Search, filter, and rediscover what you thought you'd forgotten. |
 | **Calm by design** | Paper-textured light mode and anti-glare dark mode, both mathematically calibrated to reduce eye strain. |
@@ -189,7 +189,7 @@ Jouspace is honest about what is real today and what is coming:
 
 - **Client-side encryption at rest** — journal entries are currently stored in the browser's local storage in plaintext. On-device encryption of entries is **planned but not yet implemented**.
 - **Optional cross-device sync** — sign-in via Firebase is available today, and an authenticated account can mirror entries to Firestore for sync across devices. Unauthenticated use stays fully local.
-- **Stateless AI** — the zero-retention runtime is live; provider expansion beyond NVIDIA NIM is planned.
+- **Stateless AI** — the runtime that doesn't retain your entries is live; provider expansion beyond NVIDIA NIM is planned.
 
 ## Contributing
 
