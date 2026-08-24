@@ -1,6 +1,6 @@
 # Contributing to Jouspace
 
-Thank you for your interest in contributing to Jouspace. This project is a quiet, local-first journaling app, and we want the contribution experience to feel the same way: calm, considered, and free of unnecessary friction.
+Thank you for your interest in contributing to Jouspace. This project is a quiet journaling app that keeps your writing on your own device, and we want the contribution experience to feel the same way: calm, considered, and free of unnecessary friction.
 
 Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before contributing. We expect everyone who participates in this project to uphold it.
 
@@ -30,7 +30,7 @@ There are many ways to contribute beyond writing code:
 
 ## Project Overview
 
-Jouspace is a local-first, account-free AI journaling app. Your journal lives on your device. When you want insight, Jouspace streams reflections through a stateless intelligence runtime — no journal data is ever stored in the cloud.
+Jouspace is an account-free AI journaling app. Your journal lives on your device. When you want insight, Jouspace streams reflections through a stateless intelligence runtime — no journal data is ever stored in the cloud.
 
 The repository is a monorepo with three main parts:
 
