@@ -139,7 +139,7 @@ Jouspace is an account-free AI journaling app where entries live on-device, auto
 
 ### 2. Three Key Value Propositions
 1. **Zero data loss, by construction** — on-device persistence + draft layer + refresh that re-syncs in place; JSON export/import.
-2. **Private AI that reads only what you choose** — stateless runtime, per-request context, no database, no keys exposed.
+2. **Private AI that reads only what you choose** — stateless runtime, per-request context, no database, no entry or conversation logs, no keys exposed.
 3. **Native feel, native trust** — offline-capable single-file app, custom native-style gestures, keyboard-aware layout, no forced account.
 
 ### 3. Traction and Beta Status

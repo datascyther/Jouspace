@@ -7,7 +7,7 @@ Guide for AI agents working in this repository.
 **Jouspace** — an account-free AI journaling app that stores the journal on-device. Two packages:
 
 - **Frontend** (repo root): React 19 + TypeScript + Vite 7 + Tailwind CSS 4. Builds to a *single* `dist/index.html` via `vite-plugin-singlefile`; wrapped in a Capacitor Android shell for APK builds. The `android/` platform directory is **committed** to the repo with branded icons, native permissions, and a permanent release signing config — it is NOT regenerated each build.
-- **Intelligence Runtime** (`server/`): Express 4 + tsx, own `package.json`. Provider-agnostic AI orchestration (currently NVIDIA NIM via OpenAI SDK) exposing SSE endpoints under `/api/ai/*`. It is **stateless** — no database; the client sends its own journal entries with every request.
+- **Intelligence Runtime** (`server/`): Express 4 + tsx, own `package.json`. Provider-agnostic AI orchestration (currently NVIDIA NIM via OpenAI SDK) exposing SSE endpoints under `/api/ai/*`. It is **stateless** — no database; the client sends its own journal entries with every request. The runtime never logs journal entries or conversations.
 
 ## Commands
 

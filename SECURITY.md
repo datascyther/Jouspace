@@ -60,7 +60,7 @@ We aim to acknowledge, triage, and fix critical issues within 14 days of a compl
 Jouspace is designed around a strict privacy boundary:
 
 - **Journal data never leaves your device** — entries are stored in local storage and are never transmitted to any server.
-- **The intelligence runtime is stateless** — it holds no database, no user records, and no logs of your entries. It only receives the entries you explicitly choose to share with it for a single request.
+- **The intelligence runtime is stateless** — it holds no database, no user accounts, and never logs your journal entries or conversations. It only receives the entries you explicitly choose to share with it for a single request.
 - **API keys are never serialized** to the client, and client-sent `system` role messages are rejected.
 
 If you find a way to violate any of these invariants, we want to hear about it.
