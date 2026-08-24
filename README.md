@@ -1,5 +1,5 @@
 <div align="center">
-<img src="src/assets/gif.gif" alt="Jouspace in action — local-first journaling with streamed AI reflections" width="640" />
+<img src="src/assets/gif.gif" alt="Jouspace in action — on-device journaling with streamed AI reflections" width="640" />
 
 <img src="public/jouspace-wordmark.svg#gh-light-mode-only" alt="Jouspace" width="320" />
 <img src="public/jouspace-wordmark-white.svg#gh-dark-mode-only" alt="Jouspace" width="320" />
@@ -7,7 +7,7 @@
 **A private place for your thoughts — with intelligence that stays out of the way.**
 
 
-Local-first journaling for people who take their own mind seriously. Your words live on your device. When you want perspective, Jouspace streams reflections through a stateless AI runtime that forgets everything the moment you stop reading.
+A journaling app that keeps your writing on your own device, for people who take their own mind seriously. When you want perspective, Jouspace streams reflections through a stateless AI runtime that forgets everything the moment you stop reading.
 
 <p>
   <a href="https://github.com/datascyther/Jouspace/actions"><img src="https://img.shields.io/github/actions/workflow/status/datascyther/Jouspace/ci.yml?branch=main&style=flat-square&label=CI&labelColor=16161A" alt="CI"></a>
@@ -34,7 +34,7 @@ Most software is built to capture you. Your attention, your data, your behavior 
 
 A journal is the last place that should feel that way.
 
-Jouspace is local-first: your journal lives on your device and works fully offline with **no account required**. No analytics, no trackers, no remote assets. Entries are stored locally and never leave your hardware unless you choose to share them with the AI runtime or opt into cross-device sync.
+Jouspace stores your journal on your device and works fully offline with **no account required**. No analytics, no trackers, no remote assets. Entries stay on your hardware unless you choose to send specific entries to the AI runtime or opt into cross-device sync.
 
 The one exception is deliberate: when you want insight, Jouspace can send *specific entries you choose* to a stateless AI runtime for a single, ephemeral reflection. The runtime holds no database, keeps no logs, and forgets everything the moment the stream ends.
 
@@ -46,7 +46,7 @@ Your thoughts are yours. Jouspace just helps you think them.
 
 | | |
 |---|---|
-| **Truly local-first** | Your journal is stored on your device. Works offline. No account required. |
+| **Your journal stays on your device** | Stored locally, works offline, and needs no account. |
 | **Stateless AI insight** | Stream reflections, prompts, and summaries from a zero-retention runtime. You choose what to share, one request at a time. |
 | **A place to think** | A distraction-free composer with ambient sentiment tinting, draft auto-recovery, and typography tuned for long-form reflection. |
 | **Memory threads** | Entries connect into themes over time. Search, filter, and rediscover what you thought you'd forgotten. |
