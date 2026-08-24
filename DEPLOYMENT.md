@@ -5,7 +5,7 @@ Covers two things:
 1. **Hosting the Jouspace Intelligence Runtime** so the APK/PWA can reach it over HTTPS.
 2. **Signing & releasing the Android APK** (debug → Play Store release).
 
-**Hosting:** the Jouspace Intelligence Runtime is deployed to **Cloudflare Workers** (free tier, **no credit card**). It is stateless: the device sends its own journal entries with each request, so **no database is required**.
+**Hosting:** the Jouspace Intelligence Runtime is deployed to **Cloudflare Workers** (free tier, **no credit card**). It is stateless: the device sends its own journal entries with each request, so **no database is required**. The runtime never logs journal entries or conversations.
 
 ---
 
