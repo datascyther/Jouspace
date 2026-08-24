@@ -21,10 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Initial public beta release.
-- Local-first journaling with on-device storage.
+- Journaling with on-device storage.
 - Stateless AI intelligence runtime (chat, reflect, insight, summarize) powered by NVIDIA NIM.
 - Offline PWA and native Android (Capacitor) support.
-- Firebase Auth identity (Google + email/password) with local-first profile data.
+- Firebase Auth identity (Google + email/password) with on-device profile data.
 
 [Unreleased]: https://github.com/datascyther/Jouspace/compare/v1.1.0-beta.2...HEAD
 [1.1.0-beta.2]: https://github.com/datascyther/Jouspace/releases/tag/v1.1.0-beta.2
