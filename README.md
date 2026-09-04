@@ -34,7 +34,7 @@ Most software is built to capture you. Your attention, your data, your behavior 
 
 A journal is the last place that should feel that way.
 
-Jouspace stores your journal on your device and works offline for journaling with **no account required**. No analytics, no trackers, no remote assets. Entries stay on your hardware unless you choose to send specific entries to the AI runtime or opt into cross-device sync.
+Jouspace stores your journal on your device and works offline for journaling. You can use it without creating an account, although an auth entry point may appear on first launch and can be skipped. No analytics, no trackers. The app bundle itself uses no remote assets. Entries stay on your hardware unless you choose to send specific entries to the AI runtime or opt into cross-device sync.
 
 The one exception is deliberate: when you want insight, Jouspace can send *specific entries you choose* to a stateless AI runtime for a single, ephemeral reflection. The runtime holds no database and never logs your journal entries; it forgets the conversation the moment the stream ends.
 
@@ -46,7 +46,7 @@ Your thoughts are yours. Jouspace just helps you think them.
 
 | | |
 |---|---|
-| **Your journal stays on your device** | Stored locally, works offline, and needs no account. |
+| **Your journal stays on your device** | Stored locally, works offline, and can be used without an account. |
 | **Stateless AI insight** | Stream reflections, prompts, and summaries from a runtime that doesn't retain your entries. You choose what to share, one request at a time. |
 | **A place to think** | A distraction-free composer with ambient sentiment tinting, draft auto-recovery, and typography tuned for long-form reflection. |
 | **Memory threads** | Entries connect into themes over time. Search, filter, and rediscover what you thought you'd forgotten. |
@@ -92,7 +92,7 @@ VITE_FIREBASE_PROJECT_ID=your-project-id
 VITE_FIREBASE_APP_ID=your-project-id
 ```
 
-> **Note:** Jouspace connects automatically to the deployed Cloudflare Worker runtime out of the box, so AI features work without configuring local API keys.
+> **Note:** By default, Jouspace is configured to connect to a deployed Cloudflare Worker runtime for AI features, so they can work without configuring local API keys. Availability depends on that runtime being operational.
 
 ### Run
 
