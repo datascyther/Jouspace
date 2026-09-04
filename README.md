@@ -16,6 +16,7 @@ A journaling app that keeps your writing on your own device, for people who take
   <a href="https://github.com/datascyther/Jouspace/releases"><img src="https://img.shields.io/badge/Android-APK-3DDC84?style=flat-square&logo=android&logoColor=white&labelColor=16161A" alt="Android"></a>
   <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5.9-3178C6?style=flat-square&logo=typescript&logoColor=white&labelColor=16161A" alt="TypeScript"></a>
   <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black&labelColor=16161A" alt="React"></a>
+  <a href="https://github.com/sponsors/datascyther"><img src="https://img.shields.io/badge/Sponsor-datascyther-6C4DCA?style=flat-square&logo=github&logoColor=white&labelColor=16161A" alt="Sponsor"></a>
 </p>
 
 </div>
@@ -39,6 +40,16 @@ Jouspace stores your journal on your device and works offline for journaling. Yo
 The one exception is deliberate: when you want insight, Jouspace can send *specific entries you choose* to a stateless AI runtime for a single, ephemeral reflection. The runtime holds no database and never logs your journal entries; it forgets the conversation the moment the stream ends.
 
 Your thoughts are yours. Jouspace just helps you think them.
+
+---
+
+## Sponsors
+
+If Jouspace helps you think more clearly, you can support its development via GitHub Sponsors.
+
+- **Sponsor:** [https://github.com/sponsors/datascyther](https://github.com/sponsors/datascyther)
+
+Every contribution helps keep the project independent, local-first, and honest about what it does and doesn’t do.
 
 ---
 
@@ -151,6 +162,27 @@ npx cap sync android
 # 3. Compile signed release APK
 cd android && ./gradlew assembleRelease
 ```
+
+---
+
+## Deployments
+
+Jouspace uses GitHub Actions for continuous integration and release automation.
+
+| Workflow | Purpose | Trigger |
+|---|---|---|
+| **CI** | Type-check, build, and test frontend + runtime | PRs, pushes to `main`, tags `v*` |
+| **Build Android APK** | Produce a signed release APK from committed `android/` shell | Manual dispatch, tag push `v*` |
+| **CodeQL** | Code scanning and security analysis | Scheduled / push |
+| **Dependabot Updates** | Automated dependency update PRs | Scheduled |
+| **GitHub Advanced Security** | Security gating and quality checks | Push / PR |
+
+**Runtime deployment**
+- The AI runtime is deployed as a **Cloudflare Worker** from `worker/`.
+- It is stateless, requires no database, and is configured via `worker/wrangler.toml`.
+- The APK/PWA can reach it over HTTPS using the deployed worker URL.
+
+For the full hosting and signing details, see [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ---
 
