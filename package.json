@@ -32,7 +32,7 @@
   },
   "devDependencies": {
     "@capacitor/android": "^6.2.1",
-    "@capacitor/cli": "^6.2.1",
+    "@capacitor/cli": "^8.5.1",
     "@huggingface/hub": "^0.16.0",
     "@tailwindcss/vite": "4.1.17",
     "@testing-library/jest-dom": "6.6.3",
@@ -45,8 +45,8 @@
     "jsdom": "25.0.1",
     "tailwindcss": "4.1.17",
     "typescript": "5.9.3",
-    "vite": "7.3.2",
+    "vite": "7.3.6",
     "vite-plugin-singlefile": "2.3.0",
-    "vitest": "3.2.4"
+    "vitest": "4.1.11"
   }
 }
