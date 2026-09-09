@@ -134,14 +134,14 @@ Key properties:
 
 | Metric | Value |
 |---|---|
-| Total TypeScript | ~18,700 LOC (15.3k frontend · 2.5k Express · 0.9k Worker) |
-| Components / hooks | 69 / 14 |
-| Tests | ~174 cases, 28 files |
+| Total TypeScript | 18,734 LOC (source tree, excluding dependencies) |
+| Components / hooks | 70 / 15 |
+| Tests | 156 cases, 24 files |
 | Version | v1.1.0-beta.2 (public beta) |
 | License | MIT |
 | Repo | github.com/datascyther/Jouspace |
 | Live web | jouspace.pages.dev |
-| AI runtime | jouspace-runtime…workers.dev |
+| AI runtime | jouspace-runtime.jouspace.workers.dev |
 | Migration commit | `e693fbe` — "migrate identity/sync to Firebase; drop voice dictation; beta 1.1.0 (#5)" |
 
 **Things deliberately NOT claimed:** no user/DAU/latency/crash metrics are published (none measured); no Supabase (abandoned experiment); no voice dictation (dropped); no "account-free" branding (Firebase accounts are supported).

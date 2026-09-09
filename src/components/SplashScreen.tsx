@@ -3,13 +3,15 @@ import logoSrc from '../assets/Jouspace logo.png';
 
 interface SplashScreenProps {
   className?: string;
+  /** DEV ONLY — bypass auth and enter as a local guest immediately. */
+  onGuestContinue?: () => void;
 }
 
 /**
  * Cold-start splash. Shows the brand logo mark above the wordmark while the
  * app wakes up. The logo is the real asset — never a CSS/SVG approximation.
  */
-export const SplashScreen: React.FC<SplashScreenProps> = ({ className = '' }) => {
+export const SplashScreen: React.FC<SplashScreenProps> = ({ className = '', onGuestContinue }) => {
     return (
         <div
             className={`relative h-full w-full flex flex-col items-center justify-center overflow-hidden overscroll-none select-none ${className}`}
@@ -34,6 +36,17 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ className = '' }) =>
                     Your quiet space to think.
                 </span>
             </div>
+
+            {/* DEV ONLY — skip the 3-second wait and auth gate */}
+            {import.meta.env.DEV && onGuestContinue && (
+                <button
+                    type="button"
+                    onClick={onGuestContinue}
+                    className="absolute bottom-8 text-[13px] font-medium text-muted/60 hover:text-accent transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 rounded px-3 py-1"
+                >
+                    Continue as guest
+                </button>
+            )}
         </div>
     );
 };

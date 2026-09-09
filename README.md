@@ -27,6 +27,12 @@ A journaling app that keeps your writing on your own device, for people who take
 >
 > **— Luci Swindoll**
 
+
+## Live Deployments
+
+- **Web app:** [https://jouspace.pages.dev](https://jouspace.pages.dev)
+- **AI runtime:** [https://jouspace-runtime.jouspace.workers.dev](https://jouspace-runtime.jouspace.workers.dev)
+
 ---
 
 ## Why Jouspace
@@ -103,7 +109,7 @@ VITE_FIREBASE_PROJECT_ID=your-project-id
 VITE_FIREBASE_APP_ID=your-project-id
 ```
 
-> **Note:** By default, Jouspace is configured to connect to a deployed Cloudflare Worker runtime for AI features, so they can work without configuring local API keys. Availability depends on that runtime being operational.
+> **Note:** By default, Jouspace connects to the deployed Cloudflare Worker runtime listed above. Local development can use the Express runtime with `NVIDIA_API_KEY` instead. AI availability depends on the configured runtime and provider being operational.
 
 ### Run
 

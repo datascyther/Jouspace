@@ -186,9 +186,6 @@ export function App() {
   // gate stays up until the user completes a Firebase auth flow.
   const [authUser, setAuthUser] = useState<AuthUser | null>(() => loadSession() ?? NoAccountUser);
 
-  /** True when the user should see the app rather than the auth gate. */
-  const showApp = !isNoAccountUser(authUser);
-
   // First-run flow stages: splash -> auth -> permissions -> app.
   // Returning users (jouspace.onboarded === '1') start straight at 'app'.
   const [stage, setStage] = useState<'splash' | 'auth' | 'permissions' | 'app'>(
@@ -204,6 +201,10 @@ export function App() {
       }
     },
   );
+
+  /** True when the user should see the app rather than the auth gate. */
+  // In dev mode, if the stage has explicitly reached 'app', we allow bypassing the auth gate.
+  const showApp = (!isNoAccountUser(authUser)) || (import.meta.env.DEV && stage === 'app');
 
   // Restore the last-viewed screen/tab so a reload/relaunch returns where the
   // user left off (falls back to Home on first run or if the value is invalid).
@@ -366,6 +367,15 @@ export function App() {
     },
     [setDisplayName],
   );
+
+  // DEV ONLY — skip auth gate AND permission primer, go straight to the app.
+  const handleGuestContinue = import.meta.env.DEV
+    ? () => {
+        setAuthUser(NoAccountUser);
+        try { localStorage.setItem('jouspace.onboarded', '1'); } catch { /* ignore */ }
+        setStage('app');
+      }
+    : undefined;
 
   // Hydrate the session from the persisted Firebase session on startup, and keep
   // authUser in sync with any future sign-in / sign-out.
@@ -735,7 +745,7 @@ export function App() {
             child — instant and clean. */}
         <div className="flex-1 flex flex-col min-h-0">
           {stage === 'splash' ? (
-            <SplashScreen />
+            <SplashScreen onGuestContinue={handleGuestContinue} />
           ) : stage === 'permissions' ? (
             <PermissionPrimerScreen onComplete={finishOnboarding} />
           ) : showApp ? (
@@ -1009,6 +1019,7 @@ export function App() {
         ) : (
           <AuthScreen
             onAuthed={handleAuthed}
+            onGuestContinue={handleGuestContinue}
           />
         )
         }

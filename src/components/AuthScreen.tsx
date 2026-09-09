@@ -22,13 +22,15 @@ type View = 'welcome' | 'signin' | 'create' | 'forgot' | 'verify';
 interface AuthScreenProps {
   /** Called with the authenticated user once sign-in / verification completes. */
   onAuthed: (user: AuthUser) => void;
+  /** DEV ONLY — bypass all auth and enter as a local guest. */
+  onGuestContinue?: () => void;
 }
 
 /**
  * Auth entry point. All account creation / sign-in / verification goes through
  * Firebase (Google + email/password) via `lib/auth.ts`.
  */
-export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed }) => {
+export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed, onGuestContinue }) => {
   const [view, setView] = useState<View>('welcome');
   const [pending, setPending] = useState<AuthUser | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -244,6 +246,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed }) => {
             <WelcomeView
               onGetStarted={() => { resetForm(); go('create'); }}
               onSignIn={() => { resetForm(); go('signin'); }}
+              onGuestContinue={onGuestContinue}
             />
           )}
 
@@ -455,9 +458,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed }) => {
 function WelcomeView({
   onGetStarted,
   onSignIn,
+  onGuestContinue,
 }: {
   onGetStarted: () => void;
   onSignIn: () => void;
+  onGuestContinue?: () => void;
 }) {
   return (
     <div className="text-center">
@@ -492,6 +497,22 @@ function WelcomeView({
           Sign in
         </TextAction>
       </div>
+
+      {/* DEV ONLY — bypass auth to test features locally */}
+      {import.meta.env.DEV && onGuestContinue && (
+        <div className="mt-8 pt-6 border-t border-borderSubtle">
+          <div className="mb-2 text-[10px] font-semibold uppercase tracking-[1px] text-muted">
+            Dev mode
+          </div>
+          <button
+            type="button"
+            onClick={onGuestContinue}
+            className="w-full rounded-xl border border-dashed border-borderSubtle bg-transparent py-2.5 text-[14px] font-medium text-muted transition-colors hover:border-accent/40 hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+          >
+            Continue as guest
+          </button>
+        </div>
+      )}
 
       </div>
   );
