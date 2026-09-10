@@ -26,5 +26,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Offline PWA and native Android (Capacitor) support.
 - Firebase Auth identity (Google + email/password) with on-device profile data.
 
-[Unreleased]: https://github.com/datascyther/Jouspace/compare/v1.1.0-beta.2...HEAD
+## [1.1.0-beta.3] - 2026-09-10
+
+### Fixed
+
+- Switched the deployed NVIDIA runtime to the live `meta/llama-3.2-11b-vision-instruct` model and refreshed the Worker API secret, restoring completed AI streams across chat, reflect, insight, summarize, and memory.
+- Applied non-breaking `npm audit fix` updates; 2 critical, 2 high, and 1 moderate advisory remain and require forced or breaking upgrades.
+
+### Changed
+
+- Retained the development-only guest bypass; it remains guarded by `import.meta.env.DEV` and has no production surface.
+
+[Unreleased]: https://github.com/datascyther/Jouspace/compare/v1.1.0-beta.3...HEAD
+[1.1.0-beta.3]: https://github.com/datascyther/Jouspace/releases/tag/v1.1.0-beta.3
 [1.1.0-beta.2]: https://github.com/datascyther/Jouspace/releases/tag/v1.1.0-beta.2
