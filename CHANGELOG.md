@@ -16,6 +16,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Rewrote `README.md` with a cleaner, more focused introduction and documentation structure.
 
+## [1.1.0] - 2026-09-10
+
+### Fixed
+
+- Restored completed AI streams across chat, reflect, insight, summarize, and memory by switching the deployed NVIDIA runtime to the live `meta/llama-3.2-11b-vision-instruct` model.
+- Cleared account-scoped local data on sign-out to prevent data from being retained across accounts.
+- Disabled Android cloud backup and device transfer for local WebView storage.
+
+### Changed
+
+- Moved Android release signing material to private GitHub Actions secrets while preserving update compatibility.
+- Retained the development-only guest bypass; it remains guarded by `import.meta.env.DEV` and has no production surface.
+- Updated privacy disclosures to accurately describe optional AI transmission and authenticated Firestore sync.
+- Applied non-breaking dependency updates; 2 critical, 2 high, and 1 moderate advisory remain and require forced or breaking upgrades.
+
 ## [1.1.0-beta.2] - 2026-08-22
 
 ### Added
@@ -37,6 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Retained the development-only guest bypass; it remains guarded by `import.meta.env.DEV` and has no production surface.
 
-[Unreleased]: https://github.com/datascyther/Jouspace/compare/v1.1.0-beta.3...HEAD
+[Unreleased]: https://github.com/datascyther/Jouspace/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/datascyther/Jouspace/releases/tag/v1.1.0
 [1.1.0-beta.3]: https://github.com/datascyther/Jouspace/releases/tag/v1.1.0-beta.3
 [1.1.0-beta.2]: https://github.com/datascyther/Jouspace/releases/tag/v1.1.0-beta.2
