@@ -1,14 +1,8 @@
 /**
  * NvidiaGateway — ModelGateway implementation for NVIDIA NIM (hosted)
  *
- * Uses the OpenAI-compatible NVIDIA hosted API at integrate.api.nvidia.com.
- * Two-model routing:
- * - fast profile   → nvidia/nemotron-3-nano-30b-a3b (small, instant replies,
- *                    no thinking params)
- * - balanced/deep  → nvidia/nemotron-3.5-lightning-30b-a3b (main workhorse,
- *                    thinking enabled via chat_template_kwargs.enable_thinking)
- * If the fast model fails before the first content token (and the request was
- * not aborted), the stream retries once with the balanced profile.
+ * Uses the verified meta/llama-3.2-11b-vision-instruct model through the
+ * OpenAI-compatible NVIDIA hosted API at integrate.api.nvidia.com.
  *
  * Key behaviours:
  * - API key is read from process.env.NVIDIA_API_KEY — never forwarded to clients
@@ -25,8 +19,7 @@ import type { ModelGateway, ModelMessage, GatewayStreamChunk } from './ModelGate
 import type { ReasoningProfile } from '../reasoning.js';
 
 const NVIDIA_BASE_URL = 'https://integrate.api.nvidia.com/v1';
-const LIGHTNING_MODEL = 'nvidia/nemotron-3.5-lightning-30b-a3b';
-const FAST_MODEL = 'nvidia/nemotron-3-nano-30b-a3b';
+const JOURNAL_MODEL = 'meta/llama-3.2-11b-vision-instruct';
 
 /**
  * Custom undici dispatcher used for every runtime → NVIDIA call.
@@ -47,41 +40,18 @@ const nvidiaDispatcher = new Agent({
 });
 
 /**
- * Per-profile provider params.
- *
- * The fast profile MUST NOT carry chat_template_kwargs/reasoning_budget — they
- * re-enable the full chain-of-thought path (and non-reasoning models reject
- * them with a 400, as seen with mini-4b). The reasoning profiles keep the
- * thinking path on via chat_template_kwargs.enable_thinking; reasoning_budget
- * bounds how much chain-of-thought is spent. Headroom rule: balanced sets
- * max_tokens (8192) strictly above reasoning_budget (4096) so the visible
- * answer keeps headroom even if reasoning tokens count against max_tokens.
- * deep intentionally sets reasoning_budget == max_tokens (16384/16384, per
- * spec) — if end-to-end probing reveals truncated visible answers, raise deep
- * max_tokens above the budget as a follow-up tweak.
- * temperature / top_p stay constant to preserve the Jouspace voice.
+ * Per-profile token budgets. Temperature and top_p stay constant to preserve
+ * the Jouspace voice.
  */
 type ProfileParams = {
   model: string;
   max_tokens: number;
-  chat_template_kwargs?: { enable_thinking: boolean };
-  reasoning_budget?: number;
 };
 
 const PROFILE_PARAMS: Record<ReasoningProfile, ProfileParams> = {
-  fast: { model: FAST_MODEL, max_tokens: 2560 },
-  balanced: {
-    model: LIGHTNING_MODEL,
-    chat_template_kwargs: { enable_thinking: true },
-    reasoning_budget: 4096,
-    max_tokens: 8192,
-  },
-  deep: {
-    model: LIGHTNING_MODEL,
-    chat_template_kwargs: { enable_thinking: true },
-    reasoning_budget: 16384,
-    max_tokens: 16384,
-  },
+  fast: { model: JOURNAL_MODEL, max_tokens: 2560 },
+  balanced: { model: JOURNAL_MODEL, max_tokens: 8192 },
+  deep: { model: JOURNAL_MODEL, max_tokens: 16384 },
 };
 
 export class NvidiaGateway implements ModelGateway {
@@ -152,9 +122,6 @@ export class NvidiaGateway implements ModelGateway {
     // Thinking params are added conditionally so the fast lane stays truly
     // light (they would re-enable the full chain-of-thought path, and
     // non-reasoning models reject them with a 400).
-    if (profile.chat_template_kwargs) body.chat_template_kwargs = profile.chat_template_kwargs;
-    if (profile.reasoning_budget) body.reasoning_budget = profile.reasoning_budget;
-
     // IMPORTANT: `signal` must be a RequestOptions (2nd arg), NOT part of the
     // request body. If spread into the body, NVIDIA rejects it as an
     // "Unsupported parameter(s): signal" 400. As a RequestOption the SDK
@@ -202,15 +169,7 @@ export class NvidiaGateway implements ModelGateway {
       // Fast-lane safety net: if the small model fails before any content
       // token (and the request wasn't aborted), retry once with the balanced
       // lightning profile. Partial streams are never replayed (`yieldedAny` guard).
-      if (profile.model === FAST_MODEL && !yieldedAny && !opts.signal?.aborted) {
-        profile = PROFILE_PARAMS['balanced'];
-        for await (const chunk of this.streamAttempt(messages, profile, opts.signal)) {
-          if (!chunk.done) yieldedAny = true;
-          yield chunk;
-        }
-      } else {
-        throw err;
-      }
+      throw err;
     }
 
     // Signal stream completion exactly once, after a successful attempt.

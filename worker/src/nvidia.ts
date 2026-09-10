@@ -8,8 +8,8 @@
  *  - Inputs (apiKey, reasoning profile) are passed in explicitly instead of read
  *    from process.env, because Workers expose config via the `env` binding.
  *
- * Behaviour (unchanged): two-model routing, reasoning_content silently dropped,
- * fast-model failure → one retry on balanced. Yields only visible content.
+ * Uses one verified instruct model for every reasoning profile, silently drops
+ * reasoning_content, and yields only visible content.
  * Also hosts transcribeAudio() for voice chat (multipart POST to
  * /v1/audio/transcriptions, returns the trimmed transcript).
  */
@@ -18,8 +18,7 @@ import type { ModelMessage, GatewayStreamChunk } from '../../server/types.js';
 import type { ReasoningProfile } from '../../server/reasoning.js';
 
 const NVIDIA_BASE_URL = 'https://integrate.api.nvidia.com/v1';
-const LIGHTNING_MODEL = 'nvidia/nemotron-3.5-lightning-30b-a3b';
-const FAST_MODEL = 'nvidia/nemotron-3-nano-30b-a3b';
+const JOURNAL_MODEL = 'meta/llama-3.2-11b-vision-instruct';
 // Hosted ASR model for voice chat. NVIDIA serves speech NIMs (Parakeet family,
 // Whisper, Canary) from the same integrate.api.nvidia.com base + key used for
 // LLM inference. Parakeet is English-first and low-latency; override with the
@@ -30,24 +29,12 @@ const DEFAULT_ASR_MODEL = 'nvidia/parakeet-tdt-0.6b-v3';
 type ProfileParams = {
   model: string;
   max_tokens: number;
-  chat_template_kwargs?: { enable_thinking: boolean };
-  reasoning_budget?: number;
 };
 
 const PROFILE_PARAMS: Record<ReasoningProfile, ProfileParams> = {
-  fast: { model: FAST_MODEL, max_tokens: 2560 },
-  balanced: {
-    model: LIGHTNING_MODEL,
-    chat_template_kwargs: { enable_thinking: true },
-    reasoning_budget: 4096,
-    max_tokens: 8192,
-  },
-  deep: {
-    model: LIGHTNING_MODEL,
-    chat_template_kwargs: { enable_thinking: true },
-    reasoning_budget: 16384,
-    max_tokens: 16384,
-  },
+  fast: { model: JOURNAL_MODEL, max_tokens: 2560 },
+  balanced: { model: JOURNAL_MODEL, max_tokens: 8192 },
+  deep: { model: JOURNAL_MODEL, max_tokens: 16384 },
 };
 
 export class NvidiaGateway {
@@ -77,9 +64,6 @@ export class NvidiaGateway {
       max_tokens: profile.max_tokens,
       stream: true,
     };
-    if (profile.chat_template_kwargs) body.chat_template_kwargs = profile.chat_template_kwargs;
-    if (profile.reasoning_budget) body.reasoning_budget = profile.reasoning_budget;
-
     const res = await fetch(`${NVIDIA_BASE_URL}/chat/completions`, {
       method: 'POST',
       headers: {
@@ -137,17 +121,7 @@ export class NvidiaGateway {
         yield chunk;
       }
     } catch (err) {
-      // Fast-lane safety net: retry once on balanced if no token was emitted
-      // and the request wasn't aborted by the client.
-      if (profile.model === FAST_MODEL && !yieldedAny && !opts.signal?.aborted) {
-        profile = PROFILE_PARAMS['balanced'];
-        for await (const chunk of this.streamAttempt(messages, profile, opts.signal)) {
-          if (!chunk.done) yieldedAny = true;
-          yield chunk;
-        }
-      } else {
-        throw err;
-      }
+      throw err;
     }
 
     yield { text: '', done: true };
