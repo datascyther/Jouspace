@@ -57,10 +57,11 @@ We aim to acknowledge, triage, and fix critical issues within 14 days of a compl
 
 ## Security Considerations for This Project
 
-Jouspace is designed around a strict privacy boundary:
+Jouspace is designed around a local-first privacy boundary:
 
-- **Journal data never leaves your device** — entries are stored in local storage and are never transmitted to any server.
-- **The intelligence runtime is stateless** — it holds no database, no user accounts, and never logs your journal entries or conversations. It only receives the entries you explicitly choose to share with it for a single request.
+- **Unauthenticated journal data stays on your device** unless you explicitly use an AI feature. AI requests send the selected journal context to the configured Jouspace runtime, which forwards the request to NVIDIA NIM to generate a response. The runtime is stateless and does not retain journal entries or conversations in a database.
+- **Authenticated sync is opt-in** — signing in enables Firestore background sync for the account's journal, profile, and personalization data. Firestore access is restricted to the authenticated UID by the project rules.
+- **Android backup is disabled** for the native shell so local WebView storage is not included in Android cloud backup or device transfer.
 - **API keys are never serialized** to the client, and client-sent `system` role messages are rejected.
 
-If you find a way to violate any of these invariants, we want to hear about it.
+If you find a way to violate these boundaries, we want to hear about it.

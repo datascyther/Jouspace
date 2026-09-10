@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 // ── Permanent release signing ──────────────────────────────────────────────
-// Load the release keystore from the committed keystore.properties. BOTH
+// Load the release keystore from a private CI/local keystore.properties. BOTH
 // debug and release build types use this SAME key so that every APK can be
 // installed over any previous build. Without a single stable signing identity
 // Android refuses upgrades with "App not installed as package conflicts with
