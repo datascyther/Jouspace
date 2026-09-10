@@ -53,6 +53,7 @@ import {
 } from './lib/auth';
 import {
   attachSync,
+  clearLocalAccountData,
   detachSync,
   onSyncStatusChange,
   refreshSync,
@@ -427,6 +428,7 @@ export function App() {
   // Sign out: clear the local session and return to the auth screen so the user
   // can switch accounts (local-first, no cloud session to revoke).
   const handleSignOut = useCallback(() => {
+    clearLocalAccountData();
     void clearSession().catch(() => {});
     goToAuth();
   }, [goToAuth]);

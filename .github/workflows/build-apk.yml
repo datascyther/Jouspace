@@ -7,8 +7,7 @@
 #   - the branded Jouspace adaptive icon set (drawable/, drawable-v24/,
 #     mipmap-anydpi-v26/, mipmap-anydpi-v33/, per-density mipmaps, splash)
 #   - the native permissions + jouspace:// deep-link in AndroidManifest.xml
-#   - the release keystore (android/keystore/jouspace-release.keystore) and
-#     its credentials (android/keystore.properties)
+#   - the release signing material is injected from private GitHub secrets
 # Both `debug` and `release` build types sign with that committed keystore
 # (see android/app/build.gradle), so EVERY build shares the SAME certificate
 # and installs over previous builds — no more "App not installed as package
@@ -115,9 +114,29 @@ jobs:
       - name: Point Gradle at the SDK
         run: echo "sdk.dir=$ANDROID_HOME" > android/local.properties
 
-      - name: Build release APK (signed with committed keystore)
-        # The committed keystore + keystore.properties are picked up by
-        # android/app/build.gradle. Passing -Pjouspace.versionCode/-Name
+      - name: Configure private release signing
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          test -n "$ANDROID_KEYSTORE_BASE64"
+          test -n "$ANDROID_STORE_PASSWORD"
+          test -n "$ANDROID_KEY_ALIAS"
+          test -n "$ANDROID_KEY_PASSWORD"
+          mkdir -p android/keystore
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/keystore/jouspace-release.keystore
+          {
+            printf 'storeFile=keystore/jouspace-release.keystore\n'
+            printf 'storePassword=%s\n' "$ANDROID_STORE_PASSWORD"
+            printf 'keyAlias=%s\n' "$ANDROID_KEY_ALIAS"
+            printf 'keyPassword=%s\n' "$ANDROID_KEY_PASSWORD"
+          } > android/keystore.properties
+
+      - name: Build release APK (signed with private CI keystore)
+        # Private CI signing files are picked up by android/app/build.gradle.
+        # Passing -Pjouspace.versionCode/-Name
         # stamps the version; defaults are 11001 / "1.1.0-beta.1" if unset.
         working-directory: android
         run: |

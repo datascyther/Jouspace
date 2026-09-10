@@ -594,7 +594,8 @@ export async function refreshSync(): Promise<boolean> {
 
 /**
  * Detach sync — stop all listeners, clear state.
- * Local data is NOT wiped; the journal remains readable.
+ * Local data is intentionally preserved here; account-switch cleanup is
+ * explicit in clearLocalAccountData().
  */
 export function detachSync(): void {
   attachGeneration++;
@@ -630,4 +631,30 @@ export function detachSync(): void {
   serverConfirmedIds.clear();
   attachedUid = null;
   setStatus('idle');
+}
+
+/**
+ * Remove local account-scoped data before another account can sign in.
+ * This prevents journal, profile, personalization, drafts, and AI context
+ * from being merged into the next authenticated account.
+ */
+export function clearLocalAccountData(): void {
+  detachSync();
+  journalStore.importEntries([], 'replace');
+
+  for (const key of [
+    'jouspace:profile',
+    'jouspace:personalization',
+    'jouspace:journal:draft',
+    'jouspace:ai:chat:messages',
+    'jouspace:ai:context',
+    'jouspace:ai:attach',
+    'jouspace:space:selection',
+    'jouspace:nav',
+  ]) {
+    localStorage.removeItem(key);
+  }
+
+  window.dispatchEvent(new CustomEvent('jouspace:profile:remote-changed'));
+  window.dispatchEvent(new CustomEvent('jouspace:personalization:remote-changed'));
 }

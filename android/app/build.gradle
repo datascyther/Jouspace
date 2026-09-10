@@ -50,7 +50,7 @@ android {
     }
     buildTypes {
         debug {
-            // Use the same permanent key for dev builds too.
+            // CI injects the signing material; local builds may remain unsigned.
             signingConfig signingConfigs.release
         }
         release {

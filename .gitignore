@@ -11,7 +11,10 @@ dist/
 build/
 apk-out/
 
-# Android native shell is COMMITTED (icons, manifest, signing config).
+# Android native shell is COMMITTED (icons and manifest).
+# Signing material is injected by private CI secrets and must never be tracked.
+android/keystore.properties
+android/keystore/
 # Only ignore generated build artifacts and local machine state.
 android/.gradle/
 android/local.properties
@@ -28,6 +31,7 @@ ios/
 # Local agent planning notes
 .kilo/
 memories/
+opencode.json
 
 # Cloudflare Workers build artifacts
 worker/.wrangler/
