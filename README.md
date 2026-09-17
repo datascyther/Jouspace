@@ -30,7 +30,7 @@ A journaling app that keeps your writing on your own device, for people who take
 
 ## Live Deployments
 
-- **Web app:** [https://jouspace.pages.dev](https://jouspace.pages.dev)
+- **Web app:** [https://jouspace.pages.dev](https://jouspace-org.web.app)
 - **AI runtime:** [https://jouspace-runtime.jouspace.workers.dev](https://jouspace-runtime.jouspace.workers.dev)
 
 ---
