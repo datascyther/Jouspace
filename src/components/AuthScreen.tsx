@@ -178,11 +178,20 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed, onGuestContinu
     }
   };
 
+  // Scroll contract (all views): vertical scrolling only — required for the
+  // forms when the keyboard opens. `overflow-x-hidden` removes the ~90px of
+  // horizontal scroll range the out-of-box orbs used to create, and
+  // `touch-pan-y` blocks a horizontal gesture outright at the gesture level.
+  // Together they make the screen impossible to drag sideways.
   return (
-    <div className="relative flex-1 flex flex-col min-h-0 w-full bg-base overflow-y-auto overscroll-none">
+    <div className="relative flex-1 flex flex-col min-h-0 w-full bg-base overflow-y-auto overflow-x-hidden overscroll-none touch-pan-y">
       {/* Ambient depth orbs — two contained, low-opacity brand-purple hazes that
-          give the auth canvas a sense of room (light theme only; hidden on dark). */}
-      <div aria-hidden="true" className="auth-orb auth-orb--tr" />
+          give the auth canvas a sense of room (light theme only; hidden on dark).
+          Clipped by this wrapper: a decoration must never sit outside the scroll
+          container's box, or it becomes scrollable overflow the user can drag. */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+        <div className="auth-orb auth-orb--tr" />
+      </div>
 
       {/* Welcome watermark — a quiet, watermarked privacy promise pinned to the
           bottom of the screen (welcome only). */}
@@ -195,8 +204,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed, onGuestContinu
         </div>
       )}
 
-      <div className={`relative z-10 flex flex-1 flex-col items-center ${view === 'welcome' ? 'justify-center px-6 select-none' : 'pt-20 pb-10 px-6'}`}>
-        <div className="relative w-full max-w-[360px]">
+      {/* `justify-start` + `my-auto` on the column instead of `justify-center`:
+          auto margins collapse to 0 when the content is TALLER than the frame,
+          so the block pins to the top and the excess stays scrollable. With
+          `justify-center` the same overflow spills equally above and below, and
+          the part above is never reachable (negative overflow isn't scrollable). */}
+      <div className={`relative z-10 flex flex-1 flex-col items-center ${view === 'welcome' ? 'justify-start px-6 select-none' : 'pt-auth-form pb-10 px-6'}`}>
+        <div className={`relative w-full max-w-[360px] ${view === 'welcome' ? 'my-auto' : ''}`}>
           {/* Back affordance (forms only) — 48×48 touch target, top-left. */}
           {view !== 'welcome' && (
             <button
@@ -217,25 +231,27 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthed, onGuestContinu
             </button>
           )}
 
-          {/* Brand lockup */}
-          <div className="flex justify-center mb-10">
+          {/* Brand lockup — sized in viewport-height clamps so the block shrinks
+              with the frame on short (landscape / keyboard-open) viewports
+              instead of pushing the form out of reach. */}
+          <div className="flex justify-center mb-[clamp(10px,3vh,40px)]">
             <div className="relative grid place-items-center">
               {/* Layered brand glow — translucent, blends into the background,
                   matches the flower mark's accent purple. */}
               <div
                 aria-hidden
-                className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-28 w-28 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(108,77,202,0.55),rgba(108,77,202,0.12)_55%,transparent_75%)] blur-md"
+                className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[clamp(64px,15vh,112px)] w-[clamp(64px,15vh,112px)] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(108,77,202,0.55),rgba(108,77,202,0.12)_55%,transparent_75%)] blur-md"
               />
               <div
                 aria-hidden
-                className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-48 w-48 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(108,77,202,0.30),transparent_70%)] blur-xl"
+                className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[clamp(104px,26vh,192px)] w-[clamp(104px,26vh,192px)] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(108,77,202,0.30),transparent_70%)] blur-xl"
               />
               {/* Logo mark floating in the glow — no hard border, just a faint
                   translucent rim and a soft accent halo. */}
               <img
                 src={logoSrc}
                 alt=""
-                className="relative h-20 w-20 rounded-full object-cover shadow-[0_0_28px_-2px_rgba(108,77,202,0.6)] ring-1 ring-white/30"
+                className="relative h-[clamp(44px,10vh,80px)] w-[clamp(44px,10vh,80px)] rounded-full object-cover shadow-[0_0_28px_-2px_rgba(108,77,202,0.6)] ring-1 ring-white/30"
               />
             </div>
           </div>
@@ -466,14 +482,14 @@ function WelcomeView({
 }) {
   return (
     <div className="text-center">
-      <div className="mb-5 inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-3 py-1.5 text-accent">
+      <div className="mb-[clamp(8px,2.5vh,20px)] inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-3 py-1.5 text-accent">
         <TbSparkle className="h-4 w-4 -translate-y-px" aria-hidden="true" />
         <span className="text-[11px] font-semibold uppercase tracking-[1.2px]">Your private journal</span>
       </div>
-      <h1 className="mx-auto mb-4 max-w-[340px] font-serif text-[32px] font-bold leading-[1.22] tracking-[-0.3px] text-primary">
+      <h1 className="mx-auto mb-[clamp(8px,2.5vh,16px)] max-w-[340px] font-serif text-[clamp(20px,4.6vh,32px)] font-bold leading-[1.22] tracking-[-0.3px] text-primary">
         A calm space to write, reflect, and remember.
       </h1>
-      <p className="mx-auto mb-10 max-w-[320px] text-[15px] font-normal leading-[1.6] text-secondary">
+      <p className="mx-auto mb-[clamp(14px,5vh,40px)] max-w-[320px] text-[clamp(12px,2.4vh,15px)] font-normal leading-[1.6] text-secondary">
         Your thoughts deserve a space that remembers — not a server that stores.
       </p>
 
@@ -491,7 +507,7 @@ function WelcomeView({
         </span>
       </PrimaryButton>
 
-      <div className="mt-7 flex items-center justify-center gap-0.5 text-[15px] font-medium text-secondary">
+      <div className="mt-[clamp(10px,4vh,28px)] flex items-center justify-center gap-0.5 text-[15px] font-medium text-secondary">
         <span>Already have an account?</span>
         <TextAction onClick={onSignIn} className="px-0 text-[15px] font-medium text-accent! link-underline-grow">
           Sign in
@@ -500,7 +516,7 @@ function WelcomeView({
 
       {/* DEV ONLY — bypass auth to test features locally */}
       {import.meta.env.DEV && onGuestContinue && (
-        <div className="mt-8 pt-6 border-t border-borderSubtle">
+        <div className="auth-dev-only mt-8 pt-6 border-t border-borderSubtle">
           <div className="mb-2 text-[10px] font-semibold uppercase tracking-[1px] text-muted">
             Dev mode
           </div>
@@ -531,10 +547,10 @@ function FormShell({
 }) {
   return (
     <div>
-      <div className="mb-2 text-[11px] font-semibold uppercase tracking-[1.2px] text-accent">{eyebrow}</div>
-      <h1 className="mb-1.5 text-[26px] font-bold leading-[1.2] tracking-[-0.3px] text-primary">{title}</h1>
-      <p className="mb-7 max-w-[320px] text-[15px] font-normal leading-normal text-secondaryText">{subtitle}</p>
-      <div className="flex flex-col gap-5">{children}</div>
+      <div className="mb-[clamp(4px,1.4vh,8px)] text-[11px] font-semibold uppercase tracking-[1.2px] text-accent">{eyebrow}</div>
+      <h1 className="mb-[clamp(3px,1vh,6px)] text-[26px] font-bold leading-[1.2] tracking-[-0.3px] text-primary">{title}</h1>
+      <p className="mb-[clamp(14px,3.6vh,28px)] max-w-[320px] text-[15px] font-normal leading-normal text-secondaryText">{subtitle}</p>
+      <div className="flex flex-col gap-[clamp(10px,2.6vh,20px)]">{children}</div>
     </div>
   );
 }

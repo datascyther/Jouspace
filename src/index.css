@@ -716,6 +716,32 @@ html[data-theme="dark"] .auth-orb {
   display: none;
 }
 
+/* ── Auth screen layout contract ───────────────────────────────────────────
+   The auth canvas has to behave like a native screen: no sideways drift, no
+   decoration escaping its box, and a form that never buries its own back
+   button.
+   1. `.pt-auth-form` keeps the form's top inset at >= 56px so the absolutely
+      positioned back affordance (`-top-14` in AuthScreen.tsx) always lands
+      inside the scroll box. A smaller inset pushes it above the box, where
+      negative overflow is never scrollable — the button becomes unreachable.
+      The safe-area term keeps it clear of notches/status bars.
+   2. On short viewports (landscape, or portrait with the keyboard open) the
+      DEV-only guest bypass is dropped so the local preview matches the
+      height of the shipped build, where `import.meta.env.DEV` strips it.
+   3. The orbs' negative `top`/`right` offsets above are safe ONLY because
+      they are rendered inside an `overflow-hidden` wrapper in AuthScreen —
+      out-of-box geometry inside a scroll container is scrollable overflow
+      (that was the sideways drag). Keep the wrapper if you keep the offsets. */
+.pt-auth-form {
+  padding-top: max(env(safe-area-inset-top, 0px), 56px);
+}
+
+@media (max-height: 480px) {
+  .auth-dev-only {
+    display: none;
+  }
+}
+
 /* ── Auth screen: living, creative atmosphere ──────────────────────────────
    Built on the app's motion foundation: transform/opacity only, GPU-composited,
    and neutralised for reduced-motion users by the global rule at the bottom of

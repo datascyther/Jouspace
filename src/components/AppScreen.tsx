@@ -36,9 +36,15 @@ export const AppScreen: React.FC<AppScreenProps> = ({
           which made the nav ride up onto the keyboard. Pinning the shell to
           `--vvh` also keeps the background rock-steady when overlays open.
           Screens scroll via their own `flex-1 min-h-0 overflow-y-auto`
-          containers. */}
+          containers. On md+ the frame floats as a phone, but its height is
+          capped at `100dvh - 44px` (the root's md:pt-3/md:pb-8 padding):
+          pinning it to a flat 880px put the bottom of the frame — and every
+          control below the fold — outside any viewport shorter than ~924px,
+          which includes every phone held in landscape. With the cap the frame
+          shrinks instead of getting clipped, so the auth screens stay fully
+          reachable there too. */}
       <div
-        className={`relative isolate w-full max-w-[430px] mx-auto h-[var(--vvh)] bg-base flex flex-col overflow-hidden md:h-[880px] md:rounded-[40px] md:border md:border-borderSubtle md:shadow-2xl ${className}`}
+        className={`relative isolate w-full max-w-[430px] mx-auto h-[var(--vvh)] bg-base flex flex-col overflow-hidden md:h-[min(880px,calc(100dvh_-_44px))] md:rounded-[40px] md:border md:border-borderSubtle md:shadow-2xl ${className}`}
       >
         {/* The app's one painted canvas. Everything below must sit at z-10 or
             higher: a positioned z-index:0 layer paints ABOVE in-flow content. */}

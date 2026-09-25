@@ -15,6 +15,7 @@
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
             android:name=".MainActivity"
             android:label="@string/title_activity_main"
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar"
             android:launchMode="singleTask"
             android:windowSoftInputMode="adjustResize"

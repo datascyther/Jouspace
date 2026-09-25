@@ -14,7 +14,7 @@ interface SplashScreenProps {
 export const SplashScreen: React.FC<SplashScreenProps> = ({ className = '', onGuestContinue }) => {
     return (
         <div
-            className={`relative h-full w-full flex flex-col items-center justify-center overflow-hidden overscroll-none select-none ${className}`}
+            className={`relative h-full w-full flex flex-col items-center justify-center overflow-hidden overscroll-none select-none touch-none ${className}`}
         >
             <div className="relative flex flex-col items-center gap-5">
                 <div className="relative">
