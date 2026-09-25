@@ -16,6 +16,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Rewrote `README.md` with a cleaner, more focused introduction and documentation structure.
 
+## [1.1.1] - 2026-09-25
+
+### Fixed
+
+- Stopped the Welcome, Create Account, and Sign In screens from being dragged in any direction. The light-theme ambient orb sat outside its scroll container (`right: -90px`), which created ~90px of real horizontal scroll range, and the shell's `overflow-y-auto` promoted its `overflow-x` to `auto`, so a sideways swipe panned the whole screen. The orb is now clipped by its own layer, the shell is explicitly `overflow-x: hidden`, and `touch-pan-y` blocks horizontal gestures outright.
+- Stopped the Welcome screen drifting vertically. Hero spacing now scales with viewport height so the block fits the frame instead of overflowing it, and centering uses auto margins so any remaining overflow pins to the top and stays reachable — `justify-center` used to spill content equally above and below, where the top half could never be scrolled back into view.
+- Capped the desktop phone frame at `100dvh - 44px` instead of a flat `880px`. Windows shorter than ~924px — including every phone held in landscape — clipped the bottom of the frame, putting the Welcome CTA outside the viewport with no way to scroll to it.
+- Locked the Android app to portrait orientation.
+- Made the splash logo screen inert to touch (`touch-action: none`).
+- Added `AuthScreen.test.tsx` to lock in the scroll contract.
+
 ## [1.1.0] - 2026-09-10
 
 ### Fixed
