@@ -105,6 +105,14 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          # The action defaults to `tools platform-tools`, but the standalone
+          # `tools` package was removed from the SDK repository: on runners with
+          # cmdline-tools 16+, `sdkmanager tools` fails with
+          # "Failed to find package 'tools'" and kills the build before Gradle
+          # ever runs. Everything we actually need is installed by the next
+          # step, so only ask for platform-tools here.
+          packages: platform-tools
 
       - name: Install Android SDK packages
         run: |
@@ -137,7 +145,7 @@ jobs:
       - name: Build release APK (signed with private CI keystore)
         # Private CI signing files are picked up by android/app/build.gradle.
         # Passing -Pjouspace.versionCode/-Name
-        # stamps the version; defaults are 11001 / "1.1.0-beta.1" if unset.
+        # stamps the version; defaults are 11101 / "1.1.1" if unset.
         working-directory: android
         run: |
           chmod +x ./gradlew
